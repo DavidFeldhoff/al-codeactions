@@ -22,4 +22,4 @@ See here how it works:
 
 ### 0.1.0
 
-Initial release
+Preview release

@@ -1,6 +1,6 @@
 import { isUndefined } from "util";
 import { ALVariable } from './alVariable';
-import { ALParameterHandler } from "./alParameterHandler";
+import { ALParameterParser } from "./alParameterParser";
 import { ALObject } from "./alObject";
 
 export class ALProcedure{
@@ -15,7 +15,7 @@ export class ALProcedure{
         this.ObjectOfProcedure = ALObject;
     }
     public getParametersAsString(): string{
-        return ALParameterHandler.parseALVariableArrayToParameterDeclarationString(this.parameters);
+        return ALParameterParser.parseALVariableArrayToParameterDeclarationString(this.parameters);
     }
     public getReturnType(): string{
         if(isUndefined(this.returnType)){

@@ -1,30 +1,31 @@
 import * as vscode from 'vscode';
 import { isNull, isUndefined } from 'util';
 import { ALProcedure } from './alProcedure';
-import { ALVariableMgmt } from './alVariableMgmt';
+import { ALVariableHandler } from './alVariableHandler';
 import { ALVariable } from './alVariable';
-import { ALParameterHandler } from './alParameterHandler';
+import { ALParameterParser } from './alParameterParser';
 import { ALSourceCodeHandler } from './alSourceCodeHandler';
 import { RegExpCreator } from './regexpCreator';
 import { ALObject } from './alObject';
+import { ALTypeHandler } from './alTypeHandler';
 
-export class ALProcedureObjectCreator {
+export class ALProcedureCallParser {
     document: vscode.TextDocument;
-    alVariableMgmt: ALVariableMgmt;
+    alVariableHandler: ALVariableHandler;
     procedureCall: string;
-    procedureCallRange: vscode.Range;
+    rangeOfProcedureCall: vscode.Range;
     callingProcedureName: string;
     callingALObject: ALObject;
 
-    constructor(document: vscode.TextDocument, procedureCallRange: vscode.Range) {
-        this.procedureCallRange = procedureCallRange;
+    constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range) {
+        this.rangeOfProcedureCall = rangeOfProcedureCall;
         this.document = document;
-        this.procedureCall = document.getText(procedureCallRange);
+        this.procedureCall = document.getText(rangeOfProcedureCall);
 
-        this.alVariableMgmt = new ALVariableMgmt(this.document);
+        this.alVariableHandler = new ALVariableHandler(this.document);
 
         const alSourceCodeHandler = new ALSourceCodeHandler(this.document);
-        this.callingProcedureName = alSourceCodeHandler.getProcedureNameOfCurrentPosition(this.procedureCallRange.start.line);
+        this.callingProcedureName = alSourceCodeHandler.getProcedureNameOfCurrentPosition(this.rangeOfProcedureCall.start.line);
         this.callingALObject = alSourceCodeHandler.getALObjectOfDocument();
     }
 
@@ -51,8 +52,8 @@ export class ALProcedureObjectCreator {
 
         return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
     }
-    getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): ALVariable[] {
-        let parameters = ALParameterHandler.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document);
+    private getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): ALVariable[] {
+        let parameters = ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
@@ -61,26 +62,11 @@ export class ALProcedureObjectCreator {
     }
 
     private getReturnTypeOfProcedureCall(variableName: string): string {
-        return this.alVariableMgmt.getTypeOfVariable(variableName, this.callingProcedureName);
+        return this.alVariableHandler.getTypeOfVariable(variableName, this.callingProcedureName);
     }
     private getCalledObject(variableName: string): ALObject {
-        let alVariable = this.alVariableMgmt.getALVariableByName(variableName, this.callingProcedureName);
-        let objectType = ALSourceCodeHandler.mapVariableTypeToALObjectType(alVariable.type);   
+        let alVariable = this.alVariableHandler.getALVariableByName(variableName, this.callingProcedureName);
+        let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);   
         return new ALObject(alVariable.subtype as string, objectType);
-    }
-
-    public static createProcedureDefinition(procedure: ALProcedure): string {
-        let returnType = procedure.getReturnType();
-        let returnString = "";
-        if (returnType !== "") {
-            returnString = ": " + returnType;
-        }
-
-        let procedureDefinition = "";
-        procedureDefinition += "    procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString + "\r\n";
-        procedureDefinition += "    begin\r\n";
-        procedureDefinition += "        Error('Procedure not implemented.');\r\n";
-        procedureDefinition += "    end;";
-        return procedureDefinition;
     }
 }

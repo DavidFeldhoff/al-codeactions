@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { ALVariable } from "./alVariable";
-import { ALVariableMgmt } from "./alVariableMgmt";
+import { ALVariableHandler } from "./alVariableHandler";
+import { ALVariableParser } from './alVariableParser';
 
-export class ALParameterHandler {
+export class ALParameterParser {
     constructor() {
     }
     public static parseParameterDeclarationStringToALVariableArray(parameterString: string, procedureName: string): ALVariable[] {
@@ -13,7 +14,7 @@ export class ALParameterHandler {
                 splittedParameters[i] = splittedParameters[i].trim();
             }
             splittedParameters.forEach(param => {
-                let variable = ALVariableMgmt.parseVariableDeclarationStringToVariable(param, procedureName);
+                let variable = ALVariableParser.parseVariableDeclarationStringToVariable(param, procedureName);
                 variables.push(variable);
             });
         }
@@ -37,7 +38,7 @@ export class ALParameterHandler {
                 splittedParameters[i] = splittedParameters[i].trim();
             }
 
-            let alVariableMgmt = new ALVariableMgmt(document);
+            let alVariableMgmt = new ALVariableHandler(document);
             splittedParameters.forEach(param => {
                 let variable = alVariableMgmt.getALVariableByName(param, procedureName);
                 variables.push(variable);

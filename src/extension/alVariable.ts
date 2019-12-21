@@ -10,8 +10,8 @@ export class ALVariable {
     isLocal: boolean;
     isVar: boolean;
     isTemporary: boolean;
-    procedure: string;
-    constructor(name: string, isLocal: boolean, procedure: string, isVar: boolean, isTemporary: boolean, type: string, subtype?: string, length?: number, dimensions?: string) {
+    procedure: string | undefined;
+    constructor(name: string, isLocal: boolean, procedure: string | undefined, isVar: boolean, isTemporary: boolean, type: string, subtype?: string, length?: number, dimensions?: string) {
         this.name = name;
         this.isLocal = isLocal;
         this.procedure = procedure;
