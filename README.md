@@ -1,4 +1,4 @@
-# README
+# AL CodeActions
 
 This extension provides code actions to the diagnostics reported by the AL Language extension.
 
@@ -20,6 +20,6 @@ See here how it works:
 
 ## Release Notes
 
-### 1.0.0
+### 0.1.0
 
 Initial release
