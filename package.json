@@ -1,19 +1,40 @@
 {
-	"publisher": "davidfeldhoff",
 	"name": "al-codeactions",
 	"displayName": "AL CodeActions",
 	"description": "Adds codeactions to the AL language",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.40.0"
+	"version": "0.1.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/DavidFeldhoff/al-codeactions"
 	},
+	"bugs": {
+		"email": "david.feldhoff@web.de",
+		"url": "https://github.com/DavidFeldhoff/al-codeactions/issues"
+	},
+	"publisher": "davidfeldhoff",
+	"author": {
+		"name": "David Feldhoff",
+		"email": "david.feldhoff@web.de"
+	},
+	"icon": "images/bulb.png",
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"AL",
+		"AL Extensions",
+		"Business Central",
+		"CSIDE",
+		"Dynamics NAV"
+	],
+	"engines": {
+		"vscode": "^1.40.0"
+	},
+	"main": "./out/extension.js",
 	"activationEvents": [
 		"onLanguage:al"
 	],
-	"main": "./out/extension.js",
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
