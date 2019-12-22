@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 
 export class ALObject {
-    name: string;
-    type: string;
-    id: number | undefined;
-    document: vscode.TextDocument | undefined;
+    public name: string;
+    public type: string;
+    public id: number | undefined;
+    public document: vscode.TextDocument | undefined;
     constructor(name: string, type: string, id?: number, document?: vscode.TextDocument) {
         this.name = name;
         this.type = type;

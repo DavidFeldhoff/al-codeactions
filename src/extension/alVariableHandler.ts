@@ -7,7 +7,7 @@ import { ALVariableParser } from './alVariableParser';
 
 export class ALVariableHandler {
     private variables: ALVariable[] = [];
-    document: vscode.TextDocument;
+    private document: vscode.TextDocument;
     constructor(document: vscode.TextDocument) {
         this.document = document;
         this.variables = ALVariableParser.findAllVariablesInDocument(this.document);

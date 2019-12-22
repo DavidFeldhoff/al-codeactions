@@ -1,16 +1,15 @@
 import { isUndefined } from "util";
 
 export class ALVariable {
-    name: string;
-    // getTypeDefinition: string;
-    type: string;
-    subtype: string | undefined;
-    dimensions: string | undefined;
-    length: number | undefined;
-    isLocal: boolean;
-    isVar: boolean;
-    isTemporary: boolean;
-    procedure: string | undefined;
+    public name: string;
+    public type: string;
+    public subtype: string | undefined;
+    public dimensions: string | undefined;
+    public length: number | undefined;
+    public isLocal: boolean;
+    public isVar: boolean;
+    public isTemporary: boolean;
+    public procedure: string | undefined;
     constructor(name: string, isLocal: boolean, procedure: string | undefined, isVar: boolean, isTemporary: boolean, type: string, subtype?: string, length?: number, dimensions?: string) {
         this.name = name;
         this.isLocal = isLocal;

@@ -4,7 +4,7 @@ import { ALParameterParser } from "./alParameterParser";
 import { ALObject } from "./alObject";
 
 export class ALProcedure{
-    name: string;
+    public name: string;
     private parameters: ALVariable[];
     private returnType?: string;
     public ObjectOfProcedure: ALObject;

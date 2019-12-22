@@ -10,12 +10,12 @@ import { ALObject } from './alObject';
 import { ALTypeHandler } from './alTypeHandler';
 
 export class ALProcedureCallParser {
-    document: vscode.TextDocument;
-    alVariableHandler: ALVariableHandler;
-    procedureCall: string;
-    rangeOfProcedureCall: vscode.Range;
-    callingProcedureName: string;
-    callingALObject: ALObject;
+    private document: vscode.TextDocument;
+    private alVariableHandler: ALVariableHandler;
+    private procedureCall: string;
+    private rangeOfProcedureCall: vscode.Range;
+    private callingProcedureName: string;
+    private callingALObject: ALObject;
 
     constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range) {
         this.rangeOfProcedureCall = rangeOfProcedureCall;

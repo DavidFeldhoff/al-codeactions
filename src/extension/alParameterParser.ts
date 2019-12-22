@@ -4,8 +4,6 @@ import { ALVariableHandler } from "./alVariableHandler";
 import { ALVariableParser } from './alVariableParser';
 
 export class ALParameterParser {
-    constructor() {
-    }
     public static parseParameterDeclarationStringToALVariableArray(parameterString: string, procedureName: string): ALVariable[] {
         let variables: ALVariable[] = [];
         if (parameterString !== "") {
