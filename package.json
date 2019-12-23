@@ -38,7 +38,8 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
+		"watch": "npm run copyfiles && tsc -watch -p ./",
+		"copyfiles": "copyfiles -f ./src/test/suite/testFiles/*.testal ./out/test/suite/testFiles/",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js"
 	},
@@ -47,6 +48,7 @@
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.11.7",
 		"@types/vscode": "^1.40.0",
+		"copyfiles": "^2.1.1",
 		"glob": "^7.1.5",
 		"mocha": "^6.2.2",
 		"typescript": "^3.6.4",

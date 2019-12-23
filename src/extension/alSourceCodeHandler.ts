@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { RegExpCreator } from './regexpCreator';
 import { isNullOrUndefined, isUndefined, isNull } from 'util';
-import { KeywordHandler } from './keywordHandler';
 import { ALObject } from './alObject';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 
@@ -12,19 +11,31 @@ export class ALSourceCodeHandler {
         this.document = document;
     }
     public getALObjectOfDocument(): ALObject {
-        let firstLine = this.document.lineAt(0).text;
-        let execArray = RegExpCreator.matchObjectDeclarationLine.exec(firstLine);
-        if (isNull(execArray) || isUndefined(execArray.groups)) {
-            throw new Error('Unable to get object type and name of document ' + this.document.fileName + '.');
+        let lineNo: number | undefined = this.getObjectDeclarationLine();
+        if (!isUndefined(lineNo)) {
+            let lineText = this.document.lineAt(lineNo as number).text;
+            let execArray = RegExpCreator.matchObjectDeclarationLine.exec(lineText);
+            if (!isNull(execArray) && !isUndefined(execArray.groups)) {
+                return new ALObject(
+                    execArray.groups['objectName'],
+                    execArray.groups['objectType'],
+                    execArray.groups['objectId'] as unknown as number,
+                    this.document);
+            }
         }
-        return new ALObject(
-            execArray.groups['objectName'],
-            execArray.groups['objectType'],
-            execArray.groups['objectId'] as unknown as number,
-            this.document);
+        throw new Error('Unable to get object type and name of document ' + this.document.fileName + '.');
+    }
+    private getObjectDeclarationLine(): number | undefined {
+        for (let lineNo = 0; lineNo < this.document.lineCount; lineNo++) {
+            let lineText = this.document.lineAt(lineNo).text;
+            if (RegExpCreator.matchObjectDeclarationLine.test(lineText)) {
+                return lineNo;
+            }
+        }
+        return undefined;
     }
 
-    public getProcedureNameOfCurrentPosition(currentLine: number): string {
+    public getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): string {
         this.document.lineAt(currentLine);
         const regex = RegExpCreator.matchProcedureOrTriggerDeclarationLine;
         for (let i = currentLine; i > 0; i--) {
@@ -49,7 +60,7 @@ export class ALSourceCodeHandler {
     private getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number): vscode.Position {
         for (let i = currentLineNo; i < document.lineCount; i++) {
             if (this.isPossiblePositionToInsertProcedure(document.lineAt(i))) {
-                return new vscode.Position(i, document.lineAt(i).text.length);
+                return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
         //if the end of the current procedure wasn't found fall back and take the last possible position to insert the procedure.
@@ -64,7 +75,7 @@ export class ALSourceCodeHandler {
             }
 
             if (this.isPossiblePositionToInsertProcedure(document.lineAt(i))) {
-                return new vscode.Position(i, document.lineAt(i).text.length);
+                return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
         if (isUndefined(lineOfClosingBracket)) {
@@ -85,7 +96,17 @@ export class ALSourceCodeHandler {
     public getRangeOfProcedureCall(diagnostic: vscode.Diagnostic): vscode.Range | undefined {
         let lineText = this.document.lineAt(diagnostic.range.start).text;
 
-        let endOfProcedureCall = lineText.indexOf(')', diagnostic.range.end.character) + 1;
+        let openingBracket = new vscode.Position(diagnostic.range.end.line, diagnostic.range.end.character);
+        //TODO: Not yet supported to create a procedure which is part of a call of another (existing) procedure.
+        if (lineText.substr(0, openingBracket.character).includes('(')) {
+            return undefined;
+        }
+        
+        let indexOfmatchingClosingBracket = this.findMatchingClosingBracket(this.document, openingBracket);
+        if (isUndefined(indexOfmatchingClosingBracket)) {
+            return undefined;
+        }
+        let endOfProcedureCall = indexOfmatchingClosingBracket + 1;
         let lineTextUpToEndOfProcedureCall = lineText.substr(0, endOfProcedureCall);
         let execArray = RegExpCreator.matchWholeProcedureCall.exec(lineTextUpToEndOfProcedureCall);
         if (isNull(execArray)) {
@@ -98,8 +119,30 @@ export class ALSourceCodeHandler {
                 beginningOfProcedureCall,
                 diagnostic.range.end.line,
                 endOfProcedureCall);
+
             return procedureCallRange;
         }
+    }
+    findMatchingClosingBracket(document: vscode.TextDocument, openingBracket: vscode.Position): number | undefined {
+        let lineText = document.lineAt(openingBracket.line).text;
+        let lineTextStartingAtBracket = lineText.substr(openingBracket.character);
+        let closingBracket;
+        let startSearchPos = openingBracket.character;
+        let bracketAmountIsEqual = false;
+        do {
+            closingBracket = lineText.indexOf(')', startSearchPos);
+            if (closingBracket === -1) {
+                return undefined;
+            } else {
+                startSearchPos = closingBracket + 1;
+            }
+            let textBetweenBrackets = lineText.substr(openingBracket.character, closingBracket - openingBracket.character + ")".length);
+
+            let matchOpeningBrackets = textBetweenBrackets.match(/\(/g) as RegExpMatchArray;
+            let matchClosingBrackets = textBetweenBrackets.match(/\)/g) as RegExpMatchArray;
+            bracketAmountIsEqual = matchOpeningBrackets.length === matchClosingBrackets.length;
+        } while (!bracketAmountIsEqual);
+        return closingBracket;
     }
 
     public getRelevantDiagnosticOfCurrentPosition(range: vscode.Range) {

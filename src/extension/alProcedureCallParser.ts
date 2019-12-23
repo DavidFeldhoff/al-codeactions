@@ -25,7 +25,7 @@ export class ALProcedureCallParser {
         this.alVariableHandler = new ALVariableHandler(this.document);
 
         const alSourceCodeHandler = new ALSourceCodeHandler(this.document);
-        this.callingProcedureName = alSourceCodeHandler.getProcedureNameOfCurrentPosition(this.rangeOfProcedureCall.start.line);
+        this.callingProcedureName = alSourceCodeHandler.getProcedureOrTriggerNameOfCurrentPosition(this.rangeOfProcedureCall.start.line);
         this.callingALObject = alSourceCodeHandler.getALObjectOfDocument();
     }
 
