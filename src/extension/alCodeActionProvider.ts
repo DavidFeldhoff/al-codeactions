@@ -3,13 +3,11 @@ import { isUndefined, isNull } from 'util';
 import { ALProcedure } from './alProcedure';
 import { ALProcedureCallParser } from './alProcedureCallParser';
 import { ALProcedureSourceCodeCreator } from './alProcedureSourceCodeCreator';
-import { RegExpCreator } from './regexpCreator';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
-import { ALObject } from './alObject';
 import { ALSourceCodeHandler } from './alSourceCodeHandler';
 import { ALWorkspace } from './alWorkspace';
 
-export class ProcedureCreator implements vscode.CodeActionProvider {
+export class ALCodeActionProvider implements vscode.CodeActionProvider {
 
     public static readonly providedCodeActionKinds = [
         vscode.CodeActionKind.QuickFix
