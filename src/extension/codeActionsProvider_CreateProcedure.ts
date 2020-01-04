@@ -27,7 +27,7 @@ export class ProcedureCreator implements vscode.CodeActionProvider {
         }
 
         let procedureToCreate: ALProcedure | undefined;
-        procedureToCreate = await this.getProcedureToCreate(document, diagnostic);
+        procedureToCreate = await this.getProcedureToCreate(document, diagnostic.range);
         if (isUndefined(procedureToCreate)) {
             return;
         }
@@ -52,8 +52,8 @@ export class ProcedureCreator implements vscode.CodeActionProvider {
         return false;
     }
 
-    private async getProcedureToCreate(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<ALProcedure | undefined> {
-        let rangeOfProcedureCall = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+    public async getProcedureToCreate(document: vscode.TextDocument, rangeOfProcedureName: vscode.Range): Promise<ALProcedure | undefined> {
+        let rangeOfProcedureCall = new ALSourceCodeHandler(document).getRangeOfProcedureCall(rangeOfProcedureName);
         if (isUndefined(rangeOfProcedureCall)) {
             return;
         } else {

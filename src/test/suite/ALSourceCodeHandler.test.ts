@@ -121,7 +121,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithoutParameters".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithoutParameters()".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -133,7 +133,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameter".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameter(myInteger)".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -145,7 +145,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameters".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameters(myInteger, myBoolean)".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -157,7 +157,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithReturn".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "myText := MissingProcedureWithReturn(myInteger)".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -169,7 +169,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedure".length), 'test');
 			diagnostic.code = 'AL0132';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "SecondCodeunit.MissingProcedure(myInteger, myBoolean)".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -181,7 +181,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithReturn".length), 'test');
 			diagnostic.code = 'AL0132';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "myText := SecondCodeunit.MissingProcedureWithReturn(myInteger, myBoolean)".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -193,7 +193,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithProcedureCallInside".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			let expectedRange = new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithProcedureCallInside(myProcedure(5))".length);
 			assert.equal(range?.isEqual(expectedRange), true);
 		});
@@ -206,7 +206,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, startPos, lineNo, startPos + "MissingProcedureWithDirectlyUsedReturnValue".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			//TODO: not supported yet.
 			assert.equal(range, undefined);
 			// let expectedRange = new vscode.Range(lineNo, startPos, lineNo, startPos + "MissingProcedureWithDirectlyUsedReturnValue()".length);
@@ -221,7 +221,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MultilineProcedureCall".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
-			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic);
+			let range = new ALSourceCodeHandler(document).getRangeOfProcedureCall(diagnostic.range);
 			assert.equal(range, undefined);
 		});
 	});

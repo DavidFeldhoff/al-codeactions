@@ -4,7 +4,7 @@ import { ALProcedure } from "./alProcedure";
 export class ALProcedureSourceCodeCreator{
     
     public static createProcedureDefinition(procedure: ALProcedure): string {
-        let returnType = procedure.getReturnType();
+        let returnType = procedure.getReturnTypeAsString();
         let returnString = "";
         if (returnType !== "") {
             returnString = ": " + returnType;

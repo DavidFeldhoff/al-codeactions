@@ -93,10 +93,10 @@ export class ALSourceCodeHandler {
         return false;
     }
 
-    public getRangeOfProcedureCall(diagnostic: vscode.Diagnostic): vscode.Range | undefined {
-        let lineText = this.document.lineAt(diagnostic.range.start).text;
+    public getRangeOfProcedureCall(rangeOfProcedureName: vscode.Range): vscode.Range | undefined {
+        let lineText = this.document.lineAt(rangeOfProcedureName.start).text;
 
-        let openingBracket = new vscode.Position(diagnostic.range.end.line, diagnostic.range.end.character);
+        let openingBracket = new vscode.Position(rangeOfProcedureName.end.line, rangeOfProcedureName.end.character);
         //TODO: Not yet supported to create a procedure which is part of a call of another (existing) procedure.
         if (lineText.substr(0, openingBracket.character).includes('(')) {
             return undefined;
@@ -115,9 +115,9 @@ export class ALSourceCodeHandler {
             let beginningOfProcedureCall = endOfProcedureCall - execArray[0].length;
 
             let procedureCallRange = new vscode.Range(
-                diagnostic.range.start.line,
+                rangeOfProcedureName.start.line,
                 beginningOfProcedureCall,
-                diagnostic.range.end.line,
+                rangeOfProcedureName.end.line,
                 endOfProcedureCall);
 
             return procedureCallRange;

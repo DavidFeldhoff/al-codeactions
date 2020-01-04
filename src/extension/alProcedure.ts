@@ -5,8 +5,8 @@ import { ALObject } from "./alObject";
 
 export class ALProcedure{
     public name: string;
-    private parameters: ALVariable[];
-    private returnType?: string;
+    public parameters: ALVariable[];
+    public returnType?: string;
     public ObjectOfProcedure: ALObject;
     constructor(name: string, parameters: ALVariable[], returnValue: string | undefined, ALObject: ALObject){
         this.name = name;
@@ -17,7 +17,7 @@ export class ALProcedure{
     public getParametersAsString(): string{
         return ALParameterParser.parseALVariableArrayToParameterDeclarationString(this.parameters);
     }
-    public getReturnType(): string{
+    public getReturnTypeAsString(): string{
         if(isUndefined(this.returnType)){
             return "";
         }
