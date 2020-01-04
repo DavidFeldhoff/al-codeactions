@@ -29,7 +29,7 @@ export class ALProcedureCallParser {
         this.callingALObject = alSourceCodeHandler.getALObjectOfDocument();
     }
 
-    public getProcedure(): ALProcedure | undefined {
+    public async getProcedure(): Promise<ALProcedure | undefined> {
         let procedureNameToCreate: string;
         let returnType: string | undefined;
         let parameters: ALVariable[];
@@ -48,12 +48,12 @@ export class ALProcedureCallParser {
             calledALObject = this.callingALObject;
         }
         procedureNameToCreate = execArray.groups["calledProc"];
-        parameters = this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
+        parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
 
         return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
     }
-    private getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): ALVariable[] {
-        let parameters = ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document);
+    private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document, this.rangeOfProcedureCall);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
@@ -61,12 +61,20 @@ export class ALProcedureCallParser {
         return parameters;
     }
 
-    private getReturnTypeOfProcedureCall(variableName: string): string {
-        return this.alVariableHandler.getTypeOfVariable(variableName, this.callingProcedureName);
+    private getReturnTypeOfProcedureCall(variableNameToBeAssigned: string): string {
+        let returnType = this.alVariableHandler.getTypeOfVariable(variableNameToBeAssigned, this.callingProcedureName);
+        if(isUndefined(returnType)){
+            //TODO: No Variable. Probably the Procedure Call is a parameter of another ProcedureCall
+            throw new Error('Not supported yet.');
+        }
+        return returnType as string;
     }
     private getCalledObject(variableName: string): ALObject {
         let alVariable = this.alVariableHandler.getALVariableByName(variableName, this.callingProcedureName);
-        let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);   
+        if(isUndefined(alVariable)){
+            throw new Error('Unexpected error.');
+        }
+        let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);
         return new ALObject(alVariable.subtype as string, objectType);
     }
 }

@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { isUndefined, isNull } from 'util';
 import { ALVariable } from './alVariable';
-import { ALParameterParser } from './alParameterParser';
-import { RegExpCreator } from './regexpCreator';
 import { ALVariableParser } from './alVariableParser';
+import { DevToolsExtensionContext } from './devToolsExtensionContext';
 
 export class ALVariableHandler {
     private variables: ALVariable[] = [];
@@ -16,7 +15,7 @@ export class ALVariableHandler {
     public getAllVariables(): ALVariable[] {
         return this.variables;
     }
-    public getALVariableByName(variableName: string, procedureName?: string): ALVariable {
+    public getALVariableByName(variableName: string, procedureName?: string): ALVariable | undefined {
         if (!isUndefined(procedureName)) {
             let localVariable = this.getLocalVariableByName(procedureName, variableName);
             if (!isUndefined(localVariable)) {
@@ -28,26 +27,30 @@ export class ALVariableHandler {
         if (!isUndefined(globalVariable)) {
             return globalVariable;
         }
-
-        throw new Error("Variable " + variableName + " not found" + isUndefined(procedureName)? "": " in procedure " + procedureName + " in file " + this.document.fileName + ".");
+        return undefined;
     }
     private getGlobalVariableByName(variableName: string) {
-        return this.variables.find(v => 
+        return this.variables.find(v =>
             v.isLocal === false &&
             isUndefined(v.procedure) &&
             v.name === variableName);
     }
 
     private getLocalVariableByName(procedureName: string, variableName: string): ALVariable | undefined {
-        let localVariable = this.variables.find(v => 
+        let localVariable = this.variables.find(v =>
             v.isLocal === true &&
             v.procedure === procedureName &&
             v.name === variableName);
         return localVariable;
     }
 
-    public getTypeOfVariable(paramName: string, procedureName?: string): string {
+    public getTypeOfVariable(paramName: string, procedureName?: string): string | undefined {
         let variable = this.getALVariableByName(paramName, procedureName);
+        if(isUndefined(variable)){
+            return undefined;
+        }
         return variable.getTypeDefinition();
     }
+
+   
 }

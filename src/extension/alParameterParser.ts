@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ALVariable } from "./alVariable";
 import { ALVariableHandler } from "./alVariableHandler";
 import { ALVariableParser } from './alVariableParser';
+import { isUndefined } from 'util';
 
 export class ALParameterParser {
     public static parseParameterDeclarationStringToALVariableArray(parameterString: string, procedureName: string): ALVariable[] {
@@ -28,19 +29,26 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    public static parseParameterCallStringToALVariableArray(parameterCallString: string, procedureName: string, document: vscode.TextDocument): ALVariable[] {
+    public static async parseParameterCallStringToALVariableArray(parameterCallString: string, procedureName: string, document: vscode.TextDocument, procedureCallRange: vscode.Range): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
-        if (parameterCallString !== "") {
-            let splittedParameters = parameterCallString.split(',');
-            for (let i = 0; i < splittedParameters.length; i++) {
-                splittedParameters[i] = splittedParameters[i].trim();
-            }
+        if (parameterCallString === "") {
+            return variables;
+        }
 
-            let alVariableMgmt = new ALVariableHandler(document);
-            splittedParameters.forEach(param => {
-                let variable = alVariableMgmt.getALVariableByName(param, procedureName);
-                variables.push(variable);
-            });
+        let alVariableMgmt = new ALVariableHandler(document);
+        let splittedParameters = parameterCallString.split(',');
+        for (let i = 0; i < splittedParameters.length; i++) {
+            let param = splittedParameters[i].trim();
+
+            let variable = alVariableMgmt.getALVariableByName(param, procedureName);
+            if (isUndefined(variable)) {
+                let variableCall = param; //Customer."No." e.g.
+                variable = await ALVariableParser.parseVariableCallToALVariableUsingSymbols(document, procedureCallRange.start, variableCall);
+            }
+            if (isUndefined(variable)) {
+                variable = new ALVariable('a', false, '', false, false, 'Variant');
+            }
+            variables.push(variable);
         }
         return variables;
     }

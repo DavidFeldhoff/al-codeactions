@@ -3,9 +3,10 @@ import { RegExpCreator } from "./regexpCreator";
 import { isNull, isUndefined } from "util";
 import { ALVariable } from "./alVariable";
 import { ALParameterParser } from "./alParameterParser";
+import { ALSymbolHandler } from './alSymbolHandler';
 
-export class ALVariableParser{
-    
+export class ALVariableParser {
+
     public static findAllVariablesInDocument(document: vscode.TextDocument): ALVariable[] {
         let searchVariables: boolean = false;
         let variables: ALVariable[] = [];
@@ -38,7 +39,7 @@ export class ALVariableParser{
         }
         return variables;
     }
-    
+
     public static parseVariableDeclarationStringToVariable(variableDeclarationString: string, procedureName: string | undefined): ALVariable {
         variableDeclarationString = variableDeclarationString.replace(/;/g, '');
 
@@ -58,14 +59,35 @@ export class ALVariableParser{
         let isTemporary = !isUndefined(res["isTemporary"]);
 
         return new ALVariable(
-            variableName, 
-            isLocal, 
-            procedureName, 
-            isVar, 
-            isTemporary, 
-            variableType, 
-            variableSubtype, 
-            length, 
+            variableName,
+            isLocal,
+            procedureName,
+            isVar,
+            isTemporary,
+            variableType,
+            variableSubtype,
+            length,
             dimensions);
+    }
+
+    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, positionOfVariableCall: vscode.Position, variableCall: string): Promise<ALVariable | undefined> {
+        //With VariableCall I mean 'Customer."No."' e.g.
+        if (variableCall.includes('.')) {
+            let childSymbolName = variableCall.substr(variableCall.indexOf('.') + 1);
+            const alSymbolHandler = new ALSymbolHandler();
+            let position = alSymbolHandler.getPositionToGetCorrectSymbolLocation(document, positionOfVariableCall, variableCall);
+            let found = await alSymbolHandler.findSymbols(document, position);
+            if (found) {
+                let symbol = alSymbolHandler.searchForSymbol(childSymbolName);
+                if (!isUndefined(symbol)) {
+                    return this.parseFieldSymbolToALVariable(symbol);
+                }
+            }
+        }
+        return undefined;
+    }
+
+    public static parseFieldSymbolToALVariable(symbol: any): ALVariable {
+        return this.parseVariableDeclarationStringToVariable(symbol.fullName, undefined);
     }
 }
