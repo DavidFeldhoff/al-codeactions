@@ -46,7 +46,16 @@ export class ALParameterParser {
                 variable = await ALVariableParser.parseVariableCallToALVariableUsingSymbols(document, procedureCallRange.start, variableCall);
             }
             if (isUndefined(variable)) {
-                variable = new ALVariable('a', false, '', false, false, 'Variant');
+                let variableName : string;
+                let variableNameUnique = true;
+                let i = 0;
+                do {
+                    variableName = String.fromCharCode(97 + i++);
+                    variables.forEach(variable => {
+                        variableNameUnique = variable.name.toLowerCase() !== variableName;
+                    });
+                } while (!variableNameUnique);
+                variable = new ALVariable(variableName, false, '', false, false, 'Variant');
             }
             variables.push(variable);
         }

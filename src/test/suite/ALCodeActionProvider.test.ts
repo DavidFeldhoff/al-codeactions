@@ -108,6 +108,39 @@ suite('ALCodeActionProvider Test Suite', () => {
 			assert.equal(alProcedure.ObjectOfProcedure.name,"SecondCodeunit");
 		});
 	});
+	test('getProcedureToCreate_ProcedureAsParameter', async () => {
+		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
+		await vscode.workspace.openTextDocument(fileName).then(async document => {
+			let procedureName = 'MissingProcedureWithProcedureCallInside';
+			let rangeOfProcedureName = getRangeOfProcedureName(document, procedureName);
+			let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(document, rangeOfProcedureName);
+			assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+			alProcedure = alProcedure as ALProcedure;
+			assert.equal(alProcedure.name, procedureName);
+			assert.equal(alProcedure.returnType, undefined);
+			assert.equal(alProcedure.parameters.length, 1);
+			assert.equal(alProcedure.parameters[0].name,'a');
+			//TODO: Not supported yet
+			assert.equal(alProcedure.parameters[0].getTypeDefinition(),'Variant');
+			// assert.equal(alProcedure.parameters[0].getTypeDefinition(),'Integer');
+		});
+	});
+	test('getProcedureToCreate_ReturnValueDirectlyUsed', async () => {
+		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
+		await vscode.workspace.openTextDocument(fileName).then(async document => {
+			let procedureName = 'MissingProcedureWithDirectlyUsedReturnValue';
+			let rangeOfProcedureName = getRangeOfProcedureName(document, procedureName);
+			let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(document, rangeOfProcedureName);
+			//TODO: Not supported yet
+			assert.equal(alProcedure, undefined);
+			// assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+			// alProcedure = alProcedure as ALProcedure;
+			// assert.equal(alProcedure.name, procedureName);
+			//assert.notEqual(alProcedure.returnType, undefined);
+			// assert.equal(alProcedure.getReturnTypeAsString(), "Integer");
+			// assert.equal(alProcedure.parameters.length, 0);
+		});
+	});
 
 	function getRangeOfProcedureName(document: vscode.TextDocument, procedureName: string): vscode.Range {
 		let line: number | undefined;
