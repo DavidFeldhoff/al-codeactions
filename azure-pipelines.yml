@@ -1,6 +1,13 @@
 trigger:
 - master
 
+resources:
+  repositories:
+  - repository: test-al-project
+    type: github
+    name: DavidFeldhoff/test-al-project
+    branch: master
+
 strategy:
   matrix:
     linux:
@@ -14,6 +21,8 @@ pool:
   vmImage: $(imageName)
 
 steps:
+- checkout: self
+- checkout: test-al-project
 
 - task: NodeTool@0
   inputs:
@@ -33,5 +42,6 @@ steps:
     echo ">>> Run sample integration test"
     yarn && yarn compile && yarn copyfiles && yarn test
   displayName: Run Tests
+  workingDirectory: al-codeactions
   env:
     DISPLAY: ':99.0'
