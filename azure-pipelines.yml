@@ -31,11 +31,16 @@ steps:
   displayName: 'Install Node.js'
 
 - bash: |
+    code --install-extension microsoft.al
+  displayName: Install Extension microsoft.al
+- bash: |
+    code --install-extension andrzejzwierzchowski.al-code-outline
+  displayName: Install Extension andrzejzwierzchowski.al-code-outline
+- bash: |
     /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     echo ">>> Started xvfb"
   displayName: Start xvfb
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
 - bash: |
     echo ">>> Compile vscode-test"
     yarn && yarn compile
