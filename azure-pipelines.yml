@@ -32,7 +32,13 @@ steps:
 
 - bash: |
     sudo snap install --classic code
+  displayName: Install VS Code for Linux
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+- powershell: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    choco install vscode
+  displayName: Install VS Code for Windows
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
 - bash: |
     code --install-extension microsoft.al
   displayName: Install Extension microsoft.al
