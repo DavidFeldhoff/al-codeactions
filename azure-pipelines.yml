@@ -36,6 +36,9 @@ steps:
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
 - powershell: |
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+  displayName: Install Choco for Windows
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+- powershell: |
     choco install vscode
   displayName: Install VS Code for Windows
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
