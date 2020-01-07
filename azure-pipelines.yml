@@ -38,7 +38,7 @@ steps:
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     choco install vscode
   displayName: Install VS Code for Windows
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 - bash: |
     code --install-extension microsoft.al
   displayName: Install Extension microsoft.al
