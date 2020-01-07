@@ -109,7 +109,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(undefined);
-			assert.equal(position.isEqual(new vscode.Position(41, 8)), true, `${position.line},${position.character}`);
+			assert.equal(position.isEqual(new vscode.Position(45, 8)), true, `${position.line},${position.character}`);
 		});
 	});
 	//#endregion getPositionToInsertProcedure

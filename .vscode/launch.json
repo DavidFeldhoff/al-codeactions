@@ -24,12 +24,14 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+				"${workspaceFolder}/../test-al-project", //load al-project, so that the al-language is loaded.
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
-			]
+			],
+			"preLaunchTask": "npm: compile"
 		}
 	]
 }
