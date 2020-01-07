@@ -31,6 +31,9 @@ steps:
   displayName: 'Install Node.js'
 
 - bash: |
+    sudo snap install --classic code
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+- bash: |
     code --install-extension microsoft.al
   displayName: Install Extension microsoft.al
 - bash: |
@@ -45,8 +48,8 @@ steps:
     echo ">>> Compile vscode-test"
     yarn && yarn compile
     echo ">>> Compiled vscode-test"
-    echo ">>> Run sample integration test"
-    yarn && yarn compile && yarn copyfiles && yarn test
+    echo ">>> Run tests"
+    yarn && yarn compile && yarn test
   displayName: Run Tests
   workingDirectory: al-codeactions
   env:
