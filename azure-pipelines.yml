@@ -31,28 +31,11 @@ steps:
   displayName: 'Install Node.js'
 
 - bash: |
-    sudo snap install --classic code
-  displayName: Install VS Code for Linux
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-- powershell: |
-    Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-  displayName: Install Choco for Windows
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
-- powershell: |
-    choco install vscode
-  displayName: Install VS Code for Windows
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
-- bash: |
-    code --install-extension microsoft.al
-  displayName: Install Extension microsoft.al
-- bash: |
-    code --install-extension andrzejzwierzchowski.al-code-outline
-  displayName: Install Extension andrzejzwierzchowski.al-code-outline
-- bash: |
     /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     echo ">>> Started xvfb"
   displayName: Start xvfb
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
 - bash: |
     echo ">>> Compile vscode-test"
     yarn && yarn compile
