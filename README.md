@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/davidfeldhoff/Community/_apis/build/status/DavidFeldhoff.al-codeactions?branchName=master)](https://dev.azure.com/davidfeldhoff/Community/_build/latest?definitionId=2&branchName=master)
+
 # AL CodeActions
 
 This extension provides code actions to the diagnostics reported by the AL Language extension.
