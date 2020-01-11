@@ -1,6 +1,7 @@
+import * as cp from 'child_process';
 import * as path from 'path';
 
-import { runTests } from 'vscode-test';
+import { runTests, downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from 'vscode-test';
 
 async function main() {
 	try {
@@ -12,8 +13,22 @@ async function main() {
 		// Passed to --extensionTestsPath
 		const extensionTestsPath = path.resolve(__dirname, './suite/index');
 
-		// Download VS Code, unzip it and run the integration test
-		await runTests({ extensionDevelopmentPath, extensionTestsPath });
+		// Download VS Code and unzip it
+		const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
+		const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+
+		// Install dependent extensions
+		cp.spawnSync(cliPath, ['--install-extension', 'ms-dynamics-smb.al'], {
+			encoding: 'utf-8',
+			stdio: 'inherit'
+		});
+		cp.spawnSync(cliPath, ['--install-extension', 'andrzejzwierzchowski.al-code-outline'], {
+			encoding: 'utf-8',
+			stdio: 'inherit'
+		});
+
+		// Run the extension test
+		await runTests({ vscodeExecutablePath, extensionDevelopmentPath, extensionTestsPath });
 	} catch (err) {
 		console.error('Failed to run tests');
 		process.exit(1);
