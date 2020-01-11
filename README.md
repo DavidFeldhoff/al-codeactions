@@ -1,6 +1,6 @@
 # AL CodeActions
 
-[![Build Status](https://dev.azure.com/davidfeldhoff/Community/_apis/build/status/DavidFeldhoff.al-codeactions?branchName=master)](https://dev.azure.com/davidfeldhoff/Community/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://dev.azure.com/davidfeldhoff/Community/_apis/build/status/DavidFeldhoff.al-codeactions?branchName=master)](https://dev.azure.com/davidfeldhoff/Community/_build/latest?definitionId=2&branchName=master)  
 This extension provides code actions to the diagnostics reported by the AL Language extension.
 
 ## Features
@@ -32,4 +32,4 @@ Preview release
 
 ## Thanks to
 
-- [GWS mbH](https://www.gws.ms/en
+- [GWS mbH](https://www.gws.ms/en)
