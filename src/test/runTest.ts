@@ -22,10 +22,11 @@ async function main() {
 			encoding: 'utf-8',
 			stdio: 'inherit'
 		});
-		cp.spawnSync(cliPath, ['--install-extension', 'andrzejzwierzchowski.al-code-outline'], {
-			encoding: 'utf-8',
-			stdio: 'inherit'
-		});
+		//currently the al code outline can't be activated in the hosted agents due to a permission error on a Mac operationg system
+		// cp.spawnSync(cliPath, ['--install-extension', 'andrzejzwierzchowski.al-code-outline'], {
+		// 	encoding: 'utf-8',
+		// 	stdio: 'inherit'
+		// });
 
 		// Run the extension test
 		await runTests({ vscodeExecutablePath, extensionDevelopmentPath, extensionTestsPath });

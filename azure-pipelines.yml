@@ -35,12 +35,6 @@ steps:
     echo ">>> Started xvfb"
   displayName: Start xvfb
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-- bash: | 
-    ls -l
-    chmod 777 /Users/runner/.vscode/extensions/
-    ls -l
-  displayName: Set Permissions to extensions
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'))
 - bash: |
     echo ">>> Compile vscode-test"
     yarn && yarn compile

@@ -129,6 +129,8 @@ suite('ALCodeActionProvider Test Suite', function () {
 		// assert.equal(alProcedure.getReturnTypeAsString(), "Integer");
 		// assert.equal(alProcedure.parameters.length, 0);
 	});
+
+	//Currently these tests can't run on a pipeline because the executeDefinitionProvider fails in finding the symbols.
 	// test('getProcedureToCreate_FieldAsParameter', async function () {
 	// 	let procedureName = 'MissingProcedureWithFieldsAsParameter';
 	// 	let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
