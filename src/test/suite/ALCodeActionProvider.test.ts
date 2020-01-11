@@ -7,29 +7,15 @@ import * as vscode from 'vscode';
 import { ALCodeActionProvider } from '../../extension/alCodeActionProvider';
 import { ALProcedure } from '../../extension/alProcedure';
 import { ALTestProject } from './ALTestProject';
-import { isUndefined } from 'util';
+import { ALExtension } from '../../extension/alExtension';
 // import * as myExtension from '../extension';
 
 suite('ALCodeActionProvider Test Suite', function () {
 	let codeunit1Document: vscode.TextDocument;
-	let skipDependentTests: boolean = false;
-	this.beforeAll(async function () {
-		//load the extension here instead of in the tests
+	this.beforeAll('beforeTests', async function () {
 		this.timeout(0);
-		let requiredExtensions: string[] = ['microsoft.al', 'andrzejzwierzchowski.al-code-outline'];
-		for (let i = 0; i < requiredExtensions.length; i++) {
-			let extensionName = requiredExtensions[i];
-			let extension = vscode.extensions.getExtension(extensionName);
-			//TODO: Get dependent tests running.
-			// assert.notEqual(extension, undefined, "The extension " + extensionName + " has to be installed.");
-			if (isUndefined(extension)) {
-				skipDependentTests = true;
-			} else {
-				extension = extension as vscode.Extension<any>;
-				await extension.activate();
-			}
-		}
-
+		await ALExtension.getInstance().activate();
+		
 		//open the file just once
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
@@ -143,38 +129,32 @@ suite('ALCodeActionProvider Test Suite', function () {
 		// assert.equal(alProcedure.getReturnTypeAsString(), "Integer");
 		// assert.equal(alProcedure.parameters.length, 0);
 	});
-	test('getProcedureToCreate_FieldAsParameter', async function () {
-		if (skipDependentTests) {
-			return;
-		}
-		let procedureName = 'MissingProcedureWithFieldsAsParameter';
-		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
-		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
-		alProcedure = alProcedure as ALProcedure;
-		assert.equal(alProcedure.name, procedureName);
-		assert.equal(alProcedure.returnType, undefined);
-		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, '"No."');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), "Code[20]");
-	}).timeout(15000); //first time interacting with the symbols and another extensin can take some time.
-	test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter', async function () {
-		if (skipDependentTests) {
-			return;
-		}
-		let procedureName = 'MissingProcedureWithTwoFieldsWithSameNameAsParameter';
-		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
-		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
-		alProcedure = alProcedure as ALProcedure;
-		assert.equal(alProcedure.name, procedureName);
-		assert.equal(alProcedure.returnType, undefined);
-		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, '"No."');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, '"No."');
-		assert.equal(alProcedure.parameters[1].getTypeDefinition(), "Code[20]");
-	});
+	// test('getProcedureToCreate_FieldAsParameter', async function () {
+	// 	let procedureName = 'MissingProcedureWithFieldsAsParameter';
+	// 	let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+	// 	let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+	// 	assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+	// 	alProcedure = alProcedure as ALProcedure;
+	// 	assert.equal(alProcedure.name, procedureName);
+	// 	assert.equal(alProcedure.returnType, undefined);
+	// 	assert.equal(alProcedure.parameters.length, 1);
+	// 	assert.equal(alProcedure.parameters[0].name, '"No."');
+	// 	assert.equal(alProcedure.parameters[0].getTypeDefinition(), "Code[20]");
+	// }).timeout(15000); //first time interacting with the symbols and another extensin can take some time.
+	// test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter', async function () {
+	// 	let procedureName = 'MissingProcedureWithTwoFieldsWithSameNameAsParameter';
+	// 	let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+	// 	let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+	// 	assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+	// 	alProcedure = alProcedure as ALProcedure;
+	// 	assert.equal(alProcedure.name, procedureName);
+	// 	assert.equal(alProcedure.returnType, undefined);
+	// 	assert.equal(alProcedure.parameters.length, 2);
+	// 	assert.equal(alProcedure.parameters[0].name, '"No."');
+	// 	assert.equal(alProcedure.parameters[0].getTypeDefinition(), "Code[20]");
+	// 	assert.equal(alProcedure.parameters[1].name, '"No."');
+	// 	assert.equal(alProcedure.parameters[1].getTypeDefinition(), "Code[20]");
+	// });
 
 	function getRangeOfProcedureName(document: vscode.TextDocument, procedureName: string): vscode.Range {
 		let line: number | undefined;
