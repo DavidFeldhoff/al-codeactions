@@ -8,14 +8,16 @@ export class ALSymbolHandler {
     private rootSymbol: any;
     public async findSymbols(document: vscode.TextDocument, positionToSearchForSymbols: vscode.Position): Promise<Boolean> {
         let locationList: vscode.Location[] | undefined;
+        console.log("try to execute definitionprovider.");
         await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', document.uri, positionToSearchForSymbols)
             .then(async definitions => {
+                console.log(" definitionprovider executed successfully.");
                 if (isUndefined(definitions)) {
                     return;
                 }
                 for (let i = 0; i < definitions.length; i++) {
+                    console.log("definitionprovider found symbols.");
                     let definition = definitions[i];
-                    let w = definition;
 
                     let uriOfCalledObject = definition.uri;
                     let devToolsExtensionContext = await DevToolsExtensionContext.getInstance();
