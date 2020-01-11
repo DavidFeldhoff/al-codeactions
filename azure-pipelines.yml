@@ -3,7 +3,7 @@ trigger:
 
 resources:
   repositories:
-  - repository: test-al-project
+  - repository: testalproject
     type: github
     name: DavidFeldhoff/test-al-project
     branch: master
@@ -23,7 +23,7 @@ pool:
 
 steps:
 - checkout: self
-- checkout: test-al-project
+- checkout: testalproject
 
 - task: NodeTool@0
   inputs:
@@ -35,7 +35,12 @@ steps:
     echo ">>> Started xvfb"
   displayName: Start xvfb
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
+- bash: | 
+    ls -l
+    chmod 777 /Users/runner/.vscode/extensions/
+    ls -l
+  displayName: Set Permissions to extensions
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'))
 - bash: |
     echo ">>> Compile vscode-test"
     yarn && yarn compile
