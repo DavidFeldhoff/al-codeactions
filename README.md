@@ -32,4 +32,9 @@ Preview release
 
 ## Thanks to
 
-- [GWS mbH](https://www.gws.ms/en)
+- Andrzej Zwierzchowski for your detailed explanations and helping me get started.
+
+## About me
+
+I started developing Dynamics NAV in 2014, but I always had an eye on other languages like Java or C# and was quite jealous about their development environment.  
+Currently I work as a product developer at GWS mbH in Germany on the newest BC versions and thanks to the extensibility of VS Code it was quite obvious to me to help to improve the development environment of AL and give something small back to the awesome BC-Community. Feel free to contribute to the extension development or join us at [GWS mbH](https://www.gws.ms/en) to create some amazing BC-Apps.
