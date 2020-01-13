@@ -7,14 +7,14 @@ import * as vscode from 'vscode';
 import { ALCodeActionProvider } from '../../extension/alCodeActionProvider';
 import { ALProcedure } from '../../extension/alProcedure';
 import { ALTestProject } from './ALTestProject';
-import { ALExtension } from '../../extension/alExtension';
+import { ALLanguageExtension } from '../../extension/alExtension';
 // import * as myExtension from '../extension';
 
 suite('ALCodeActionProvider Test Suite', function () {
 	let codeunit1Document: vscode.TextDocument;
 	this.beforeAll('beforeTests', async function () {
 		this.timeout(0);
-		await ALExtension.getInstance().activate();
+		await ALLanguageExtension.getInstance().activate();
 		
 		//open the file just once
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');

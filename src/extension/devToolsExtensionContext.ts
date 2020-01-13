@@ -1,31 +1,35 @@
 import * as vscode from 'vscode';
 import { isNullOrUndefined } from "util";
 
-export class DevToolsExtensionContext {
-    private static devToolsExtensionContext: any;
-    private constructor() { }
-
-    public static async getInstance(): Promise<any> {
-        if (isNullOrUndefined(this.devToolsExtensionContext)) {
-            await this.setInstance();
-        }
-        return this.devToolsExtensionContext;
+export class ALCodeOutlineExtension {
+    private static alCodeOutlineExtensionObject: ALCodeOutlineExtension;
+    private alCodeOutlineExtension: any;
+    private constructor(alCodeOutlineExtension: vscode.Extension<any>) {
+        this.alCodeOutlineExtension = alCodeOutlineExtension;
     }
 
-    private static async setInstance() {
-        let alCodeOutlineExt = vscode.extensions.getExtension('andrzejzwierzchowski.al-code-outline');
-        if (isNullOrUndefined(alCodeOutlineExt)) {
-            throw new Error('AL Code Outline extension is missing.');
+    public static getInstance(): ALCodeOutlineExtension {
+        if (isNullOrUndefined(this.alCodeOutlineExtensionObject)) {
+            this.setInstance();
         }
-        if (!alCodeOutlineExt.isActive) {
-            await alCodeOutlineExt.activate().then(async publicApi => {
-                this.devToolsExtensionContext = publicApi;
-                // toolsExtensionContext.activeDocumentSymbols.setDocUri(vscode.window.activeTextEditor?.document.uri);
-                // await toolsExtensionContext.activeDocumentSymbols.loadAsync(false);
-                // let c = toolsExtensionContext.activeDocumentSymbols.rootSymbol.childSymbols[0];
-            });
-        } else {
-            this.devToolsExtensionContext = alCodeOutlineExt.exports;
+        return this.alCodeOutlineExtensionObject;
+    }
+
+    private static setInstance() {
+        let vsCodeExtension = vscode.extensions.getExtension('andrzejzwierzchowski.al-code-outline');
+        if (isNullOrUndefined(vsCodeExtension)) {
+            throw new Error('AL Code Outline has to be installed.');
         }
+        this.alCodeOutlineExtensionObject = new ALCodeOutlineExtension(vsCodeExtension as vscode.Extension<any>);
+    }
+
+    public async activate(){
+        if (!this.alCodeOutlineExtension.isActive) {
+            await this.alCodeOutlineExtension.activate();
+        }
+    }
+
+    public getAPI(){
+        return this.alCodeOutlineExtension.exports;
     }
 }

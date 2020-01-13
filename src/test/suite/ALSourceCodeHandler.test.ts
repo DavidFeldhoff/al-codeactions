@@ -6,14 +6,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ALSourceCodeHandler } from '../../extension/alSourceCodeHandler';
 import { ALTestProject } from './ALTestProject';
-import { ALExtension } from '../../extension/alExtension';
+import { ALLanguageExtension } from '../../extension/alExtension';
 // import * as myExtension from '../extension';
 
 suite('ALSourceCodeHandler Test Suite', function () {
 	vscode.window.showInformationMessage('Start all tests of ALSourceCodeHandler.');
 	let sampleCodeunitURI: vscode.Uri;
 	this.beforeAll('activateExtension', async () => {
-		await ALExtension.getInstance().activate();
+		await ALLanguageExtension.getInstance().activate();
 	}).timeout(0);
 
 	//#region getALObjectOfDocument

@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
 import { isNullOrUndefined } from "util";
 
-export class ALExtension {
-    private static alExtensionObject: ALExtension;
-    private alExtension: any;
-    private constructor(alExtension: vscode.Extension<any>) {
-        this.alExtension = alExtension;
+export class ALLanguageExtension {
+    private static alLanguageExtensionObject: ALLanguageExtension;
+    private alLanguageExtension: any;
+    private constructor(alLanguageExtension: vscode.Extension<any>) {
+        this.alLanguageExtension = alLanguageExtension;
      }
 
-    public static getInstance(): ALExtension {
-        if (isNullOrUndefined(this.alExtensionObject)) {
+    public static getInstance(): ALLanguageExtension {
+        if (isNullOrUndefined(this.alLanguageExtensionObject)) {
             this.setInstance();
         }
-        return this.alExtensionObject;
+        return this.alLanguageExtensionObject;
     }
 
     private static setInstance() {
@@ -23,12 +23,12 @@ export class ALExtension {
                 throw new Error('AL Extension has to be installed.');
             }
         }
-        this.alExtensionObject = new ALExtension(vsCodeExtension as vscode.Extension<any>);
+        this.alLanguageExtensionObject = new ALLanguageExtension(vsCodeExtension as vscode.Extension<any>);
     }
     
     public async activate(){
-        if (!this.alExtension.isActive) {
-            await this.alExtension.activate();
+        if (!this.alLanguageExtension.isActive) {
+            await this.alLanguageExtension.activate();
         }
     }
 }

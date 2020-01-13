@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { isUndefined, isNull } from 'util';
 import { ALVariable } from './alVariable';
 import { ALVariableParser } from './alVariableParser';
-import { DevToolsExtensionContext } from './devToolsExtensionContext';
 
 export class ALVariableHandler {
     private variables: ALVariable[] = [];
