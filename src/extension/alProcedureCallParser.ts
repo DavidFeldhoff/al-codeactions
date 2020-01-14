@@ -11,18 +11,21 @@ import { ALTypeHandler } from './alTypeHandler';
 
 export class ALProcedureCallParser {
     private document: vscode.TextDocument;
-    private alVariableHandler: ALVariableHandler;
-    private procedureCall: string;
+    private alVariableHandler?: ALVariableHandler;
+    private procedureCall?: string;
     private rangeOfProcedureCall: vscode.Range;
-    private callingProcedureName: string;
-    private callingALObject: ALObject;
+    private callingProcedureName?: string;
+    private callingALObject?: ALObject;
 
     constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range) {
         this.rangeOfProcedureCall = rangeOfProcedureCall;
         this.document = document;
-        this.procedureCall = document.getText(rangeOfProcedureCall);
+    }
+    public async initialize() {
+        this.procedureCall = this.document.getText(this.rangeOfProcedureCall);
 
         this.alVariableHandler = new ALVariableHandler(this.document);
+        await this.alVariableHandler.search();
 
         const alSourceCodeHandler = new ALSourceCodeHandler(this.document);
         this.callingProcedureName = alSourceCodeHandler.getProcedureOrTriggerNameOfCurrentPosition(this.rangeOfProcedureCall.start.line);
@@ -35,7 +38,7 @@ export class ALProcedureCallParser {
         let parameters: ALVariable[];
         let calledALObject: ALObject;
 
-        let execArray = RegExpCreator.matchWholeProcedureCall.exec(this.procedureCall);
+        let execArray = RegExpCreator.matchWholeProcedureCall.exec(this.procedureCall as string);
         if (isNull(execArray) || isUndefined(execArray.groups)) {
             return;
         }
@@ -45,7 +48,7 @@ export class ALProcedureCallParser {
         if (!isUndefined(execArray.groups["calledObj"])) {
             calledALObject = this.getCalledObject(execArray.groups["calledObj"]);
         } else {
-            calledALObject = this.callingALObject;
+            calledALObject = this.callingALObject as ALObject;
         }
         procedureNameToCreate = execArray.groups["calledProc"];
         parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
@@ -53,7 +56,7 @@ export class ALProcedureCallParser {
         return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
     }
     private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document, this.rangeOfProcedureCall);
+        let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName as string, this.document, this.rangeOfProcedureCall);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
@@ -62,16 +65,16 @@ export class ALProcedureCallParser {
     }
 
     private getReturnTypeOfProcedureCall(variableNameToBeAssigned: string): string {
-        let returnType = this.alVariableHandler.getTypeOfVariable(variableNameToBeAssigned, this.callingProcedureName);
-        if(isUndefined(returnType)){
+        let returnType = this.alVariableHandler?.getTypeOfVariable(variableNameToBeAssigned, this.callingProcedureName);
+        if (isUndefined(returnType)) {
             //TODO: No Variable. Probably the Procedure Call is a parameter of another ProcedureCall
             throw new Error('Not supported yet.');
         }
         return returnType as string;
     }
     private getCalledObject(variableName: string): ALObject {
-        let alVariable = this.alVariableHandler.getALVariableByName(variableName, this.callingProcedureName);
-        if(isUndefined(alVariable)){
+        let alVariable = this.alVariableHandler?.getALVariableByName(variableName, this.callingProcedureName);
+        if (isUndefined(alVariable)) {
             throw new Error('Unexpected error.');
         }
         let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);

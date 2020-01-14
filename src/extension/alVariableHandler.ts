@@ -8,7 +8,10 @@ export class ALVariableHandler {
     private document: vscode.TextDocument;
     constructor(document: vscode.TextDocument) {
         this.document = document;
-        this.variables = ALVariableParser.findAllVariablesInDocument(this.document);
+    }
+    
+    public async search() {
+        this.variables = await ALVariableParser.findAllVariablesInDocument(this.document);
     }
 
     public getAllVariables(): ALVariable[] {

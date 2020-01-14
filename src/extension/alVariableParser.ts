@@ -4,10 +4,20 @@ import { isNull, isUndefined } from "util";
 import { ALVariable } from "./alVariable";
 import { ALParameterParser } from "./alParameterParser";
 import { ALSymbolHandler } from './alSymbolHandler';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 
 export class ALVariableParser {
 
-    public static findAllVariablesInDocument(document: vscode.TextDocument): ALVariable[] {
+    public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
+        let aztools = false;
+        if(aztools){
+            let alCodeOutlineExtension = ALCodeOutlineExtension.getInstance();
+            await alCodeOutlineExtension.activate();
+            let api = alCodeOutlineExtension.getAPI();
+            let symbols = await api.symbolsService.loadDocumentSymbols(document.uri);
+            let rootSymbol = symbols.rootSymbol.childSymbols[0];
+        }
+
         let searchVariables: boolean = false;
         let variables: ALVariable[] = [];
         let currentProcedureOrTrigger: string | undefined;

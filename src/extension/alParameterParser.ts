@@ -36,6 +36,7 @@ export class ALParameterParser {
         }
 
         let alVariableMgmt = new ALVariableHandler(document);
+        await alVariableMgmt.search();
         let splittedParameters = parameterCallString.split(',');
         for (let i = 0; i < splittedParameters.length; i++) {
             let param = splittedParameters[i].trim();

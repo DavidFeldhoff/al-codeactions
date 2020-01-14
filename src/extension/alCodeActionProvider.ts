@@ -56,6 +56,7 @@ export class ALCodeActionProvider implements vscode.CodeActionProvider {
             return;
         } else {
             let alProcedureCreator = new ALProcedureCallParser(document, rangeOfProcedureCall);
+            await alProcedureCreator.initialize();
             let procedureToCreate = await alProcedureCreator.getProcedure();
             return procedureToCreate;
         }

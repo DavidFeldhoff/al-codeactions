@@ -12,10 +12,11 @@ import { ALLanguageExtension } from '../../extension/alExtension';
 
 suite('ALCodeActionProvider Test Suite', function () {
 	let codeunit1Document: vscode.TextDocument;
+	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
 		this.timeout(0);
 		await ALLanguageExtension.getInstance().activate();
-		
+
 		//open the file just once
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
@@ -142,7 +143,7 @@ suite('ALCodeActionProvider Test Suite', function () {
 	// 	assert.equal(alProcedure.parameters.length, 1);
 	// 	assert.equal(alProcedure.parameters[0].name, '"No."');
 	// 	assert.equal(alProcedure.parameters[0].getTypeDefinition(), "Code[20]");
-	// }).timeout(15000); //first time interacting with the symbols and another extensin can take some time.
+	// }); //first time interacting with the symbols and another extensin can take some time.
 	// test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter', async function () {
 	// 	let procedureName = 'MissingProcedureWithTwoFieldsWithSameNameAsParameter';
 	// 	let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
