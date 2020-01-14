@@ -18,6 +18,7 @@
 		"email": "david.feldhoff@web.de"
 	},
 	"icon": "images/bulb.png",
+	"preview": true,
 	"categories": [
 		"Other"
 	],
