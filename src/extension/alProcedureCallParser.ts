@@ -44,6 +44,9 @@ export class ALProcedureCallParser {
         }
         if (!isUndefined(execArray.groups["calledObj"])) {
             calledALObject = this.getCalledObject(execArray.groups["calledObj"]);
+            if (!this.canObjectContainProcedures(calledALObject)) {
+                return;
+            }
         } else {
             calledALObject = this.callingALObject;
         }
@@ -51,6 +54,14 @@ export class ALProcedureCallParser {
         parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
 
         return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
+    }
+    private canObjectContainProcedures(alObject: ALObject) {
+        switch (alObject.type.toString().toLowerCase()) {
+            case "enum":
+                return false;
+            default:
+                return true;
+        }
     }
     private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName, this.document, this.rangeOfProcedureCall);
@@ -63,7 +74,7 @@ export class ALProcedureCallParser {
 
     private getReturnTypeOfProcedureCall(variableNameToBeAssigned: string): string {
         let returnType = this.alVariableHandler.getTypeOfVariable(variableNameToBeAssigned, this.callingProcedureName);
-        if(isUndefined(returnType)){
+        if (isUndefined(returnType)) {
             //TODO: No Variable. Probably the Procedure Call is a parameter of another ProcedureCall
             throw new Error('Not supported yet.');
         }
@@ -71,7 +82,7 @@ export class ALProcedureCallParser {
     }
     private getCalledObject(variableName: string): ALObject {
         let alVariable = this.alVariableHandler.getALVariableByName(variableName, this.callingProcedureName);
-        if(isUndefined(alVariable)){
+        if (isUndefined(alVariable)) {
             throw new Error('Unexpected error.');
         }
         let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);
