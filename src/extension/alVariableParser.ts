@@ -11,8 +11,7 @@ export class ALVariableParser {
     public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
         let aztools = false;
         if(aztools){
-            let alCodeOutlineExtension = ALCodeOutlineExtension.getInstance();
-            await alCodeOutlineExtension.activate();
+            let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
             let api = alCodeOutlineExtension.getAPI();
             let symbols = await api.symbolsService.loadDocumentSymbols(document.uri);
             let rootSymbol = symbols.rootSymbol.childSymbols[0];

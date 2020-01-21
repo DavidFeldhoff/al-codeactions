@@ -3,6 +3,7 @@ import { RegExpCreator } from './regexpCreator';
 import { isNullOrUndefined, isUndefined, isNull } from 'util';
 import { ALObject } from './alObject';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 
 export class ALSourceCodeHandler {
 
@@ -35,13 +36,30 @@ export class ALSourceCodeHandler {
         return undefined;
     }
 
-    public getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): string {
+    public async getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): Promise<string> {
         this.document.lineAt(currentLine);
-        const regex = RegExpCreator.matchProcedureOrTriggerDeclarationLine;
-        for (let i = currentLine; i > 0; i--) {
-            let execArray = regex.exec(this.document.lineAt(i).text);
-            if (!isNullOrUndefined(execArray)) {
-                return execArray[1];
+        let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
+        let azALDevTools = alCodeOutlineExtension.getAPI();
+        let loaded = await azALDevTools.activeDocumentSymbols.loadAsync(false);
+        let rootSymbol = azALDevTools.activeDocumentSymbols.rootSymbol;
+        if (rootSymbol) {
+            let objectSymbol = rootSymbol.findFirstObjectSymbol();
+            if (objectSymbol && objectSymbol.childSymbols) {
+                for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
+                    if (objectSymbol.childSymbols[i].kind === 238) {
+                        if (objectSymbol.childSymbols[i].range.start.line <= currentLine && objectSymbol.childSymbols[i].range.end.line >= currentLine) {
+                            return objectSymbol.childSymbols[i].name;
+                        }
+                    }
+                }
+            }
+        } else {
+            const regex = RegExpCreator.matchProcedureOrTriggerDeclarationLine;
+            for (let i = currentLine; i > 0; i--) {
+                let execArray = regex.exec(this.document.lineAt(i).text);
+                if (!isNullOrUndefined(execArray)) {
+                    return execArray[1];
+                }
             }
         }
         throw new Error("The current procedurename was not found starting at line " + currentLine + " in file " + this.document.fileName + ".");
@@ -101,7 +119,7 @@ export class ALSourceCodeHandler {
         if (lineText.substr(0, openingBracket.character).includes('(')) {
             return undefined;
         }
-        
+
         let indexOfmatchingClosingBracket = this.findMatchingClosingBracket(this.document, openingBracket);
         if (isUndefined(indexOfmatchingClosingBracket)) {
             return undefined;

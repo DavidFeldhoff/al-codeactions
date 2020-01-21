@@ -17,8 +17,7 @@ export class ALSymbolHandler {
                     console.log("definitionprovider found symbols.");
                     let definition = definitions[i];
 
-                    let alCodeOutlineExtension = ALCodeOutlineExtension.getInstance();
-                    await alCodeOutlineExtension.activate();
+                    let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
                     let devToolsExtensionContext = alCodeOutlineExtension.getAPI();
 
                     let symbols = await devToolsExtensionContext.symbolsService.loadDocumentSymbols(definition.uri);

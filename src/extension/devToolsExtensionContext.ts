@@ -8,10 +8,11 @@ export class ALCodeOutlineExtension {
         this.alCodeOutlineExtension = alCodeOutlineExtension;
     }
 
-    public static getInstance(): ALCodeOutlineExtension {
+    public static async getInstance(): Promise<ALCodeOutlineExtension> {
         if (isNullOrUndefined(this.alCodeOutlineExtensionObject)) {
             this.setInstance();
         }
+        await this.alCodeOutlineExtensionObject.activate();
         return this.alCodeOutlineExtensionObject;
     }
 
@@ -23,7 +24,7 @@ export class ALCodeOutlineExtension {
         this.alCodeOutlineExtensionObject = new ALCodeOutlineExtension(vsCodeExtension as vscode.Extension<any>);
     }
 
-    public async activate(){
+    private async activate(){
         if (!this.alCodeOutlineExtension.isActive) {
             await this.alCodeOutlineExtension.activate();
         }
