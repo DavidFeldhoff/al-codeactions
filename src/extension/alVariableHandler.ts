@@ -51,7 +51,7 @@ export class ALVariableHandler {
         if(isUndefined(variable)){
             return undefined;
         }
-        return variable.getTypeDefinition();
+        return variable.type;
     }
 
    

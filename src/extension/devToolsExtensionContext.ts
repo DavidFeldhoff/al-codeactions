@@ -24,13 +24,26 @@ export class ALCodeOutlineExtension {
         this.alCodeOutlineExtensionObject = new ALCodeOutlineExtension(vsCodeExtension as vscode.Extension<any>);
     }
 
-    private async activate(){
+    private async activate() {
         if (!this.alCodeOutlineExtension.isActive) {
             await this.alCodeOutlineExtension.activate();
         }
     }
 
-    public getAPI(){
+    public getAPI() {
         return this.alCodeOutlineExtension.exports;
+    }
+
+    public static isSymbolProcedureOrTrigger(kind: number): boolean {
+        switch (kind) {
+            case 236:   //TriggerDeclaration
+            case 237:   //EventTriggerDeclaration
+            case 238:   //MethodDeclaration
+            case 239:   //EventDeclaration
+            case 50001: //LocalMethodDeclaration
+                return true;
+            default:
+                return false;
+        }
     }
 }

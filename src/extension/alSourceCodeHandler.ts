@@ -38,27 +38,17 @@ export class ALSourceCodeHandler {
 
     public async getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): Promise<string> {
         this.document.lineAt(currentLine);
-        let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
-        let azALDevTools = alCodeOutlineExtension.getAPI();
-        let loaded = await azALDevTools.activeDocumentSymbols.loadAsync(false);
-        let rootSymbol = azALDevTools.activeDocumentSymbols.rootSymbol;
-        if (rootSymbol) {
-            let objectSymbol = rootSymbol.findFirstObjectSymbol();
+        let azALDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibrary = await azALDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
+        if (symbolsLibrary.rootSymbol) {
+            let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
             if (objectSymbol && objectSymbol.childSymbols) {
                 for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
-                    if (objectSymbol.childSymbols[i].kind === 238) {
+                    if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(objectSymbol.childSymbols[i])) {
                         if (objectSymbol.childSymbols[i].range.start.line <= currentLine && objectSymbol.childSymbols[i].range.end.line >= currentLine) {
                             return objectSymbol.childSymbols[i].name;
                         }
                     }
-                }
-            }
-        } else {
-            const regex = RegExpCreator.matchProcedureOrTriggerDeclarationLine;
-            for (let i = currentLine; i > 0; i--) {
-                let execArray = regex.exec(this.document.lineAt(i).text);
-                if (!isNullOrUndefined(execArray)) {
-                    return execArray[1];
                 }
             }
         }

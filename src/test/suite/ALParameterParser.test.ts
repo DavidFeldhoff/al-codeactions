@@ -15,9 +15,9 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, 'A');
-		assert.equal(variables[0].getTypeDefinition(), "Integer");
+		assert.equal(variables[0].type, "Integer");
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "Integer");
+		assert.equal(variables[1].type, "Integer");
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
 			"A: Integer; B: Integer");
 	});
@@ -27,9 +27,9 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, 'A');
-		assert.equal(variables[0].getTypeDefinition(), "Integer");
+		assert.equal(variables[0].type, "Integer");
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "Integer");
+		assert.equal(variables[1].type, "Integer");
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
 			'A: Integer; B: Integer');
 	});
@@ -39,9 +39,9 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, 'A');
-		assert.equal(variables[0].getTypeDefinition(), "Integer");
+		assert.equal(variables[0].type, "Integer");
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "Text[250]");
+		assert.equal(variables[1].type, "Text[250]");
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
 			'A: Integer; B: Text[250]');
 	});
@@ -51,11 +51,11 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, 'A');
-		assert.equal(variables[0].getTypeDefinition(), "Integer");
+		assert.equal(variables[0].type, "Integer");
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "array[20] of Text[250]");
+		assert.equal(variables[1].type, "Array[20] of Text[250]");
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
-			'A: Integer; B: array[20] of Text[250]');
+			'A: Integer; B: Array[20] of Text[250]');
 	});
 	test('parseParameterDeclarationStringToALVariableArray_WithSpaces', () => {
 		let parameterDeclarationString = '"my Int":Integer;B:Array[20] of Text[250]';
@@ -63,11 +63,11 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, '"my Int"');
-		assert.equal(variables[0].getTypeDefinition(), "Integer");
+		assert.equal(variables[0].type, "Integer");
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "array[20] of Text[250]");
+		assert.equal(variables[1].type, "Array[20] of Text[250]");
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
-			'"my Int": Integer; B: array[20] of Text[250]');
+			'"my Int": Integer; B: Array[20] of Text[250]');
 	});
 	test('parseParameterDeclarationStringToALVariableArray_WithVarAndTemporary', () => {
 		let parameterDeclarationString = 'var A:Record Customer temporary;var B:Array[20] of Text[250]';
@@ -75,13 +75,12 @@ suite('ALParameterParser Test Suite', () => {
 		let variables = ALParameterParser.parseParameterDeclarationStringToALVariableArray(parameterDeclarationString, procedureName);
 		assert.equal(variables.length, 2);
 		assert.equal(variables[0].name, 'A');
-		assert.equal(variables[0].type, "Record");
-		assert.equal(variables[0].subtype, "Customer");
-		assert.equal(variables[0].isTemporary, true);
-		assert.equal(variables[0].getTypeDefinition(), 'Record Customer');
+		assert.equal(variables[0].type, "Record Customer temporary");
+		assert.equal(variables[0].isVar, true);
 		assert.equal(variables[1].name, 'B');
-		assert.equal(variables[1].getTypeDefinition(), "array[20] of Text[250]");
+		assert.equal(variables[1].type, "Array[20] of Text[250]");
+		assert.equal(variables[1].isVar, true);
 		assert.equal(ALParameterParser.parseALVariableArrayToParameterDeclarationString(variables), 
-			'var A: Record Customer temporary; var B: array[20] of Text[250]');
+			'var A: Record Customer temporary; var B: Array[20] of Text[250]');
 	});
 });

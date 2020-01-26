@@ -56,7 +56,7 @@ export class ALParameterParser {
                         variableNameUnique = variable.name.toLowerCase() !== variableName;
                     });
                 } while (!variableNameUnique);
-                variable = new ALVariable(variableName, false, '', false, false, 'Variant');
+                variable = new ALVariable(variableName, undefined, false, 'Variant');
             }
             variables.push(variable);
         }

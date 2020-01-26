@@ -8,20 +8,53 @@ import { ALSourceCodeHandler } from './alSourceCodeHandler';
 import { RegExpCreator } from './regexpCreator';
 import { ALObject } from './alObject';
 import { ALTypeHandler } from './alTypeHandler';
+import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 
 export class ALProcedureCallParser {
     private document: vscode.TextDocument;
+    private diagnostic: vscode.Diagnostic;
     private alVariableHandler?: ALVariableHandler;
     private procedureCall?: string;
     private rangeOfProcedureCall: vscode.Range;
     private callingProcedureName?: string;
     private callingALObject?: ALObject;
+    private calledALObject: ALObject | undefined;
+    private calledProcedureName: string;
 
-    constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range) {
+    constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range, diagnostic: vscode.Diagnostic) {
+        this.diagnostic = diagnostic;
         this.rangeOfProcedureCall = rangeOfProcedureCall;
         this.document = document;
+        this.calledProcedureName = document.getText(diagnostic.range);
     }
     public async initialize() {
+        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibraryCallingObject = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
+        let symbolOfMissingProcedure = symbolsLibraryCallingObject.findNextSymbol(this.diagnostic.range.start.line);
+        let symbolsLibraryCalledObject: any;
+        if (this.diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString()) {
+            let positionOfCalledObject = new vscode.Position(this.diagnostic.range.start.line, this.diagnostic.range.start.character - 2);
+            let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
+            if (locations && locations.length > 0) {
+                let positionOfDeclaredVariable: vscode.Position = locations[0].range.start;
+                locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfDeclaredVariable);
+                if (locations && locations.length > 0) {
+                    symbolsLibraryCalledObject = await azalDevTools.symbolsService.loadDocumentSymbols(locations[0].uri);
+                }
+            }
+            if (!symbolsLibraryCalledObject) {
+                throw new Error('Could not find symbol of called object using az al dev tools.');
+            }
+        } else {
+            symbolsLibraryCalledObject = symbolsLibraryCallingObject;
+        }
+        let calledObjectSymbol = symbolsLibraryCalledObject.rootSymbol.findFirstObjectSymbol();
+        this.calledALObject = new ALObject(calledObjectSymbol.name, calledObjectSymbol.icon, calledObjectSymbol.id);
+
+        let callingObjectSymbol = symbolsLibraryCallingObject.rootSymbol.findFirstObjectSymbol();
+        this.callingALObject = new ALObject(callingObjectSymbol.name, callingObjectSymbol.icon, callingObjectSymbol.id);
+
         this.procedureCall = this.document.getText(this.rangeOfProcedureCall);
 
         this.alVariableHandler = new ALVariableHandler(this.document);
@@ -29,14 +62,11 @@ export class ALProcedureCallParser {
 
         const alSourceCodeHandler = new ALSourceCodeHandler(this.document);
         this.callingProcedureName = await alSourceCodeHandler.getProcedureOrTriggerNameOfCurrentPosition(this.rangeOfProcedureCall.start.line);
-        this.callingALObject = alSourceCodeHandler.getALObjectOfDocument();
     }
 
     public async getProcedure(): Promise<ALProcedure | undefined> {
-        let procedureNameToCreate: string;
         let returnType: string | undefined;
         let parameters: ALVariable[];
-        let calledALObject: ALObject;
 
         let execArray = RegExpCreator.matchWholeProcedureCall.exec(this.procedureCall as string);
         if (isNull(execArray) || isUndefined(execArray.groups)) {
@@ -45,15 +75,9 @@ export class ALProcedureCallParser {
         if (!isUndefined(execArray.groups["returnVar"])) {
             returnType = this.getReturnTypeOfProcedureCall(execArray.groups["returnVar"]);
         }
-        if (!isUndefined(execArray.groups["calledObj"])) {
-            calledALObject = this.getCalledObject(execArray.groups["calledObj"]);
-        } else {
-            calledALObject = this.callingALObject as ALObject;
-        }
-        procedureNameToCreate = execArray.groups["calledProc"];
-        parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
+        parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], this.calledProcedureName);
 
-        return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
+        return new ALProcedure(this.calledProcedureName, parameters, returnType, this.calledALObject as ALObject);
     }
     private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureName as string, this.document, this.rangeOfProcedureCall);
@@ -73,11 +97,15 @@ export class ALProcedureCallParser {
         return returnType as string;
     }
     private getCalledObject(variableName: string): ALObject {
+
         let alVariable = this.alVariableHandler?.getALVariableByName(variableName, this.callingProcedureName);
         if (isUndefined(alVariable)) {
             throw new Error('Unexpected error.');
         }
-        let objectType = ALTypeHandler.mapVariableTypeToALObjectType(alVariable.type);
-        return new ALObject(alVariable.subtype as string, objectType);
+        let alObject: ALObject | undefined = ALTypeHandler.getALObjectOfALVariableTypeWhichCanCreateProcedures(alVariable.type);
+        if (isUndefined(alObject)) {
+            throw new Error('Type ' + alVariable.type + 'can not create a procedure.');
+        }
+        return alObject as ALObject;
     }
 }

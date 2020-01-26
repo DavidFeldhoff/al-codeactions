@@ -8,6 +8,7 @@ import { ALCodeActionProvider } from '../../extension/alCodeActionProvider';
 import { ALProcedure } from '../../extension/alProcedure';
 import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../../extension/alExtension';
+import { SupportedDiagnosticCodes } from '../../extension/supportedDiagnosticCodes';
 // import * as myExtension from '../extension';
 
 suite('ALCodeActionProvider Test Suite', function () {
@@ -28,7 +29,9 @@ suite('ALCodeActionProvider Test Suite', function () {
 	test('getProcedureToCreate_NoParameter', async () => {
 		let procedureName = 'MissingProcedureWithoutParameters';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -38,7 +41,9 @@ suite('ALCodeActionProvider Test Suite', function () {
 	test('getProcedureToCreate_OneParameter', async () => {
 		let procedureName = 'MissingProcedureWithParameter';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -48,21 +53,25 @@ suite('ALCodeActionProvider Test Suite', function () {
 	test('getProcedureToCreate_TwoParameters', async () => {
 		let procedureName = 'MissingProcedureWithParameters';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), 'Integer');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myBoolean');
-		assert.equal(alProcedure.parameters[1].getTypeDefinition(), 'Boolean');
+		assert.equal(alProcedure.parameters[1].type, 'Boolean');
 	});
 	test('getProcedureToCreate_ReturnValue', async () => {
 		let procedureName = 'MissingProcedureWithReturn';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -70,27 +79,31 @@ suite('ALCodeActionProvider Test Suite', function () {
 		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.equal(alProcedure.parameters.length, 1);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), 'Integer');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_OfOtherObject', async () => {
 		let procedureName = 'MissingProcedureOfOtherObject';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), 'Integer');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myBoolean');
-		assert.equal(alProcedure.parameters[1].getTypeDefinition(), 'Boolean');
+		assert.equal(alProcedure.parameters[1].type, 'Boolean');
 		assert.equal(alProcedure.ObjectOfProcedure.name, "SecondCodeunit");
 	});
 	test('getProcedureToCreate_OfOtherObjectWithReturn', async () => {
 		let procedureName = 'MissingProcedureOfOtherObjectWithReturn';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -98,15 +111,17 @@ suite('ALCodeActionProvider Test Suite', function () {
 		assert.equal(alProcedure.getReturnTypeAsString(), "Text[20]");
 		assert.equal(alProcedure.parameters.length, 2);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), 'Integer');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myBoolean');
-		assert.equal(alProcedure.parameters[1].getTypeDefinition(), 'Boolean');
+		assert.equal(alProcedure.parameters[1].type, 'Boolean');
 		assert.equal(alProcedure.ObjectOfProcedure.name, "SecondCodeunit");
 	});
 	test('getProcedureToCreate_ProcedureAsParameter', async () => {
 		let procedureName = 'MissingProcedureWithProcedureCallInside';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -114,13 +129,15 @@ suite('ALCodeActionProvider Test Suite', function () {
 		assert.equal(alProcedure.parameters.length, 1);
 		assert.equal(alProcedure.parameters[0].name, 'a');
 		//TODO: Not supported yet
-		assert.equal(alProcedure.parameters[0].getTypeDefinition(), 'Variant');
+		assert.equal(alProcedure.parameters[0].type, 'Variant');
 		// assert.equal(alProcedure.parameters[0].getTypeDefinition(),'Integer');
 	});
 	test('getProcedureToCreate_ReturnValueDirectlyUsed', async () => {
 		let procedureName = 'MissingProcedureWithDirectlyUsedReturnValue';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
-		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, rangeOfProcedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
 		//TODO: Not supported yet
 		assert.equal(alProcedure, undefined);
 		// assert.notEqual(alProcedure, undefined, 'Procedure should be created');

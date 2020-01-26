@@ -9,12 +9,29 @@ import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 export class ALVariableParser {
 
     public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
-        let aztools = false;
-        if(aztools){
+        let aztools = true;
+        if (aztools) {
             let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
             let api = alCodeOutlineExtension.getAPI();
             let symbols = await api.symbolsService.loadDocumentSymbols(document.uri);
             let rootSymbol = symbols.rootSymbol.childSymbols[0];
+            let variables: ALVariable[] = [];
+            let variableSymbols: any[] = [];
+            rootSymbol.collectChildSymbols(241, variableSymbols); //241 = Variable Declaration
+            for (let i = 0; i < variableSymbols.length; i++) {
+                let alVariable = ALVariableParser.parseVariableSymbolToALVariable(variableSymbols[i]);
+                variables.push(alVariable);
+            }
+            let parameterSymbols: any[] = [];
+            rootSymbol.collectChildSymbols(240, parameterSymbols); //240 = Paramter
+            for (let i = 0; i < parameterSymbols.length; i++) {
+                let alVariable = ALVariableParser.parseParameterSymbolToALVariable(parameterSymbols[i]);
+                variables.push(alVariable);
+            }
+            return variables;
+            //fullName = PreviewMode: Boolean, name = PreviewMode
+            //method.fullName = Post(document), method.name = Post
+            //parent.parent.kind == 236 == trigger, 238 = method
         }
 
         let searchVariables: boolean = false;
@@ -48,6 +65,38 @@ export class ALVariableParser {
         }
         return variables;
     }
+    static parseVariableSymbolToALVariable(variableSymbol: any): ALVariable{
+        let procedureOrTriggerName: string | undefined;
+        if(ALCodeOutlineExtension.isSymbolProcedureOrTrigger(variableSymbol.parent.parent)){
+            procedureOrTriggerName = variableSymbol.parent.parent.name;
+        }
+        return new ALVariable(variableSymbol.name, procedureOrTriggerName, false, variableSymbol.subtype);
+    }
+    static parseParameterSymbolToALVariable(parameterSymbol: any): ALVariable {
+        let procedureOrTriggerName: string | undefined;
+        let parameterDeclaration = parameterSymbol.fullName.trim();
+        let isVar: boolean = false;
+        switch (parameterSymbol.parent.parent.kind) {
+            case 236:
+            case 237:
+            case 238:
+            case 239:
+            case 50001:
+                procedureOrTriggerName = parameterSymbol.parent.parent.name;
+                let declarationLine: string = parameterSymbol.parent.parent.fullName;
+                if (declarationLine.includes('var ' + parameterDeclaration)) {
+                    parameterDeclaration = 'var ' + parameterDeclaration;
+                }
+                isVar = true;
+                break;
+            default:
+                procedureOrTriggerName = undefined;
+                break;
+        }
+        let alVariable = new ALVariable(parameterSymbol.name, procedureOrTriggerName, isVar, parameterSymbol.subtype);
+        // let alVariable = ALVariableParser.parseVariableDeclarationStringToVariable(parameterDeclaration, procedureOrTriggerName);
+        return alVariable;
+    }
 
     public static parseVariableDeclarationStringToVariable(variableDeclarationString: string, procedureName: string | undefined): ALVariable {
         variableDeclarationString = variableDeclarationString.replace(/;/g, '');
@@ -58,25 +107,11 @@ export class ALVariableParser {
         }
         let res = execArray.groups;
 
-        let isLocal = !isUndefined(procedureName);
         let variableName = res["variableName"];
         let variableType = res["variableType"];
-        let variableSubtype = res["variableSubtype"];
-        let length = isUndefined(res["length"]) ? undefined : res["length"] as unknown as number;
-        let dimensions = res["dimensions"];
         let isVar = !isUndefined(res["isVar"]);
-        let isTemporary = !isUndefined(res["isTemporary"]);
 
-        return new ALVariable(
-            variableName,
-            isLocal,
-            procedureName,
-            isVar,
-            isTemporary,
-            variableType,
-            variableSubtype,
-            length,
-            dimensions);
+        return new ALVariable(variableName, procedureName, isVar, variableType);
     }
 
     public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, positionOfVariableCall: vscode.Position, variableCall: string): Promise<ALVariable | undefined> {
