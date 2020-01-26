@@ -9,9 +9,13 @@ export class ALProcedureSourceCodeCreator{
         if (returnType !== "") {
             returnString = ": " + returnType;
         }
+        let localString = "";
+        if(procedure.isLocal){
+            localString = "local ";
+        }
 
         let procedureDefinition = "";
-        procedureDefinition += "    procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString + "\r\n";
+        procedureDefinition += "    " + localString + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString + "\r\n";
         procedureDefinition += "    begin\r\n";
         procedureDefinition += "        Error('Procedure not implemented.');\r\n";
         procedureDefinition += "    end;";
