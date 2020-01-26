@@ -42,18 +42,21 @@ export class ALProcedureCallParser {
         if (!isUndefined(execArray.groups["returnVar"])) {
             returnType = this.getReturnTypeOfProcedureCall(execArray.groups["returnVar"]);
         }
+        let isLocal: boolean;
         if (!isUndefined(execArray.groups["calledObj"])) {
             calledALObject = this.getCalledObject(execArray.groups["calledObj"]);
+            isLocal = false;
             if (!this.canObjectContainProcedures(calledALObject)) {
                 return;
             }
         } else {
             calledALObject = this.callingALObject;
+            isLocal = true;
         }
         procedureNameToCreate = execArray.groups["calledProc"];
         parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], procedureNameToCreate);
 
-        return new ALProcedure(procedureNameToCreate, parameters, returnType, calledALObject);
+        return new ALProcedure(procedureNameToCreate, parameters, returnType, isLocal, calledALObject);
     }
     private canObjectContainProcedures(alObject: ALObject) {
         switch (alObject.type.toString().toLowerCase()) {
