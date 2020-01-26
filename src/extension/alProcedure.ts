@@ -7,11 +7,13 @@ export class ALProcedure{
     public name: string;
     public parameters: ALVariable[];
     public returnType?: string;
+    public isLocal: boolean;
     public ObjectOfProcedure: ALObject;
-    constructor(name: string, parameters: ALVariable[], returnValue: string | undefined, ALObject: ALObject){
+    constructor(name: string, parameters: ALVariable[], returnValue: string | undefined, isLocal: boolean, ALObject: ALObject){
         this.name = name;
         this.parameters = parameters;
         this.returnType = returnValue;
+        this.isLocal = isLocal;
         this.ObjectOfProcedure = ALObject;
     }
     public getParametersAsString(): string{
