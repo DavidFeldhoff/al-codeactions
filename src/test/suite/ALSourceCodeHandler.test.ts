@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { ALSourceCodeHandler } from '../../extension/alSourceCodeHandler';
 import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../../extension/alExtension';
+import { ALCodeOutlineExtension } from '../../extension/devToolsExtensionContext';
 // import * as myExtension from '../extension';
 
 suite('ALSourceCodeHandler Test Suite', function () {
@@ -81,15 +82,15 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	//#region getProcedureOrTriggerNameOfCurrentPosition
 	test('getProcedureOrTriggerNameOfCurrentPosition_Procedure', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
-		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let alProcedureName = new ALSourceCodeHandler(document).getProcedureOrTriggerNameOfCurrentPosition(8);
+		await vscode.workspace.openTextDocument(fileName).then(async document => {
+			let alProcedureName = (await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(document.uri, 8)).name;
 			assert.equal(alProcedureName, 'myProcedure');
 		});
 	});
 	test('getProcedureOrTriggerNameOfCurrentPosition_Trigger', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
-		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let alTriggerName = new ALSourceCodeHandler(document).getProcedureOrTriggerNameOfCurrentPosition(4);
+		await vscode.workspace.openTextDocument(fileName).then(async document => {
+			let alTriggerName = (await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(document.uri, 4)).name;
 			assert.equal(alTriggerName, 'onRun');
 		});
 	});

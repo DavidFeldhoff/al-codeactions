@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { isNullOrUndefined } from "util";
 
 export class ALCodeOutlineExtension {
@@ -34,6 +35,24 @@ export class ALCodeOutlineExtension {
         return this.alCodeOutlineExtension.exports;
     }
 
+    
+    public static async getProcedureOrTriggerSymbolOfCurrentLine(documentUri: vscode.Uri, currentLine: number): Promise<any> {
+        let azALDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibrary = await azALDevTools.symbolsService.loadDocumentSymbols(documentUri);
+        if (symbolsLibrary.rootSymbol) {
+            let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
+            if (objectSymbol && objectSymbol.childSymbols) {
+                for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
+                    if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(objectSymbol.childSymbols[i].kind)) {
+                        if (objectSymbol.childSymbols[i].range.start.line <= currentLine && objectSymbol.childSymbols[i].range.end.line >= currentLine) {
+                            return objectSymbol.childSymbols[i];
+                        }
+                    }
+                }
+            }
+        }
+        throw new Error("The current procedurename was not found starting at line " + currentLine + " in file " + path.basename(documentUri.fsPath) + ".");
+    }
     public static isSymbolProcedureOrTrigger(kind: number): boolean {
         switch (kind) {
             case 236:   //TriggerDeclaration

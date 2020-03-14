@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { isUndefined, isNull } from 'util';
 import { ALVariable } from './alVariable';
 import { ALVariableParser } from './alVariableParser';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 
 export class ALVariableHandler {
     private variables: ALVariable[] = [];
@@ -9,7 +10,7 @@ export class ALVariableHandler {
     constructor(document: vscode.TextDocument) {
         this.document = document;
     }
-    
+
     public async search() {
         this.variables = await ALVariableParser.findAllVariablesInDocument(this.document);
     }
@@ -31,6 +32,38 @@ export class ALVariableHandler {
         }
         return undefined;
     }
+    public static getALVariableByNameOfSymbol(variableName: string, symbol?: any): ALVariable | undefined {
+        if (isUndefined(symbol)) {
+            return;
+        }
+        if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(symbol)) {
+            let localVariables: any[] = [];
+            symbol.collectChildSymbols(241, localVariables);
+            if (localVariables && localVariables.length > 0) {
+                localVariables.forEach(localVariable => {
+                    if (localVariable.name.toLowerCase() === variableName) {
+                        return ALVariableParser.parseVariableSymbolToALVariable(localVariable);
+                    }
+                });
+            }
+        }
+        if (symbol.childSymbols) {
+            for (let i = 0; i < symbol.childSymbols.length; i++) {
+                if (symbol.childSymbols[i].kind === 235) { //235 = VarSection
+                    let globalVariables: any[] = [];
+                    symbol.childSymbols[i].collectChildSymbols(241, globalVariables);
+                    if (globalVariables && globalVariables.length > 0) {
+                        globalVariables.forEach(globalVariable => {
+                            if (globalVariable.name.toLowerCase() === variableName) {
+                                return ALVariableParser.parseVariableSymbolToALVariable(globalVariable);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
     private getGlobalVariableByName(variableName: string) {
         return this.variables.find(v =>
             v.isLocal === false &&
@@ -45,14 +78,4 @@ export class ALVariableHandler {
             v.name === variableName);
         return localVariable;
     }
-
-    public getTypeOfVariable(paramName: string, procedureName?: string): string | undefined {
-        let variable = this.getALVariableByName(paramName, procedureName);
-        if(isUndefined(variable)){
-            return undefined;
-        }
-        return variable.type;
-    }
-
-   
 }

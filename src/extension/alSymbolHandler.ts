@@ -47,18 +47,18 @@ export class ALSymbolHandler {
         return undefined;
     }
 
-    public getPositionToGetCorrectSymbolLocation(document: vscode.TextDocument, positionToStartSearching: vscode.Position, textToSearchFor: string): vscode.Position {
+    public getPositionToGetCorrectSymbolLocation(document: vscode.TextDocument, positionToStartSearching: vscode.Position, textToSearchIn: string): vscode.Position {
         //The command "Go to definition" has in AL a weird behaviour.
         //Customer."No." would jump to the variable declaration of Customer, if the cursor points on Customer.
         //If the cursor points on "No." it jumps directly to the declaration of "No." of the record customer.
 
-        if (!textToSearchFor.includes('.')) {
+        if (!textToSearchIn.includes('.')) {
             return positionToStartSearching;
         }
-        let calledObjectName = textToSearchFor.substr(0, textToSearchFor.indexOf('.'));
-        let calledFieldOrProcedureName = textToSearchFor.substr(textToSearchFor.indexOf('.') + 1);
+        let calledObjectName = textToSearchIn.substr(0, textToSearchIn.indexOf('.'));
+        let calledFieldOrProcedureName = textToSearchIn.substr(textToSearchIn.indexOf('.') + 1);
         let textOfLine = document.lineAt(positionToStartSearching.line).text;
-        let charToSearchSymbol = textOfLine.indexOf(textToSearchFor, positionToStartSearching.character) + calledObjectName.length + 1;
+        let charToSearchSymbol = textOfLine.indexOf(textToSearchIn, positionToStartSearching.character) + calledObjectName.length + 1;
         let posToSearchSymbol = new vscode.Position(positionToStartSearching.line, charToSearchSymbol);
         let textInFrontOfDot = textOfLine.substr(0, posToSearchSymbol.character);
         let textOfLineBehind = textOfLine.substr(posToSearchSymbol.character);

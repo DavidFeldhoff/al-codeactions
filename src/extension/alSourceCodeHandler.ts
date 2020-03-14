@@ -36,25 +36,6 @@ export class ALSourceCodeHandler {
         return undefined;
     }
 
-    public async getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): Promise<string> {
-        this.document.lineAt(currentLine);
-        let azALDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
-        let symbolsLibrary = await azALDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
-        if (symbolsLibrary.rootSymbol) {
-            let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
-            if (objectSymbol && objectSymbol.childSymbols) {
-                for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
-                    if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(objectSymbol.childSymbols[i])) {
-                        if (objectSymbol.childSymbols[i].range.start.line <= currentLine && objectSymbol.childSymbols[i].range.end.line >= currentLine) {
-                            return objectSymbol.childSymbols[i].name;
-                        }
-                    }
-                }
-            }
-        }
-        throw new Error("The current procedurename was not found starting at line " + currentLine + " in file " + this.document.fileName + ".");
-    }
-
     public getPositionToInsertProcedure(currentLineNo: number | undefined): vscode.Position {
         let position;
         if (!isUndefined(currentLineNo)) {
