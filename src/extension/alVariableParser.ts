@@ -33,7 +33,7 @@ export class ALVariableParser {
     }
     static parseVariableSymbolToALVariable(variableSymbol: any): ALVariable {
         let procedureOrTriggerName: string | undefined;
-        if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(variableSymbol.parent.parent)) {
+        if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(variableSymbol.parent.parent.kind)) {
             procedureOrTriggerName = variableSymbol.parent.parent.name;
         }
         return new ALVariable(variableSymbol.name, procedureOrTriggerName, false, variableSymbol.subtype);

@@ -36,33 +36,38 @@ export class ALVariableHandler {
         if (isUndefined(symbol)) {
             return;
         }
-        if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(symbol)) {
+        let variable: ALVariable | undefined;
+        let objectSymbol: any = symbol;
+        if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(symbol.kind)) {
+            objectSymbol = symbol.parent;
             let localVariables: any[] = [];
             symbol.collectChildSymbols(241, localVariables);
             if (localVariables && localVariables.length > 0) {
                 localVariables.forEach(localVariable => {
-                    if (localVariable.name.toLowerCase() === variableName) {
+                    if (localVariable.name.toLowerCase() === variableName.toLowerCase()) {
                         return ALVariableParser.parseVariableSymbolToALVariable(localVariable);
                     }
                 });
             }
         }
-        if (symbol.childSymbols) {
-            for (let i = 0; i < symbol.childSymbols.length; i++) {
-                if (symbol.childSymbols[i].kind === 235) { //235 = VarSection
-                    let globalVariables: any[] = [];
-                    symbol.childSymbols[i].collectChildSymbols(241, globalVariables);
-                    if (globalVariables && globalVariables.length > 0) {
-                        globalVariables.forEach(globalVariable => {
-                            if (globalVariable.name.toLowerCase() === variableName) {
-                                return ALVariableParser.parseVariableSymbolToALVariable(globalVariable);
-                            }
-                        });
+        if (objectSymbol.childSymbols) {
+            let globalVarSymbols: any[] = [];
+            objectSymbol.collectChildSymbols(428, globalVarSymbols);
+
+            globalVarSymbols.forEach(globalVarSymbol => {
+                let globalVariables: any[] = [];
+                globalVarSymbol.collectChildSymbols(241, globalVariables); //241 = Variable
+                if (globalVariables && globalVariables.length > 0) {
+                    for (let i = 0; i < globalVariables.length; i++) {
+                        if (globalVariables[i].name.toLowerCase() === variableName.toLowerCase()) {
+                            variable = ALVariableParser.parseVariableSymbolToALVariable(globalVariables[i]);
+                            break;
+                        }
                     }
                 }
-            }
+            });
         }
-        return undefined;
+        return variable;
     }
     private getGlobalVariableByName(variableName: string) {
         return this.variables.find(v =>
