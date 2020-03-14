@@ -24,12 +24,6 @@ See here how it works:
 - To create a procedure with another procedure as parameter will create a procedure with a variant parameter.
 - To create a procedure where the return value is directly used (for example in an if-statement or as procedure parameter) is not supported yet.
 
-## Release Notes
-
-### 0.1.0
-
-Preview release
-
 ## Thanks to
 
 - Andrzej Zwierzchowski for your detailed explanations and helping me get started.

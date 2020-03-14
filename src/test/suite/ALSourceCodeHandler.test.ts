@@ -12,6 +12,8 @@ import { ALCodeOutlineExtension } from '../../extension/devToolsExtensionContext
 
 suite('ALSourceCodeHandler Test Suite', function () {
 	vscode.window.showInformationMessage('Start all tests of ALSourceCodeHandler.');
+	let lineNo = 0;
+
 	let sampleCodeunitURI: vscode.Uri;
 	this.beforeAll('activateExtension', async () => {
 		await ALLanguageExtension.getInstance().activate();
@@ -99,22 +101,22 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getPositionToInsertProcedure_WithLine', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(12);
-			assert.equal(position.isEqual(new vscode.Position(14, 8)), true);
+			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(17);
+			assert.equal(position.isEqual(new vscode.Position(19, 8)), true);
 		});
 	});
 	test('getPositionToInsertProcedure_BetweenProcedures', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(5);
-			assert.equal(position.isEqual(new vscode.Position(6, 8)), true);
+			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(10);
+			assert.equal(position.isEqual(new vscode.Position(11, 8)), true);
 		});
 	});
 	test('getPositionToInsertProcedure_WithoutLine', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			let position = new ALSourceCodeHandler(document).getPositionToInsertProcedure(undefined);
-			assert.equal(position.isEqual(new vscode.Position(45, 8)), true, `${position.line},${position.character}`);
+			assert.equal(position.isEqual(new vscode.Position(50, 8)), true, `${position.line},${position.character}`);
 		});
 	});
 	//#endregion getPositionToInsertProcedure
@@ -123,7 +125,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithoutParameters', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 21;
+			lineNo = 26;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithoutParameters".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
@@ -135,7 +137,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithParameter', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 23;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameter".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
@@ -147,7 +149,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithParameters', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 25;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithParameters".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
@@ -159,7 +161,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithReturnValue', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 27;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithReturn".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
@@ -171,7 +173,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_OtherCodeunit', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 29;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureOfOtherObject".length), 'test');
 			diagnostic.code = 'AL0132';
 			diagnostic.source = 'al';
@@ -183,7 +185,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_OtherCodeunitWithReturnValue', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 31;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureOfOtherObjectWithReturn".length), 'test');
 			diagnostic.code = 'AL0132';
 			diagnostic.source = 'al';
@@ -195,7 +197,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithProcedureCallInside', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 33;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MissingProcedureWithProcedureCallInside".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';
@@ -207,7 +209,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 	test('getRangeOfProcedureCall_WithDirectlyUsedReturnValue', async () => {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 35;
+			lineNo += 2;
 			let startPos = 8 + "myProcedure(".length;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, startPos, lineNo, startPos + "MissingProcedureWithDirectlyUsedReturnValue".length), 'test');
 			diagnostic.code = 'AL0118';
@@ -223,7 +225,7 @@ suite('ALSourceCodeHandler Test Suite', function () {
 		//TODO: not supported yet.
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
-			let lineNo = 37;
+			lineNo += 2;
 			let diagnostic = new vscode.Diagnostic(new vscode.Range(lineNo, 8, lineNo, 8 + "MultilineProcedureCall".length), 'test');
 			diagnostic.code = 'AL0118';
 			diagnostic.source = 'al';

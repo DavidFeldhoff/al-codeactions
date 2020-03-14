@@ -147,6 +147,18 @@ suite('ALCodeActionProvider Test Suite', function () {
 		// assert.equal(alProcedure.getReturnTypeAsString(), "Integer");
 		// assert.equal(alProcedure.parameters.length, 0);
 	});
+	test('getProcedureToCreate_CallingProcedureWithParameterIncludingBrackets', async function () {
+		let procedureName = 'creatableProcedure';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName,'');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCodeActionProvider().getProcedureToCreate(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 0);
+	});
 
 	//Currently these tests can't run on a pipeline because the executeDefinitionProvider fails in finding the symbols.
 	// test('getProcedureToCreate_FieldAsParameter', async function () {

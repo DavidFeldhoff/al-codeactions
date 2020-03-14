@@ -55,9 +55,26 @@ export class ALProcedureCallParser {
                 returnType = alVariable.type;
             }
         }
+        let isLocal: boolean;
+        if (!isUndefined(execArray.groups["calledObj"])) {
+            isLocal = false;
+            if (!this.canObjectContainProcedures(this.calledALObject as ALObject)) {
+                return;
+            }
+        } else {
+            isLocal = true;
+        }
         parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], this.calledProcedureName);
 
-        return new ALProcedure(this.calledProcedureName, parameters, returnType, this.calledALObject as ALObject);
+        return new ALProcedure(this.calledProcedureName, parameters, returnType, isLocal, this.calledALObject as ALObject);
+    }
+    private canObjectContainProcedures(alObject: ALObject) {
+        switch (alObject.type.toString().toLowerCase()) {
+            case "enum":
+                return false;
+            default:
+                return true;
+        }
     }
     private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureSymbol, this.document, this.rangeOfProcedureCall);
@@ -67,7 +84,7 @@ export class ALProcedureCallParser {
         });
         return parameters;
     }
-    private async getCallingObjectSymbol() : Promise<any>{
+    private async getCallingObjectSymbol(): Promise<any> {
         let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         let symbolsLibraryCallingObject = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
         return symbolsLibraryCallingObject.rootSymbol.findFirstObjectSymbol();
@@ -93,11 +110,12 @@ export class ALProcedureCallParser {
         } else {
             documentUri = this.document.uri;
         }
-        
+
         if (!documentUri) {
             throw new Error('Could not find symbol of called object using az al dev tools.');
-        } else{
+        } else {
             return documentUri;
+
         }
     }
 }
