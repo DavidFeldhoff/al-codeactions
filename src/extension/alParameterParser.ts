@@ -21,9 +21,9 @@ export class ALParameterParser {
             return variables;
         }
 
-        let splittedParameters = parameterCallString.split(',');
-        for (let i = 0; i < splittedParameters.length; i++) {
-            let parameter = splittedParameters[i].trim();
+        let parameters: string[] = this.getParameterStringArrayOfCallString(parameterCallString);
+        for (let i = 0; i < parameters.length; i++) {
+            let parameter = parameters[i];
 
             let variable = ALVariableHandler.getALVariableByNameOfSymbol(parameter, procedureSymbol);
             if (isUndefined(variable)) {
@@ -35,7 +35,49 @@ export class ALParameterParser {
             }
             variables.push(variable);
         }
+
         return variables;
+    }
+    static getParameterStringArrayOfCallString(parameterCallString: string): string[] {
+        let parameters: string[] = [];
+        let nextParameter: string = '';
+        let chars: string[] = parameterCallString.split('');
+        let bracketDepth: number = 0;
+        let inQuotes: boolean = false;
+        let resetVariable: boolean = false;
+        for (let i = 0; i < chars.length; i++) {
+            if (chars[i] === '"') {
+                inQuotes = !inQuotes;
+            }
+            if (!inQuotes) {
+                if (chars[i] === '(') {
+                    bracketDepth += 1;
+                }
+                if (chars[i] === ')') {
+                    bracketDepth -= 1;
+                }
+                if (chars[i] === ',') {
+                    if (bracketDepth === 0) {
+                        resetVariable = true;
+                        nextParameter = nextParameter.trim();
+                        if (nextParameter.length > 0) {
+                            parameters.push(nextParameter);
+                        }
+                    }
+                }
+            }
+            nextParameter += chars[i];
+            if (resetVariable) {
+                resetVariable = false;
+                nextParameter = '';
+            }
+        }
+        nextParameter = nextParameter.trim();
+        if (nextParameter.length > 0) {
+            parameters.push(nextParameter);
+        }
+        
+        return parameters;
     }
 
     private static createVariantVariable(variables: ALVariable[]) {

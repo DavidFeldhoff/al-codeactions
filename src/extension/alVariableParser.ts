@@ -69,12 +69,12 @@ export class ALVariableParser {
         // return this.parseVariableDeclarationStringToVariable(symbol.fullName, undefined);
     }
 
-    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, positionOfVariableCall: vscode.Position, variableCall: string): Promise<ALVariable | undefined> {
+    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, positionOfProcedureCall: vscode.Position, variableCall: string): Promise<ALVariable | undefined> {
         //With VariableCall I mean 'Customer."No."' e.g.
         if (variableCall.includes('.')) {
             let childSymbolName = variableCall.substr(variableCall.indexOf('.') + 1);
             const alSymbolHandler = new ALSymbolHandler();
-            let position = alSymbolHandler.getPositionToGetCorrectSymbolLocation(document, positionOfVariableCall, variableCall);
+            let position = alSymbolHandler.getPositionToGetCorrectSymbolLocation(document, positionOfProcedureCall, variableCall);
             let found = await alSymbolHandler.findSymbols(document, position);
             if (found) {
                 let symbol = alSymbolHandler.searchForSymbol(childSymbolName);
@@ -82,6 +82,9 @@ export class ALVariableParser {
                     return this.parseFieldSymbolToALVariable(symbol);
                 }
             }
+        }else{
+            //TODO: Get the Range of the variable which should be parsed to be able to call the definitionProvider.
+            // let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, positionOfCalledObject);
         }
         return undefined;
     }

@@ -43,7 +43,7 @@ export class ALCodeOutlineExtension {
             let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
             if (objectSymbol && objectSymbol.childSymbols) {
                 for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
-                    if (ALCodeOutlineExtension.isSymbolProcedureOrTrigger(objectSymbol.childSymbols[i].kind)) {
+                    if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(objectSymbol.childSymbols[i].kind)) {
                         if (objectSymbol.childSymbols[i].range.start.line <= currentLine && objectSymbol.childSymbols[i].range.end.line >= currentLine) {
                             return objectSymbol.childSymbols[i];
                         }
@@ -53,7 +53,7 @@ export class ALCodeOutlineExtension {
         }
         throw new Error("The current procedurename was not found starting at line " + currentLine + " in file " + path.basename(documentUri.fsPath) + ".");
     }
-    public static isSymbolProcedureOrTrigger(kind: number): boolean {
+    public static isSymbolKindProcedureOrTrigger(kind: number): boolean {
         switch (kind) {
             case 236:   //TriggerDeclaration
             case 237:   //EventTriggerDeclaration
