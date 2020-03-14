@@ -44,11 +44,12 @@ export class ALProcedureCallParser {
     public async getProcedure(): Promise<ALProcedure | undefined> {
         let returnType: string | undefined;
         let parameters: ALVariable[];
-
+        
         let execArray = RegExpCreator.matchWholeProcedureCall.exec(this.procedureCall as string);
         if (isNull(execArray) || isUndefined(execArray.groups)) {
             return;
         }
+        
         if (!isUndefined(execArray.groups["returnVar"])) {
             let alVariable: ALVariable | undefined = ALVariableHandler.getALVariableByNameOfSymbol(execArray.groups["returnVar"], this.callingProcedureSymbol);
             if (alVariable) {
@@ -64,7 +65,12 @@ export class ALProcedureCallParser {
         } else {
             isLocal = true;
         }
-        parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], this.calledProcedureName);
+        let parametersRange: vscode.Range = new vscode.Range(
+            this.rangeOfProcedureCall.start.line,
+            this.rangeOfProcedureCall.start.character + execArray.groups["textBeforeParams"].length,
+            this.rangeOfProcedureCall.start.line,
+            this.rangeOfProcedureCall.start.character + execArray.groups["textBeforeParams"].length + execArray.groups["params"].length);
+        parameters = await this.getParametersOfProcedureCall(execArray.groups["params"], parametersRange, this.calledProcedureName);
 
         return new ALProcedure(this.calledProcedureName, parameters, returnType, isLocal, this.calledALObject as ALObject);
     }
@@ -76,8 +82,8 @@ export class ALProcedureCallParser {
                 return true;
         }
     }
-    private async getParametersOfProcedureCall(parameterCallString: string, procedureNameToCreate: string): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, this.callingProcedureSymbol, this.document, this.rangeOfProcedureCall);
+    private async getParametersOfProcedureCall(parameterCallString: string, rangeOfParameterCall: vscode.Range, procedureNameToCreate: string): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.parseParameterCallStringToALVariableArray(parameterCallString, rangeOfParameterCall, this.callingProcedureSymbol, this.document, this.rangeOfProcedureCall);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;

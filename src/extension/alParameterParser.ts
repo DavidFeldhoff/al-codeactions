@@ -15,15 +15,15 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    public static async parseParameterCallStringToALVariableArray(parameterCallString: string, procedureSymbol: any, document: vscode.TextDocument, procedureCallRange: vscode.Range): Promise<ALVariable[]> {
+    public static async parseParameterCallStringToALVariableArray(parameterCallString: string, rangeOfParameterCall: vscode.Range, procedureSymbol: any, document: vscode.TextDocument, procedureCallRange: vscode.Range): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
         if (parameterCallString === "") {
             return variables;
         }
 
-        let parameters: string[] = this.getParameterStringArrayOfCallString(parameterCallString);
+        let parameters: vscode.Range[] = this.getParameterRangeArrayOfCallString(document, rangeOfParameterCall);
         for (let i = 0; i < parameters.length; i++) {
-            let parameter = parameters[i];
+            let parameter: string = document.getText(parameters[i]);
 
             let variable = ALVariableHandler.getALVariableByNameOfSymbol(parameter, procedureSymbol);
             if (isUndefined(variable)) {
@@ -38,13 +38,18 @@ export class ALParameterParser {
 
         return variables;
     }
-    static getParameterStringArrayOfCallString(parameterCallString: string): string[] {
-        let parameters: string[] = [];
+    static getParameterRangeArrayOfCallString(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): vscode.Range[] {
+        let parameterCallString = document.getText(rangeOfParameterCall);
+
+        let parameters: vscode.Range[] = [];
         let nextParameter: string = '';
         let chars: string[] = parameterCallString.split('');
         let bracketDepth: number = 0;
         let inQuotes: boolean = false;
         let resetVariable: boolean = false;
+
+        //TODO: Return vscode.ranges
+        let startChar: number = rangeOfParameterCall.start.character;
         for (let i = 0; i < chars.length; i++) {
             if (chars[i] === '"') {
                 inQuotes = !inQuotes;
@@ -61,11 +66,12 @@ export class ALParameterParser {
                         resetVariable = true;
                         nextParameter = nextParameter.trim();
                         if (nextParameter.length > 0) {
-                            parameters.push(nextParameter);
+                            // parameters.push(nextParameter);
                         }
                     }
                 }
             }
+            
             nextParameter += chars[i];
             if (resetVariable) {
                 resetVariable = false;
@@ -74,9 +80,9 @@ export class ALParameterParser {
         }
         nextParameter = nextParameter.trim();
         if (nextParameter.length > 0) {
-            parameters.push(nextParameter);
+            // parameters.push(nextParameter);
         }
-        
+
         return parameters;
     }
 
