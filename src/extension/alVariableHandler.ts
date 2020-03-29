@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { isUndefined, isNull } from 'util';
+import { isUndefined } from 'util';
 import { ALVariable } from './alVariable';
 import { ALVariableParser } from './alVariableParser';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
@@ -43,11 +43,19 @@ export class ALVariableHandler {
             let localVariables: any[] = [];
             symbol.collectChildSymbols(241, localVariables);
             if (localVariables && localVariables.length > 0) {
-                localVariables.forEach(localVariable => {
-                    if (localVariable.name.toLowerCase() === variableName.toLowerCase()) {
+                for (let i = 0; i < localVariables.length; i++) {
+                    let localVariable = localVariables[i];
+                    let localVariableName = localVariable.name;
+                    if(!ALVariableHandler.hasQuotes(variableName) && ALVariableHandler.hasQuotes(localVariableName)){
+                        variableName = '"' + variableName + '"';
+                    }
+                    if(ALVariableHandler.hasQuotes(variableName) && !ALVariableHandler.hasQuotes(localVariableName)){
+                        localVariableName = '"' + localVariableName + '"';
+                    }
+                    if (localVariableName.toLowerCase() === variableName.toLowerCase()) {
                         return ALVariableParser.parseVariableSymbolToALVariable(localVariable);
                     }
-                });
+                }
             }
         }
         if (objectSymbol.childSymbols) {
@@ -59,7 +67,14 @@ export class ALVariableHandler {
                 globalVarSymbol.collectChildSymbols(241, globalVariables); //241 = Variable
                 if (globalVariables && globalVariables.length > 0) {
                     for (let i = 0; i < globalVariables.length; i++) {
-                        if (globalVariables[i].name.toLowerCase() === variableName.toLowerCase()) {
+                        let globalVariableName = globalVariables[i].name;
+                        if(!ALVariableHandler.hasQuotes(variableName) && ALVariableHandler.hasQuotes(globalVariableName)){
+                            variableName = '"' + variableName + '"';
+                        }
+                        if(ALVariableHandler.hasQuotes(variableName) && !ALVariableHandler.hasQuotes(globalVariableName)){
+                            globalVariableName = '"' + globalVariableName + '"';
+                        }   
+                        if (globalVariableName.toLowerCase() === variableName.toLowerCase()) {
                             variable = ALVariableParser.parseVariableSymbolToALVariable(globalVariables[i]);
                             break;
                         }
@@ -69,6 +84,11 @@ export class ALVariableHandler {
         }
         return variable;
     }
+    static hasQuotes(text: string): boolean {
+        text = text.trim();
+        return text.startsWith('"') && text.endsWith('"');
+    }
+
     private getGlobalVariableByName(variableName: string) {
         return this.variables.find(v =>
             v.isLocal === false &&

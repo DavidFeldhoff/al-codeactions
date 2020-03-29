@@ -15,42 +15,75 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    public static async parseParameterCallStringToALVariableArray(parameterCallString: string, rangeOfParameterCall: vscode.Range, procedureSymbol: any, document: vscode.TextDocument, procedureCallRange: vscode.Range): Promise<ALVariable[]> {
+    public static async parseParameterCallRangeToALVariableArray(rangeOfParameterCall: vscode.Range, procedureSymbol: any, document: vscode.TextDocument): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
-        if (parameterCallString === "") {
+        let callString = document.getText(rangeOfParameterCall);
+        if (callString === "") {
             return variables;
         }
 
-        let parameters: vscode.Range[] = this.getParameterRangeArrayOfCallString(document, rangeOfParameterCall);
-        for (let i = 0; i < parameters.length; i++) {
-            let parameter: string = document.getText(parameters[i]);
+        let parameterRanges: vscode.Range[] = this.getParameterRangeArrayOfCallRange(document, rangeOfParameterCall);
+        for (let i = 0; i < parameterRanges.length; i++) {
+            let parameter: string = document.getText(parameterRanges[i]);
 
             let variable = ALVariableHandler.getALVariableByNameOfSymbol(parameter, procedureSymbol);
             if (isUndefined(variable)) {
                 let variableCall = parameter; //Customer."No." e.g.
-                variable = await ALVariableParser.parseVariableCallToALVariableUsingSymbols(document, procedureCallRange.start, variableCall);
+                variable = await ALVariableParser.parseVariableCallToALVariableUsingSymbols(document, parameterRanges[i]);
             }
             if (isUndefined(variable)) {
-                variable = ALParameterParser.createVariantVariable(variables);
+                variable = ALVariableParser.parsePrimitiveTypes(document, parameterRanges[i]);
             }
+            if (isUndefined(variable)) {
+                variable = ALParameterParser.createVariantVariable();
+            }
+            variable = ALParameterParser.getUniqueVariableName(variables, variable);
             variables.push(variable);
         }
 
         return variables;
     }
-    static getParameterRangeArrayOfCallString(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): vscode.Range[] {
+    static getParameterCallRangeOfDiagnostic(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.Range {
+        let line = document.lineAt(diagnostic.range.start.line).text;
+        let chars: string[] = line.split('');
+
+        let inQuotes: boolean = false;
+        let bracketDepth: number = 0;
+        let parameterStartPos: vscode.Position | undefined;
+        for (let i = diagnostic.range.end.character; i < line.length; i++) {
+            if (chars[i] === '"') {
+                inQuotes = !inQuotes;
+            } else if (!inQuotes) {
+                if (chars[i] === '(') {
+                    bracketDepth += 1;
+                    if (!parameterStartPos) {
+                        parameterStartPos = new vscode.Position(diagnostic.range.start.line, i + 1);
+                    }
+                } else if (chars[i] === ')') {
+                    bracketDepth -= 1;
+                    if (bracketDepth === 0) {
+                        return new vscode.Range(parameterStartPos as vscode.Position, new vscode.Position(diagnostic.range.start.line, i));
+                    }
+                }
+            }
+        }
+        throw new Error('Could not find parameters.');
+    }
+    static getParameterRangeArrayOfCallRange(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): vscode.Range[] {
         let parameterCallString = document.getText(rangeOfParameterCall);
+        let line = document.lineAt(rangeOfParameterCall.start.line).text;
 
         let parameters: vscode.Range[] = [];
-        let nextParameter: string = '';
-        let chars: string[] = parameterCallString.split('');
+        let nextParameterString: string = '';
+        let chars: string[] = line.split('');
         let bracketDepth: number = 0;
         let inQuotes: boolean = false;
         let resetVariable: boolean = false;
+        let startPos: vscode.Position | undefined;
+        let endPos: vscode.Position | undefined;
+        let range: vscode.Range | undefined = document.getWordRangeAtPosition(rangeOfParameterCall.start);
 
-        //TODO: Return vscode.ranges
-        let startChar: number = rangeOfParameterCall.start.character;
-        for (let i = 0; i < chars.length; i++) {
+        for (let i = rangeOfParameterCall.start.character; i < rangeOfParameterCall.end.character; i++) {
             if (chars[i] === '"') {
                 inQuotes = !inQuotes;
             }
@@ -64,38 +97,79 @@ export class ALParameterParser {
                 if (chars[i] === ',') {
                     if (bracketDepth === 0) {
                         resetVariable = true;
-                        nextParameter = nextParameter.trim();
-                        if (nextParameter.length > 0) {
-                            // parameters.push(nextParameter);
+                        nextParameterString = nextParameterString.trimRight();
+                        endPos = new vscode.Position(Number(startPos?.line), Number(startPos?.character) + nextParameterString.length);
+                        if (nextParameterString.length > 0) {
+                            parameters.push(new vscode.Range(startPos as vscode.Position, endPos as vscode.Position));
                         }
                     }
                 }
             }
-            
-            nextParameter += chars[i];
+
+            if (nextParameterString !== '' || chars[i] !== ' ') {
+                nextParameterString += chars[i];
+                if (!startPos) {
+                    startPos = new vscode.Position(rangeOfParameterCall.start.line, i);
+                }
+            }
             if (resetVariable) {
                 resetVariable = false;
-                nextParameter = '';
+                nextParameterString = '';
+                startPos = undefined;
+                endPos = undefined;
             }
         }
-        nextParameter = nextParameter.trim();
-        if (nextParameter.length > 0) {
-            // parameters.push(nextParameter);
+        nextParameterString = nextParameterString.trimRight();
+        if (nextParameterString.length > 0) {
+            endPos = new vscode.Position(Number(startPos?.line), Number(startPos?.character) + nextParameterString.length);
+            parameters.push(new vscode.Range(startPos as vscode.Position, endPos as vscode.Position));
         }
 
         return parameters;
     }
 
-    private static createVariantVariable(variables: ALVariable[]) {
-        let variableName: string;
-        let variableNameUnique = true;
-        let i = 0;
-        do {
-            variableName = String.fromCharCode(97 + i++);
-            variables.forEach(variable => {
-                variableNameUnique = variable.name.toLowerCase() !== variableName;
-            });
-        } while (!variableNameUnique);
-        return new ALVariable(variableName, undefined, false, 'Variant');
+    private static createVariantVariable(): ALVariable {
+        return new ALVariable("arg", undefined, false, 'Variant');
+        
+    }
+    public static getUniqueVariableName(variables: ALVariable[], newVariable: ALVariable): ALVariable {
+        if (this.existsVariableNameWithNumber(variables, newVariable.name)) {
+            for (let i = 1; true; i++) {
+                let newVariableNameWithNumber = this.addNumberToVariableName(variables, newVariable.name, i);
+                if (!this.existsVariableName(variables, newVariableNameWithNumber)) {
+                    newVariable.name = newVariableNameWithNumber;
+                    return newVariable;
+                }
+            }
+        } else {
+            if (this.existsVariableName(variables, newVariable.name)) {
+                let existingVariable = variables.find(v => v.name === newVariable.name) as ALVariable;
+                existingVariable.name = this.addNumberToVariableName(variables, existingVariable.name, 1);
+                newVariable.name = this.addNumberToVariableName(variables, newVariable.name, 2);
+                return newVariable;
+            } else {
+                return newVariable;
+            }
+        }
+    }
+    private static existsVariableName(variables: ALVariable[], variableName: string): boolean {
+        let existingVariable = variables.find(v => v.name === variableName);
+        return !isUndefined(existingVariable);
+    }
+    static existsVariableNameWithNumber(variables: ALVariable[], variableName: string) {
+        variableName = this.addNumberToVariableName(variables, variableName);
+        let existingVariable = variables.find(v => v.name === variableName);
+        return !isUndefined(existingVariable);
+    }
+    private static addNumberToVariableName(variables: ALVariable[], variableName: string, number?: number): string {
+        if (isUndefined(number)) {
+            number = 1;
+        }
+        if (variableName.endsWith('"')) {
+            variableName = variableName.substr(0, variableName.length - 1) + number.toString() + '"';
+        } else {
+            variableName = variableName + number.toString();
+        }
+        return variableName;
     }
 }

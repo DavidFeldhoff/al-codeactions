@@ -1,13 +1,12 @@
 import * as vscode from 'vscode';
-import { RegExpCreator } from "./regexpCreator";
-import { isNull, isUndefined } from "util";
+import { isUndefined } from "util";
 import { ALVariable } from "./alVariable";
-import { ALParameterParser } from "./alParameterParser";
 import { ALSymbolHandler } from './alSymbolHandler';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
+import { DocumentUtils } from './documentUtils';
+import { ALParameterParser } from './alParameterParser';
 
 export class ALVariableParser {
-
     public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
         let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
         let api = alCodeOutlineExtension.getAPI();
@@ -64,28 +63,93 @@ export class ALVariableParser {
         return alVariable;
     }
 
-    public static parseFieldSymbolToALVariable(symbol: any): ALVariable {
+    public static async parseFieldSymbolToALVariable(symbol: any, uri?: vscode.Uri): Promise<ALVariable> {
+        if (!symbol.subtype) {
+            if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(symbol.kind)) {
+                let lastBracketPos = symbol.fullName.lastIndexOf(')');
+                let colonPos = symbol.fullName.indexOf(':', lastBracketPos);
+                if (colonPos > 0) {
+                    symbol.subtype = symbol.fullName.substr(colonPos + 1).trim();
+                }
+                symbol.name = "arg";
+            } else {
+                if (ALCodeOutlineExtension.isSymbolKindTableField(symbol.kind) && symbol.fullName.trim().endsWith("Option") && uri) {
+                    // expand range due to a cut off in the al code outline extension
+                    let document: vscode.TextDocument = await vscode.workspace.openTextDocument(uri);
+                    let rangeOptionValues: vscode.Range = new vscode.Range(symbol.selectionRange.end.line, symbol.selectionRange.end.character, symbol.selectionRange.end.line, document.lineAt(symbol.selectionRange.end.line).range.end.character);
+                    let textOptionValues = document.getText(rangeOptionValues);
+                    textOptionValues = textOptionValues.substr(textOptionValues.indexOf('Option') + 'Option'.length);
+                    textOptionValues = textOptionValues.substr(0, textOptionValues.lastIndexOf(')'));
+                    symbol.fullName = symbol.fullName.trim() + textOptionValues;
+                }
+                symbol.subtype = this.getTypeOfVariableDeclaration(symbol.fullName);
+            }
+        }
         return new ALVariable(symbol.name, undefined, false, symbol.subtype);
-        // return this.parseVariableDeclarationStringToVariable(symbol.fullName, undefined);
     }
 
-    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, positionOfProcedureCall: vscode.Position, variableCall: string): Promise<ALVariable | undefined> {
+    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, variableCallRange: vscode.Range): Promise<ALVariable | undefined> {
+        let variableCall: string = document.getText(variableCallRange);
         //With VariableCall I mean 'Customer."No."' e.g.
         if (variableCall.includes('.')) {
-            let childSymbolName = variableCall.substr(variableCall.indexOf('.') + 1);
-            const alSymbolHandler = new ALSymbolHandler();
-            let position = alSymbolHandler.getPositionToGetCorrectSymbolLocation(document, positionOfProcedureCall, variableCall);
-            let found = await alSymbolHandler.findSymbols(document, position);
-            if (found) {
-                let symbol = alSymbolHandler.searchForSymbol(childSymbolName);
-                if (!isUndefined(symbol)) {
-                    return this.parseFieldSymbolToALVariable(symbol);
-                }
+            let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRange(document, variableCallRange);
+            if (!objectRange) {
+                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
             }
-        }else{
-            //TODO: Get the Range of the variable which should be parsed to be able to call the definitionProvider.
-            // let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, positionOfCalledObject);
+            let childNameRange = DocumentUtils.getNextWordRange(document, variableCallRange, objectRange.end.translate(0, 1));
+            if (!childNameRange) {
+                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+            }
+            const alSymbolHandler = new ALSymbolHandler();
+            let searchedSymbol = await alSymbolHandler.findSymbol(document, childNameRange?.start, document.getText(childNameRange));
+            if (!isUndefined(searchedSymbol)) {
+                let uri = alSymbolHandler.getLastUri() as vscode.Uri;
+                let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
+                return alVariable;
+            }
+        } else {
+            const alSymbolHandler = new ALSymbolHandler();
+            let nameRange = DocumentUtils.getNextWordRange(document, variableCallRange);
+            if (!nameRange) {
+                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+            }
+            let searchedSymbol = await alSymbolHandler.findSymbol(document, variableCallRange.start, document.getText(nameRange));
+            if (!isUndefined(searchedSymbol)) {
+                let uri = alSymbolHandler.getLastUri() as vscode.Uri;
+                let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
+                return alVariable;
+            }
         }
         return undefined;
+    }
+    static parsePrimitiveTypes(document: vscode.TextDocument, variableCallRange: vscode.Range): ALVariable | undefined {
+        let alVariable: ALVariable | undefined;
+        let variableCall: string = document.getText(variableCallRange);
+        if (variableCall.startsWith('\'') && variableCall.endsWith('\'')) {
+            alVariable = new ALVariable('arg', undefined, false, 'Text');
+        } else if (variableCall.trim().toLowerCase() === "true" || variableCall.trim().toLowerCase() === "false") {
+            alVariable = new ALVariable('arg', undefined, false, 'Boolean');
+        } else {
+            let number = Number(variableCall);
+            if (isNaN(number)) {
+                return undefined;
+            } else if (Number.isInteger(number)) {
+                alVariable = new ALVariable('arg', undefined, false, 'Integer');
+            } else {
+                alVariable = new ALVariable('arg', undefined, false, 'Decimal');
+            }
+        }
+        return alVariable;
+    }
+
+    public static getTypeOfVariableDeclaration(variableDeclaration: string): string {
+        let variableName = DocumentUtils.getNextWord(variableDeclaration);
+        let colonPos = variableDeclaration.indexOf(':', variableName?.length);
+        let type = variableDeclaration.substring(colonPos + 1);
+        type = type.trim();
+        if (type.charAt(type.length - 1) === ';') {
+            type = type.substr(0, type.length - 1);
+        }
+        return type;
     }
 }
