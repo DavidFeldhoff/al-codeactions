@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import { RegExpCreator } from './regexpCreator';
-import { isNullOrUndefined, isUndefined, isNull } from 'util';
+import { isUndefined, isNull } from 'util';
 import { ALObject } from './alObject';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { DocumentUtils } from './documentUtils';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 
 export class ALSourceCodeHandler {
 
@@ -10,56 +12,33 @@ export class ALSourceCodeHandler {
     constructor(document: vscode.TextDocument) {
         this.document = document;
     }
-    public getALObjectOfDocument(): ALObject {
-        let lineNo: number | undefined = this.getObjectDeclarationLine();
-        if (!isUndefined(lineNo)) {
-            let lineText = this.document.lineAt(lineNo as number).text;
-            let execArray = RegExpCreator.matchObjectDeclarationLine.exec(lineText);
-            if (!isNull(execArray) && !isUndefined(execArray.groups)) {
-                return new ALObject(
-                    execArray.groups['objectName'],
-                    execArray.groups['objectType'],
-                    execArray.groups['objectId'] as unknown as number,
-                    this.document);
-            }
-        }
-        throw new Error('Unable to get object type and name of document ' + this.document.fileName + '.');
-    }
-    private getObjectDeclarationLine(): number | undefined {
-        for (let lineNo = 0; lineNo < this.document.lineCount; lineNo++) {
-            let lineText = this.document.lineAt(lineNo).text;
-            if (RegExpCreator.matchObjectDeclarationLine.test(lineText)) {
-                return lineNo;
-            }
-        }
-        return undefined;
-    }
-
-    public getProcedureOrTriggerNameOfCurrentPosition(currentLine: number): string {
-        this.document.lineAt(currentLine);
-        const regex = RegExpCreator.matchProcedureOrTriggerDeclarationLine;
-        for (let i = currentLine; i > 0; i--) {
-            let execArray = regex.exec(this.document.lineAt(i).text);
-            if (!isNullOrUndefined(execArray)) {
-                return execArray[1];
-            }
-        }
-        throw new Error("The current procedurename was not found starting at line " + currentLine + " in file " + this.document.fileName + ".");
-    }
-
-    public getPositionToInsertProcedure(currentLineNo: number | undefined): vscode.Position {
+    public async getPositionToInsertProcedure(currentLineNo: number | undefined): Promise<vscode.Position> {
         let position;
         if (!isUndefined(currentLineNo)) {
-            position = this.getNextPositionToInsertProcedureStartingAtLine(this.document, currentLineNo);
+            position = await this.getNextPositionToInsertProcedureStartingAtLine(this.document, currentLineNo);
         } else {
             position = this.getLastPositionToInsertProcedureStartingAtEndOfDocument(this.document);
         }
         return position;
     }
 
-    private getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number): vscode.Position {
+    private async getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number): Promise<vscode.Position> {
+        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibrary = await azalDevTools.symbolsService.loadDocumentSymbols(document.uri);
+        let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
+        if(ALCodeOutlineExtension.isSymbolKindTable(objectSymbol.kind)){
+            let keyList: any[] = [];
+            objectSymbol.collectChildSymbols(265, keyList);
+            if (keyList && keyList.length > 0) {
+                let firstPossibleLine: number = keyList[0].range.end.line;
+                if(currentLineNo < firstPossibleLine){
+                    currentLineNo = firstPossibleLine - 1;
+                }
+            }
+        }
+        
         for (let i = currentLineNo; i < document.lineCount; i++) {
-            if (this.isPossiblePositionToInsertProcedure(document.lineAt(i))) {
+            if (this.isPossiblePositionToInsertProcedure(document, i)) {
                 return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
@@ -74,7 +53,7 @@ export class ALSourceCodeHandler {
                 lineOfClosingBracket = i;
             }
 
-            if (this.isPossiblePositionToInsertProcedure(document.lineAt(i))) {
+            if (this.isPossiblePositionToInsertProcedure(document, i)) {
                 return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
@@ -84,8 +63,9 @@ export class ALSourceCodeHandler {
             return new vscode.Position(lineOfClosingBracket, 0);
         }
     }
-    private isPossiblePositionToInsertProcedure(textLine: vscode.TextLine): boolean {
+    private isPossiblePositionToInsertProcedure(document: vscode.TextDocument, lineNo: number): boolean {
         let closingTags = ["end;", "}"];
+        let textLine = document.lineAt(lineNo);
         if (textLine.firstNonWhitespaceCharacterIndex === 4) {
             let trimmedText = textLine.text.toLowerCase().trim();
             return closingTags.includes(trimmedText);
@@ -93,56 +73,76 @@ export class ALSourceCodeHandler {
         return false;
     }
 
-    public getRangeOfProcedureCall(rangeOfProcedureName: vscode.Range): vscode.Range | undefined {
+    public expandRangeToRangeOfProcedureCall(rangeOfProcedureName: vscode.Range): vscode.Range | undefined {
         let lineText = this.document.lineAt(rangeOfProcedureName.start).text;
 
-        let openingBracket = new vscode.Position(rangeOfProcedureName.end.line, rangeOfProcedureName.end.character);
-        //TODO: Not yet supported to create a procedure which is part of a call of another (existing) procedure.
-        if (lineText.substr(0, openingBracket.character).includes('(')) {
+        let positionBeforeOpeningBracket = new vscode.Position(rangeOfProcedureName.end.line, rangeOfProcedureName.end.character);
+        //TODO: Procedure as parameter: Not yet supported
+        if (lineText.substr(0, positionBeforeOpeningBracket.character).includes('(')) {
             return undefined;
         }
-        
-        let indexOfmatchingClosingBracket = this.findMatchingClosingBracket(this.document, openingBracket);
+
+        // expand procedureRange to the right side
+        let indexOfmatchingClosingBracket: vscode.Position | undefined = DocumentUtils.findMatchingClosingBracket(this.document, positionBeforeOpeningBracket);
         if (isUndefined(indexOfmatchingClosingBracket)) {
             return undefined;
         }
-        let endOfProcedureCall = indexOfmatchingClosingBracket + 1;
-        let lineTextUpToEndOfProcedureCall = lineText.substr(0, endOfProcedureCall);
-        let execArray = RegExpCreator.matchWholeProcedureCall.exec(lineTextUpToEndOfProcedureCall);
-        if (isNull(execArray)) {
-            return;
-        } else {
-            let beginningOfProcedureCall = endOfProcedureCall - execArray[0].length;
+        let endOfProcedureCall: vscode.Position = indexOfmatchingClosingBracket.translate(0, 1);
 
-            let procedureCallRange = new vscode.Range(
-                rangeOfProcedureName.start.line,
-                beginningOfProcedureCall,
-                rangeOfProcedureName.end.line,
-                endOfProcedureCall);
-
-            return procedureCallRange;
-        }
-    }
-    findMatchingClosingBracket(document: vscode.TextDocument, openingBracket: vscode.Position): number | undefined {
-        let lineText = document.lineAt(openingBracket.line).text;
-        let lineTextStartingAtBracket = lineText.substr(openingBracket.character);
-        let closingBracket;
-        let startSearchPos = openingBracket.character;
-        let bracketAmountIsEqual = false;
-        do {
-            closingBracket = lineText.indexOf(')', startSearchPos);
-            if (closingBracket === -1) {
-                return undefined;
-            } else {
-                startSearchPos = closingBracket + 1;
+        // expand procedureRange to the left side
+        let beginningOfProcedureCall = rangeOfProcedureName.start;
+        let chars = lineText.split('');
+        for (let i = rangeOfProcedureName.start.character - 1; i >= 0; i--) {
+            let char = chars[i];
+            if (char === '.') {
+                let startOfCalledObject: vscode.Position | undefined = this.expandToCalledObject(this.document, beginningOfProcedureCall.with(undefined, i));
+                if (!startOfCalledObject) {
+                    throw new Error('Could not find called object.');
+                }
+                i = startOfCalledObject.character;
+                beginningOfProcedureCall = startOfCalledObject.with(undefined, i);
             }
-            let textBetweenBrackets = lineText.substr(openingBracket.character, closingBracket - openingBracket.character + ")".length);
+            if (char === '=') {
+                if (chars[i - 1] === ':') {
+                    let startOfCalledObject: vscode.Position | undefined = this.expandToFieldOrProcedureAndObject(this.document, beginningOfProcedureCall.with(undefined, i - 1));
+                    if (!startOfCalledObject) {
+                        throw new Error('Could not find called object.');
+                    }
+                    i = startOfCalledObject.character;
+                    beginningOfProcedureCall = startOfCalledObject.with(undefined, i);
+                    break;
+                } else {
+                    break;
+                }
+            }
+        }
 
-            let matchOpeningBrackets = textBetweenBrackets.match(/\(/g) as RegExpMatchArray;
-            let matchClosingBrackets = textBetweenBrackets.match(/\)/g) as RegExpMatchArray;
-            bracketAmountIsEqual = matchOpeningBrackets.length === matchClosingBrackets.length;
-        } while (!bracketAmountIsEqual);
-        return closingBracket;
+        let procedureCallRange = new vscode.Range(beginningOfProcedureCall, endOfProcedureCall);
+        return procedureCallRange;
+
+    }
+    expandToCalledObject(document: vscode.TextDocument, positionOfDot: vscode.Position): vscode.Position | undefined {
+        let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfDot);
+        if (!rangeOfCalledObject) {
+            throw new Error('Could not find return type');
+        }
+        return rangeOfCalledObject.start;
+    }
+    expandToFieldOrProcedureAndObject(document: vscode.TextDocument, positionOfAssignment: vscode.Position): vscode.Position | undefined {
+        let line = document.lineAt(positionOfAssignment.line).text;
+        let rangeOfFieldOrProcedure: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfAssignment);
+        if (!rangeOfFieldOrProcedure) {
+            throw new Error('Could not find return type');
+        }
+        let char = line.charAt(rangeOfFieldOrProcedure.start.character - 1);
+        if (char === '.') {
+            let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, rangeOfFieldOrProcedure.start.translate(0, -1));
+            if (!rangeOfCalledObject) {
+                throw new Error('Could not find return type');
+            }
+            return rangeOfCalledObject.start;
+        }
+        return rangeOfFieldOrProcedure.start;
     }
 
     public getRelevantDiagnosticOfCurrentPosition(range: vscode.Range) {
@@ -173,14 +173,6 @@ export class ALSourceCodeHandler {
     }
 
     private checkDiagnosticsPosition(d: vscode.Diagnostic, range: vscode.Range): boolean {
-        let samePos: boolean;
-        let selectionMade = range.start.compareTo(range.end) < 0;
-        if (selectionMade) {
-            samePos = d.range.start.compareTo(range.start) === 0 && d.range.end.compareTo(range.end) === 0;
-        }
-        else {
-            samePos = d.range.start.compareTo(range.start) <= 0 && d.range.end.compareTo(range.start) >= 0;
-        }
-        return samePos;
+        return d.range.contains(range);
     }
 }
