@@ -20,9 +20,7 @@ See here how it works:
 
 ## Known Issues
 
-- If you create a procedure using the code action in another app by using multi-root workspaces won't fix the error which is reported by the code analyzer.
-- To create a procedure with another procedure as parameter will create a procedure with a variant parameter.
-- To create a procedure where the return value is directly used (for example in an if-statement or as procedure parameter) is not supported yet.
+- See github issues
 
 ## Thanks to
 
