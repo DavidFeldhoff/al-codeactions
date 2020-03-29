@@ -3,23 +3,16 @@ import { isUndefined } from "util";
 export class ALVariable {
     public name: string;
     public type: string;
-    public subtype: string | undefined;
-    public dimensions: string | undefined;
-    public length: number | undefined;
     public isLocal: boolean;
     public isVar: boolean;
-    public isTemporary: boolean;
     public procedure: string | undefined;
-    constructor(name: string, isLocal: boolean, procedure: string | undefined, isVar: boolean, isTemporary: boolean, type: string, subtype?: string, length?: number, dimensions?: string) {
+    constructor(name: string, procedure: string | undefined, isVar: boolean, type: string) {
         this.name = name;
-        this.isLocal = isLocal;
+        this.name = this.addBrackets(this.name);
         this.procedure = procedure;
+        this.isLocal = !isUndefined(procedure);
         this.isVar = isVar;
-        this.isTemporary = isTemporary;
         this.type = type;
-        this.subtype = subtype;
-        this.length = length;
-        this.dimensions = dimensions;
     }
     public getVariableDeclarationString(): string {
         let declarationString = "";
@@ -28,24 +21,19 @@ export class ALVariable {
         }
         declarationString += this.name;
         declarationString += ": ";
-        declarationString += this.getTypeDefinition();
-        if(this.isTemporary){
-            declarationString += " temporary";
-        }
+        declarationString += this.type;
         return declarationString;
     }
-    public getTypeDefinition(): string{
-        let typeDefinition = "";
-        if(!isUndefined(this.dimensions)){
-            typeDefinition = "array[" + this.dimensions + "] of ";
+    private addBrackets(name: string) {
+        name = name.trim();
+        if(name.startsWith('"') && name.endsWith('"')){
+            return name;
         }
-        typeDefinition += this.type;
-        if(!isUndefined(this.subtype)){
-            typeDefinition += ' ' + this.subtype;
+        for(let i = 0; i < name.length; i++){
+            if(!name.charAt(i).match(/\w/)){
+                return '"' + name + '"';
+            }
         }
-        if(!isUndefined(this.length)){
-            typeDefinition += '[' + this.length + ']';
-        }
-        return typeDefinition;
+        return name;
     }
 }
