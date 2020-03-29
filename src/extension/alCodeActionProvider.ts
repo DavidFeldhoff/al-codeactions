@@ -65,11 +65,13 @@ export class ALCodeActionProvider implements vscode.CodeActionProvider {
         let codeActionToCreateProcedure: vscode.CodeAction | undefined;
         switch (diagnostic.code as string) {
             case SupportedDiagnosticCodes.AL0132.toString():
-                await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri).then(async otherDocument => {
-                    if (!isUndefined(otherDocument)) {
-                        codeActionToCreateProcedure = await this.createFixToCreateProcedure(procedureToCreate, otherDocument);
-                    }
-                });
+                if (!procedureToCreate.ObjectOfProcedure.documentUri.fsPath.endsWith('dal')) {
+                    await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri).then(async otherDocument => {
+                        if (!isUndefined(otherDocument)) {
+                            codeActionToCreateProcedure = await this.createFixToCreateProcedure(procedureToCreate, otherDocument);
+                        }
+                    });
+                }
                 break;
             case SupportedDiagnosticCodes.AL0118.toString():
                 codeActionToCreateProcedure = await this.createFixToCreateProcedure(procedureToCreate, currentDocument, diagnostic.range.start.line);
