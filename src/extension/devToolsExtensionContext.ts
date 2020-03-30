@@ -69,13 +69,7 @@ export class ALCodeOutlineExtension {
         }
     }
     public static isSymbolKindTable(kind: number): boolean {
-        switch (kind) {
-            case 412: //TableObject
-            case 413: //TableExtension
-                return true;
-            default:
-                return false;
-        }
+        return kind === 412;
     }
     public static isSymbolKindTableExtension(kind: number): boolean{
         return kind === 413;
