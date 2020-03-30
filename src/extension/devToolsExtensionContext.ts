@@ -77,6 +77,21 @@ export class ALCodeOutlineExtension {
                 return false;
         }
     }
+    public static isSymbolKindTableExtension(kind: number): boolean{
+        return kind === 413;
+    }
+    static isSymbolKindPage(kind: number): boolean {
+        return kind === 414;
+    }
+    static isSymbolKindPageExtension(kind: number): boolean {
+        return kind === 415;
+    }
+    static isSymbolKindPageCustomization(kind: number) : boolean{
+        return kind === 421;
+    }
+    static isSymbolKindReport(kind: number): boolean {
+        return kind === 416;
+    }
     public static isSymbolKindTableField(kind: number): boolean {
         switch (kind) {
             case 260:   //TableField
