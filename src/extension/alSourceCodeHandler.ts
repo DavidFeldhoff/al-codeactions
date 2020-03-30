@@ -13,47 +13,53 @@ export class ALSourceCodeHandler {
         this.document = document;
     }
     public async getPositionToInsertProcedure(currentLineNo: number | undefined): Promise<vscode.Position> {
+        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibrary = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
+        let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
+
         let position;
         if (!isUndefined(currentLineNo)) {
-            position = await this.getNextPositionToInsertProcedureStartingAtLine(this.document, currentLineNo);
+            position = await this.getNextPositionToInsertProcedureStartingAtLine(this.document, currentLineNo, objectSymbol);
         } else {
-            position = this.getLastPositionToInsertProcedureStartingAtEndOfDocument(this.document);
+            position = this.getLastPositionToInsertProcedureStartingAtEndOfDocument(this.document, objectSymbol);
         }
         return position;
     }
 
-    private async getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number): Promise<vscode.Position> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
-        let symbolsLibrary = await azalDevTools.symbolsService.loadDocumentSymbols(document.uri);
-        let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
-        if(ALCodeOutlineExtension.isSymbolKindTable(objectSymbol.kind)){
-            let keyList: any[] = [];
-            objectSymbol.collectChildSymbols(265, keyList);
-            if (keyList && keyList.length > 0) {
-                let firstPossibleLine: number = keyList[0].range.end.line;
-                if(currentLineNo < firstPossibleLine){
-                    currentLineNo = firstPossibleLine - 1;
+    private async getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number, objectSymbol: any): Promise<vscode.Position> {
+        if (objectSymbol.childSymbols) {
+            for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
+                if (objectSymbol.childSymbols[i].range.start.line <= currentLineNo && objectSymbol.childSymbols[i].range.end.line >= currentLineNo) {
+                    if (!ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(objectSymbol.childSymbols[i].kind)) {
+                        return this.getLastPositionToInsertProcedureStartingAtEndOfDocument(document, objectSymbol);
+                    }
                 }
             }
         }
-        
+
         for (let i = currentLineNo; i < document.lineCount; i++) {
             if (this.isPossiblePositionToInsertProcedure(document, i)) {
                 return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
         //if the end of the current procedure wasn't found fall back and take the last possible position to insert the procedure.
-        return this.getLastPositionToInsertProcedureStartingAtEndOfDocument(document);
+        return this.getLastPositionToInsertProcedureStartingAtEndOfDocument(document, objectSymbol);
     }
 
-    private getLastPositionToInsertProcedureStartingAtEndOfDocument(document: vscode.TextDocument): vscode.Position {
+    private getLastPositionToInsertProcedureStartingAtEndOfDocument(document: vscode.TextDocument, objectSymbol: any): vscode.Position {
+        let globalVarSection: any[] = [];
+        objectSymbol.collectChildSymbols(428, globalVarSection);
+        let endLineNoOfGlobalVars: number | undefined;
+        if (globalVarSection.length > 0) {
+            endLineNoOfGlobalVars = globalVarSection[0].range.end.line;
+        }
         let lineOfClosingBracket: number | undefined;
         for (let i = document.lineCount - 1; i > 0; i--) {
             if (document.lineAt(i).text.startsWith('}')) {
                 lineOfClosingBracket = i;
             }
 
-            if (this.isPossiblePositionToInsertProcedure(document, i)) {
+            if (this.isPossiblePositionToInsertProcedure(document, i) || (endLineNoOfGlobalVars && i === endLineNoOfGlobalVars - 1)) {
                 return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
             }
         }
