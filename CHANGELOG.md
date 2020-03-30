@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.1.6
+
+- Insert the procedure always at the end of the file except the procedure should be created out of
+  another procedure / trigger. Then it should be inserted directly after the calling procedure.
+
 ## 0.1.4
 
 - Allow procedures as parameters
