@@ -48,7 +48,7 @@ export class ALSourceCodeHandler {
 
     private getLastPositionToInsertProcedureStartingAtEndOfDocument(document: vscode.TextDocument, objectSymbol: any): vscode.Position {
         let globalVarSection: any[] = [];
-        objectSymbol.collectChildSymbols(428, globalVarSection);
+        objectSymbol.collectChildSymbols(428, true, globalVarSection);
         let endLineNoOfGlobalVars: number | undefined;
         if (globalVarSection.length > 0) {
             endLineNoOfGlobalVars = globalVarSection[0].range.end.line;
