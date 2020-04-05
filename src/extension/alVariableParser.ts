@@ -14,13 +14,13 @@ export class ALVariableParser {
         let rootSymbol = symbols.rootSymbol.childSymbols[0];
         let variables: ALVariable[] = [];
         let variableSymbols: any[] = [];
-        rootSymbol.collectChildSymbols(241, variableSymbols); //241 = Variable Declaration
+        rootSymbol.collectChildSymbols(241, true, variableSymbols); //241 = Variable Declaration
         for (let i = 0; i < variableSymbols.length; i++) {
             let alVariable = ALVariableParser.parseVariableSymbolToALVariable(variableSymbols[i]);
             variables.push(alVariable);
         }
         let parameterSymbols: any[] = [];
-        rootSymbol.collectChildSymbols(240, parameterSymbols); //240 = Paramter
+        rootSymbol.collectChildSymbols(240, true, parameterSymbols); //240 = Paramter
         for (let i = 0; i < parameterSymbols.length; i++) {
             let alVariable = ALVariableParser.parseParameterSymbolToALVariable(parameterSymbols[i]);
             variables.push(alVariable);

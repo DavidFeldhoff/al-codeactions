@@ -44,7 +44,7 @@ export class ALCodeOutlineExtension {
             let triggerOrProcedureKinds: number[] = this.getProcedureOrTriggerKinds();
             for (let x = 0; x < triggerOrProcedureKinds.length; x++) {
                 let objectsOfKindX: any[] = [];
-                objectSymbol.collectChildSymbols(triggerOrProcedureKinds[x], objectsOfKindX);
+                objectSymbol.collectChildSymbols(triggerOrProcedureKinds[x], true, objectsOfKindX);
                 if (objectsOfKindX && objectsOfKindX.length > 0) {
                     for (let i = 0; i < objectsOfKindX.length; i++) {
                         if (objectsOfKindX[i].range.start.line <= currentLine && objectsOfKindX[i].range.end.line >= currentLine) {

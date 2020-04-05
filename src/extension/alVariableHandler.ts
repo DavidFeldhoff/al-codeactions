@@ -41,7 +41,7 @@ export class ALVariableHandler {
         if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(symbol.kind)) {
             objectSymbol = symbol.parent;
             let localVariables: any[] = [];
-            symbol.collectChildSymbols(241, localVariables);
+            symbol.collectChildSymbols(241, true, localVariables);
             if (localVariables && localVariables.length > 0) {
                 for (let i = 0; i < localVariables.length; i++) {
                     let localVariable = localVariables[i];
@@ -60,11 +60,11 @@ export class ALVariableHandler {
         }
         if (objectSymbol.childSymbols) {
             let globalVarSymbols: any[] = [];
-            objectSymbol.collectChildSymbols(428, globalVarSymbols);
+            objectSymbol.collectChildSymbols(428, true, globalVarSymbols);
 
             globalVarSymbols.forEach(globalVarSymbol => {
                 let globalVariables: any[] = [];
-                globalVarSymbol.collectChildSymbols(241, globalVariables); //241 = Variable
+                globalVarSymbol.collectChildSymbols(241, true, globalVariables); //241 = Variable
                 if (globalVariables && globalVariables.length > 0) {
                     for (let i = 0; i < globalVariables.length; i++) {
                         let globalVariableName = globalVariables[i].name;
