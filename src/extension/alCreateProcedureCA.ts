@@ -6,7 +6,7 @@ import { ALProcedureSourceCodeCreator } from './alProcedureSourceCodeCreator';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ALSourceCodeHandler } from './alSourceCodeHandler';
 
-export class ALCodeActionProvider implements vscode.CodeActionProvider {
+export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
     public static readonly providedCodeActionKinds = [
         vscode.CodeActionKind.QuickFix
