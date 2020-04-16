@@ -2,6 +2,15 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.1.8
+
+- Create procedures out of event subscribers. This was previously not possible.
+- Add the Option values to the parameter declaration. There was an issue if it was an option field of a record (variables or parameters were fine).
+
+## 0.1.7
+
+- technical updates
+
 ## 0.1.6
 
 - Insert the procedure always at the end of the file except the procedure should be created out of
