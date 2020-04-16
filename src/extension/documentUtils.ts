@@ -1,9 +1,59 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
 
-export class DocumentUtils{
-    public static getNextWordRange(document: vscode.TextDocument, range: vscode.Range, startPos?: vscode.Position): vscode.Range | undefined {
-        if(!startPos){
+export class DocumentUtils {
+    static isPositionInProcedurecall(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
+        let inQuotes: boolean;
+        let bracketDepth: number = 0;
+        for (let lineNo = rangeToSearchIn.start.line; lineNo <= rangeToSearchIn.end.line; lineNo++) {
+            let lineText = document.lineAt(lineNo).text;
+            let lineChars: string[] = lineText.split('');
+            inQuotes = false;
+            let charNo = lineNo === rangeToSearchIn.start.line ? rangeToSearchIn.start.character : 0;
+            let endCharOfLine = lineNo === rangeToSearchIn.end.line ? rangeToSearchIn.end.character : lineText.length - 1;
+            for (; charNo <= endCharOfLine; charNo++) {
+                if (positionToCheck.isEqual(new vscode.Position(lineNo, charNo))) {
+                    return bracketDepth <= 0;
+                } else {
+                    if (lineChars[charNo] === '"') {
+                        inQuotes = !inQuotes;
+                    }
+                    if (!inQuotes) {
+                        if (lineChars[charNo] === '(') {
+                            bracketDepth++;
+                        } else if (lineChars[charNo] === ')') {
+                            bracketDepth--;
+                        } else if (lineChars[charNo] === '/' && charNo > 0 && lineChars[charNo - 1] === '/') {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    static isPositionInQuotes(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
+        let inQuotes: boolean;
+        for (let lineNo = rangeToSearchIn.start.line; lineNo <= rangeToSearchIn.end.line; lineNo++) {
+            let lineText = document.lineAt(lineNo).text;
+            let lineChars: string[] = lineText.split('');
+            inQuotes = false;
+            let charNo = lineNo === rangeToSearchIn.start.line ? rangeToSearchIn.start.character : 0;
+            let endCharOfLine = lineNo === rangeToSearchIn.end.line ? rangeToSearchIn.end.character : lineText.length - 1;
+            for (; charNo <= endCharOfLine; charNo++) {
+                if (positionToCheck.isEqual(new vscode.Position(lineNo, charNo))) {
+                    return inQuotes;
+                } else {
+                    if (lineChars[charNo] === '"') {
+                        inQuotes = !inQuotes;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public static getNextWordRangeInsideLine(document: vscode.TextDocument, range: vscode.Range, startPos?: vscode.Position): vscode.Range | undefined {
+        if (!startPos) {
             startPos = range.start;
         }
         let inQuotes: boolean = false;
@@ -33,7 +83,7 @@ export class DocumentUtils{
         }
     }
     public static getNextWord(text: string, startCharacter?: number): string | undefined {
-        if(!startCharacter){
+        if (!startCharacter) {
             startCharacter = 0;
         }
         let inQuotes: boolean = false;
