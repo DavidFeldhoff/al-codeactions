@@ -101,6 +101,7 @@ export class ALCodeOutlineExtension {
         kinds.push(238); //MethodDeclaration
         kinds.push(239); //EventDeclaration
         kinds.push(50001); //LocalMethodDeclaration
+        kinds.push(50037); //EventSubscriber
         return kinds;
     }
 }

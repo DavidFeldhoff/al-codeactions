@@ -311,9 +311,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[0].name, '"No."');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
 		assert.equal(alProcedure.parameters[1].name, 'Reserve');
-		assert.equal(alProcedure.parameters[1].type, "Option Never, Optional, Always");
+		assert.equal(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
 		assert.equal(alProcedure.parameters[2].name, '"Application Method"');
-		assert.equal(alProcedure.parameters[2].type, 'Option Manual, "Apply to Oldest"');
+		assert.equal(alProcedure.parameters[2].type, 'Option Manual,"Apply to Oldest"');
 	}); //first time interacting with the symbols and another extensin can take some time.
 	test('getProcedureToCreate_FieldsOfSameAppAsParameter', async function () {
 		let procedureName = 'MissingProcedureWithFieldsOfSameAppAsParameter';
@@ -387,6 +387,19 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[3].name, 'arg4');
 		assert.equal(alProcedure.parameters[3].type, "Boolean");
 	});
+	test('getProcedureToCreate_EventSubscriber', async function () {
+		let procedureName = 'testfuncInSubscriber';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCodeActionProvider().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 0);
+	});
 	test('getProcedureToCreate_Table_OnValidateOfTableField', async function () {
 		let procedureName = 'CreatableProcedure1';
 		let rangeOfProcedureName = getRangeOfProcedureName(tableDocument, procedureName);
@@ -421,6 +434,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[1].name, 'myInt');
 		assert.equal(alProcedure.parameters[1].type, "Integer");
 	});
+	
 
 	function getRangeOfProcedureName(document: vscode.TextDocument, procedureName: string): vscode.Range {
 		let line: number | undefined;
