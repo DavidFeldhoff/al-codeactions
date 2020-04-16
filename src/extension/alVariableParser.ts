@@ -76,11 +76,16 @@ export class ALVariableParser {
                 if (ALCodeOutlineExtension.isSymbolKindTableField(symbol.kind) && symbol.fullName.trim().endsWith("Option") && uri) {
                     // expand range due to a cut off in the al code outline extension
                     let document: vscode.TextDocument = await vscode.workspace.openTextDocument(uri);
-                    let rangeOptionValues: vscode.Range = new vscode.Range(symbol.selectionRange.end.line, symbol.selectionRange.end.character, symbol.selectionRange.end.line, document.lineAt(symbol.selectionRange.end.line).range.end.character);
-                    let textOptionValues = document.getText(rangeOptionValues);
-                    textOptionValues = textOptionValues.substr(textOptionValues.indexOf('Option') + 'Option'.length);
-                    textOptionValues = textOptionValues.substr(0, textOptionValues.lastIndexOf(')'));
-                    symbol.fullName = symbol.fullName.trim() + textOptionValues;
+                    for (let i = symbol.range.start.line; i <= symbol.range.end.line; i++) {
+                        let line = document.lineAt(i).text;
+                        if (line.includes('OptionMembers')) {
+                            let textOptionValues = line.substr(line.indexOf('OptionMembers'));
+                            textOptionValues = textOptionValues.substr(textOptionValues.indexOf('=') + 1);
+                            textOptionValues = textOptionValues.substr(0,textOptionValues.lastIndexOf(';')).trim();
+                            symbol.fullName = symbol.fullName.trim() + ' ' + textOptionValues;
+                            break;
+                        }
+                    }
                 }
                 symbol.subtype = this.getTypeOfVariableDeclaration(symbol.fullName);
             }
