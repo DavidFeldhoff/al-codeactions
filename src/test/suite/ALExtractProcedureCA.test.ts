@@ -39,10 +39,17 @@ suite('ALExtractProcedureCA Test Suite', function () {
         alProcedure = alProcedure as ALProcedure;
         assert.equal(alProcedure.isLocal, true);
         assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 0);
-        assert.equal(alProcedure.variables.length, 1);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        //current solution because everything is handed over as var
+        assert.equal(alProcedure.parameters.length, 1);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.variables.length, 0);
+        //planned solution if not everything is handed over as var
+        // assert.equal(alProcedure.parameters.length, 0);
+        // assert.equal(alProcedure.variables.length, 1);
+        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithTwoParametersByValue', async () => {
         let procedureName = 'testProcedureWithTwoParametersByValue';
@@ -56,10 +63,17 @@ suite('ALExtractProcedureCA Test Suite', function () {
         alProcedure = alProcedure as ALProcedure;
         assert.equal(alProcedure.isLocal, true);
         assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 0);
-        assert.equal(alProcedure.variables.length, 1);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        //current solution because everything is handed over as var
+        assert.equal(alProcedure.parameters.length, 1);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.variables.length, 0);
+        //planned solution if not everything is handed over as var
+        // assert.equal(alProcedure.parameters.length, 0);
+        // assert.equal(alProcedure.variables.length, 1);
+        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithMultilineParametersByValue', async () => {
         let procedureName = 'testProcedureWithMultilineParametersByValue';
@@ -73,10 +87,17 @@ suite('ALExtractProcedureCA Test Suite', function () {
         alProcedure = alProcedure as ALProcedure;
         assert.equal(alProcedure.isLocal, true);
         assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 0);
-        assert.equal(alProcedure.variables.length, 1);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        //current solution because everything is handed over as var
+        assert.equal(alProcedure.parameters.length, 1);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.variables.length, 0);
+        //planned solution if not everything is handed over as var
+        // assert.equal(alProcedure.parameters.length, 0);
+        // assert.equal(alProcedure.variables.length, 1);
+        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithOneParameterByReference', async () => {
         let procedureName = 'testProcedureWithOneParameterByReference';
@@ -186,7 +207,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.equal(alProcedure.parameters.length, 1);
         assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
         assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, false);
+        //current solution because everything is handed over as var
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        //planned solution if not everything is handed over as var
+        // assert.equal(alProcedure.parameters[0].isVar, false);
         assert.equal(alProcedure.variables.length, 0);
     });
     test('Before_ProcedureWithProcedureCallBefore', async () => {
@@ -219,10 +243,17 @@ suite('ALExtractProcedureCA Test Suite', function () {
         alProcedure = alProcedure as ALProcedure;
         assert.equal(alProcedure.isLocal, true);
         assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 0);
-        assert.equal(alProcedure.variables.length, 1);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        //current solution because everything is handed over as var
+        assert.equal(alProcedure.parameters.length, 1);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.variables.length, 0);
+        //planned solution if not everything is handed over as var
+        // assert.equal(alProcedure.parameters.length, 0);
+        // assert.equal(alProcedure.variables.length, 1);
+        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithUsedFilteringBefore';
@@ -240,7 +271,9 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
         assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
         assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.equal(alProcedure.variables.length, 1);
+        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'boolean');
+        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'iscustomerempty');
     });
     test('Before_ProcedureWithUsedValueAfterwards', async () => {
         let procedureName = 'testProcedureWithUsedValueAfterwards';
