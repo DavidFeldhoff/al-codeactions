@@ -127,15 +127,11 @@ export class ALProcedureCallParser {
         return parameters;
     }
     private async getCallingObjectSymbol(): Promise<any> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
-        let symbolsLibraryCallingObject = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
-        return symbolsLibraryCallingObject.rootSymbol.findFirstObjectSymbol();
+        return ALCodeOutlineExtension.getFirstObjectSymbolOfDocumentUri(this.document.uri);
     }
     private async getCalledObjectSymbol(): Promise<any> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         let documentUriOfCalledObject: vscode.Uri = await this.getDocumentUriOfCalledObject();
-        let symbolsLibraryCalledObject: any = await azalDevTools.symbolsService.loadDocumentSymbols(documentUriOfCalledObject);
-        return symbolsLibraryCalledObject.rootSymbol.findFirstObjectSymbol();
+        return ALCodeOutlineExtension.getFirstObjectSymbolOfDocumentUri(documentUriOfCalledObject);
     }
     private async getDocumentUriOfCalledObject(): Promise<vscode.Uri> {
         let documentUri: vscode.Uri | undefined;

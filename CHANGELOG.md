@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.0
+
+- First (beta) version of the "Extract procedure"-function.
+
 ## 0.1.8
 
 - Create procedures out of event subscribers. This was previously not possible.

@@ -6,6 +6,9 @@ import { ALProcedureSourceCodeCreator } from './alProcedureSourceCodeCreator';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ALSourceCodeHandler } from './alSourceCodeHandler';
 import { RenameMgt } from './checkRename';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
+import { ToolsGetSyntaxTreeSymbolsRequest } from './ToolsGetSyntaxTreeSymbolsRequest';
+import { ToolsGetSyntaxTreeRequest } from './toolsGetSyntaxTreeRequest';
 
 export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
@@ -85,7 +88,6 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
             return;
         } else {
             codeActionToCreateProcedure.isPreferred = true;
-            RenameMgt.getInstance().setCallRename(true);
             return codeActionToCreateProcedure;
         }
     }

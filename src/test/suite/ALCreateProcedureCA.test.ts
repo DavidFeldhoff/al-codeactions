@@ -392,7 +392,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCodeActionProvider().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);

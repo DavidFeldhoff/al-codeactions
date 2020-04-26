@@ -4,33 +4,48 @@ import { isUndefined } from 'util';
 export class DocumentUtils {
     static isPositionInProcedurecall(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
+        let inText: boolean;
         let bracketDepth: number = 0;
         for (let lineNo = rangeToSearchIn.start.line; lineNo <= rangeToSearchIn.end.line; lineNo++) {
             let lineText = document.lineAt(lineNo).text;
             let lineChars: string[] = lineText.split('');
             inQuotes = false;
+            inText = false;
             let charNo = lineNo === rangeToSearchIn.start.line ? rangeToSearchIn.start.character : 0;
             let endCharOfLine = lineNo === rangeToSearchIn.end.line ? rangeToSearchIn.end.character : lineText.length - 1;
             for (; charNo <= endCharOfLine; charNo++) {
                 if (positionToCheck.isEqual(new vscode.Position(lineNo, charNo))) {
                     return bracketDepth <= 0;
                 } else {
-                    if (lineChars[charNo] === '"') {
-                        inQuotes = !inQuotes;
+                    if (lineChars[charNo] === '\'') {
+                        let escaped = inText && lineChars.length > charNo + 1 && lineChars[charNo + 1] === '\'';
+                        if (!escaped) {
+                            inText = !inText;
+                        } else {
+                            charNo++;
+                        }
                     }
-                    if (!inQuotes) {
-                        if (lineChars[charNo] === '(') {
-                            bracketDepth++;
-                        } else if (lineChars[charNo] === ')') {
-                            bracketDepth--;
-                        } else if (lineChars[charNo] === '/' && charNo > 0 && lineChars[charNo - 1] === '/') {
-                            break;
+                    if (!inText) {
+                        if (lineChars[charNo] === '"') {
+                            inQuotes = !inQuotes;
+                        }
+                        if (!inQuotes) {
+                            if (lineChars[charNo] === '(') {
+                                bracketDepth++;
+                            } else if (lineChars[charNo] === ')') {
+                                bracketDepth--;
+                            } else if (lineChars[charNo] === '/' && charNo > 0 && lineChars[charNo - 1] === '/') {
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
         return false;
+    }
+    static getPreviousValidPositionOfCharacter(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToStart: vscode.Position, characterToSearch: string): vscode.Position {
+        throw new Error('Not yet implemented.');
     }
     static isPositionInQuotes(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
@@ -162,5 +177,28 @@ export class DocumentUtils {
             }
         }
         return;
+    }
+    public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
+        let newStart: vscode.Position = currentRange.start;
+        let newEnd: vscode.Position = currentRange.end;
+        for (let i = currentRange.start.line; i <= currentRange.end.line; i++) {
+            let startPositionToSearch = i === currentRange.start.line ? currentRange.start.character : 0;
+            let textStartingAtPosition = document.lineAt(i).text.substr(startPositionToSearch);
+            if (textStartingAtPosition.trimLeft().length > 0) {
+                let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimLeft().length;
+                newStart = new vscode.Position(i, startPositionToSearch + amountSpaces);
+                break;
+            }
+        }
+        for (let i = currentRange.end.line; i >= currentRange.start.line; i--) {
+            let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : document.lineAt(i).text.length - 1;
+            let textStartingAtPosition = document.lineAt(i).text.substr(0, endPositionToSearch);
+            if (textStartingAtPosition.trimRight().length > 0) {
+                let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimRight().length;
+                newEnd = new vscode.Position(i, endPositionToSearch - amountSpaces);
+                break;
+            }
+        }
+        return new vscode.Range(newStart, newEnd);
     }
 }

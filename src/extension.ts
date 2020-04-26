@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import { ALCreateProcedureCA } from './extension/alCreateProcedureCA';
 import { ALExtractToProcedureCA } from './extension/alExtractToProcedureCA';
 import { RenameMgt } from './extension/checkRename';
+import { OwnConsole } from './extension/console';
 
 export function activate(context: vscode.ExtensionContext) {
-
+	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
+	
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
-	RenameMgt.getInstance();
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCA(), {
 			providedCodeActionKinds: ALCreateProcedureCA.providedCodeActionKinds
@@ -18,6 +19,10 @@ export function activate(context: vscode.ExtensionContext) {
 			providedCodeActionKinds: ALExtractToProcedureCA.providedCodeActionKinds
 		})
 	);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.renameMethod', () => ALExtractToProcedureCA.renameMethod())
+	);
 }
+
 
 export function deactivate() { }
