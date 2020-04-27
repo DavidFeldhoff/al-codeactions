@@ -57,13 +57,13 @@ export class ALProcedureCallParser {
         }
 
         if (rangeOfReturnPart) {
-            let wordRange: vscode.Range | undefined = DocumentUtils.getNextWordRange(this.document, this.rangeOfWholeProcedureCall);
+            let wordRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(this.document, this.rangeOfWholeProcedureCall);
             if (wordRange) {
                 let rangeNextCharacter = new vscode.Range(wordRange.end, wordRange.end.translate(0, 1));
                 let textNextCharacter = this.document.getText(rangeNextCharacter);
                 if (this.document.getText(rangeNextCharacter) === '.') {
                     let objectTextRange = wordRange;
-                    let fieldOrMethodTextRange = DocumentUtils.getNextWordRange(this.document, this.rangeOfWholeProcedureCall, objectTextRange.end);
+                    let fieldOrMethodTextRange = DocumentUtils.getNextWordRangeInsideLine(this.document, this.rangeOfWholeProcedureCall, objectTextRange.end);
                     if (fieldOrMethodTextRange) {
                         let alSymbolHandler: ALSymbolHandler = new ALSymbolHandler();
                         let symbol = await alSymbolHandler.findSymbol(this.document, fieldOrMethodTextRange.start, this.document.getText(fieldOrMethodTextRange));
@@ -108,7 +108,7 @@ export class ALProcedureCallParser {
         let parametersRange: vscode.Range = ALParameterParser.getParameterCallRangeOfDiagnostic(this.document, this.diagnostic);
         parameters = await this.getParametersOfProcedureCall(parametersRange, this.calledProcedureName);
 
-        return new ALProcedure(this.calledProcedureName, parameters, returnType, isLocal, this.calledALObject as ALObject);
+        return new ALProcedure(this.calledProcedureName, parameters, [], returnType, isLocal, this.calledALObject as ALObject);
     }
     private canObjectContainProcedures(alObject: ALObject) {
         switch (alObject.type.toString().toLowerCase()) {
@@ -127,15 +127,11 @@ export class ALProcedureCallParser {
         return parameters;
     }
     private async getCallingObjectSymbol(): Promise<any> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
-        let symbolsLibraryCallingObject = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
-        return symbolsLibraryCallingObject.rootSymbol.findFirstObjectSymbol();
+        return ALCodeOutlineExtension.getFirstObjectSymbolOfDocumentUri(this.document.uri);
     }
     private async getCalledObjectSymbol(): Promise<any> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         let documentUriOfCalledObject: vscode.Uri = await this.getDocumentUriOfCalledObject();
-        let symbolsLibraryCalledObject: any = await azalDevTools.symbolsService.loadDocumentSymbols(documentUriOfCalledObject);
-        return symbolsLibraryCalledObject.rootSymbol.findFirstObjectSymbol();
+        return ALCodeOutlineExtension.getFirstObjectSymbolOfDocumentUri(documentUriOfCalledObject);
     }
     private async getDocumentUriOfCalledObject(): Promise<vscode.Uri> {
         let documentUri: vscode.Uri | undefined;

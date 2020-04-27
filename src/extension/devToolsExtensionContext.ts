@@ -35,6 +35,11 @@ export class ALCodeOutlineExtension {
         return this.alCodeOutlineExtension.exports;
     }
 
+    public static async getFirstObjectSymbolOfDocumentUri(documentUri: vscode.Uri): Promise<any> {
+        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
+        let symbolsLibraryCalledObject: any = await azalDevTools.symbolsService.loadDocumentSymbols(documentUri);
+        return symbolsLibraryCalledObject.rootSymbol.findFirstObjectSymbol();
+    }
 
     public static async getProcedureOrTriggerSymbolOfCurrentLine(documentUri: vscode.Uri, currentLine: number): Promise<any> {
         let azALDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
@@ -71,7 +76,7 @@ export class ALCodeOutlineExtension {
     public static isSymbolKindTable(kind: number): boolean {
         return kind === 412;
     }
-    public static isSymbolKindTableExtension(kind: number): boolean{
+    public static isSymbolKindTableExtension(kind: number): boolean {
         return kind === 413;
     }
     static isSymbolKindPage(kind: number): boolean {
@@ -80,7 +85,7 @@ export class ALCodeOutlineExtension {
     static isSymbolKindPageExtension(kind: number): boolean {
         return kind === 415;
     }
-    static isSymbolKindPageCustomization(kind: number) : boolean{
+    static isSymbolKindPageCustomization(kind: number): boolean {
         return kind === 421;
     }
     static isSymbolKindReport(kind: number): boolean {

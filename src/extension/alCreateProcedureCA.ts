@@ -5,8 +5,12 @@ import { ALProcedureCallParser } from './alProcedureCallParser';
 import { ALProcedureSourceCodeCreator } from './alProcedureSourceCodeCreator';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ALSourceCodeHandler } from './alSourceCodeHandler';
+import { RenameMgt } from './checkRename';
+import { ALCodeOutlineExtension } from './devToolsExtensionContext';
+import { ToolsGetSyntaxTreeSymbolsRequest } from './ToolsGetSyntaxTreeSymbolsRequest';
+import { ToolsGetSyntaxTreeRequest } from './toolsGetSyntaxTreeRequest';
 
-export class ALCodeActionProvider implements vscode.CodeActionProvider {
+export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
     public static readonly providedCodeActionKinds = [
         vscode.CodeActionKind.QuickFix

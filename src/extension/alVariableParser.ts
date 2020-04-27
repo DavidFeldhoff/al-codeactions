@@ -97,11 +97,11 @@ export class ALVariableParser {
         let variableCall: string = document.getText(variableCallRange);
         //With VariableCall I mean 'Customer."No."' e.g.
         if (variableCall.includes('.')) {
-            let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRange(document, variableCallRange);
+            let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
             if (!objectRange) {
                 throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
             }
-            let childNameRange = DocumentUtils.getNextWordRange(document, variableCallRange, objectRange.end.translate(0, 1));
+            let childNameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange, objectRange.end.translate(0, 1));
             if (!childNameRange) {
                 throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
             }
@@ -114,7 +114,7 @@ export class ALVariableParser {
             }
         } else {
             const alSymbolHandler = new ALSymbolHandler();
-            let nameRange = DocumentUtils.getNextWordRange(document, variableCallRange);
+            let nameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
             if (!nameRange) {
                 throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
             }
