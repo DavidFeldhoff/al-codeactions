@@ -72,10 +72,10 @@ export class ReturnTypeAnalzyer {
                 let rangeOfExitStatement: vscode.Range = TextRangeExt.createVSCodeRange(exitStatementTreeNode.fullSpan);
                 rangeOfExitStatement = DocumentUtils.trimRange(document, rangeOfExitStatement);
                 if (rangeExpanded.contains(rangeOfExitStatement)) {
-                    let methodTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfExitStatement.start, [FullSyntaxTreeNodeKind.getMethodDeclaration()]);
-                    if (methodTreeNode) {
+                    let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfExitStatement.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
+                    if (methodOrTriggerTreeNode) {
                         let outReturnList: ALFullSyntaxTreeNode[] = [];
-                        ALFullSyntaxTreeNodeExt.collectChildNodes(methodTreeNode, FullSyntaxTreeNodeKind.getReturnValue(), false, outReturnList);
+                        ALFullSyntaxTreeNodeExt.collectChildNodes(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getReturnValue(), false, outReturnList);
                         if (outReturnList.length === 1) {
                             let returnValue: ALFullSyntaxTreeNode = outReturnList[0];
                             if (returnValue.childNodes && returnValue.childNodes[returnValue.childNodes.length - 1].fullSpan) {
