@@ -2,7 +2,7 @@
 	"name": "al-codeactions",
 	"displayName": "AL CodeActions",
 	"description": "Adds codeactions to the AL language",
-	"version": "0.1.8",
+	"version": "0.2.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -37,7 +37,7 @@
 		"onLanguage:al"
 	],
 	"contributes": {
-		"commands":[
+		"commands": [
 			{
 				"title": "Extract Method",
 				"category": "AL CodeActions",
