@@ -69,6 +69,11 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
 
         let variablesNeeded: any[] = await this.getVariablesNeededInNewProcedure(localVariables, document, rangeExpanded);
         let parametersNeeded: any[] = await this.getParametersNeededInNewProcedure(parameters, document, rangeExpanded);
+        //>>>temporary fix because of bug in al language
+        if (procedureOrTrigger.kind === 236) {
+            parametersNeeded = await this.getParametersNeededInNewProcedure_TriggerBugFix(parameters, document, rangeExpanded, parametersNeeded);
+        }
+        //<<<
 
 
         let variablesWhichBecomeVarParameters: any[] = await this.getVariablesWhichBecomeVarParameters(variablesNeeded, procedureOrTrigger, document, rangeExpanded);
@@ -277,6 +282,27 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
                     if (rangeSelected.contains(reference.range)) {
                         parametersNeeded.push(parameter);
                         break;
+                    }
+                }
+            }
+        }
+        return parametersNeeded;
+    }
+    private async getParametersNeededInNewProcedure_TriggerBugFix(parameters: any[], document: vscode.TextDocument, rangeExpanded: vscode.Range, parametersNeeded: any[]): Promise<any[]> {
+        for (let i = 0; i < parameters.length; i++) {
+            let parameter = parameters[i];
+            for (let lineNo = rangeExpanded.start.line; lineNo <= rangeExpanded.end.line; lineNo++) {
+                let lineText: string = document.lineAt(lineNo).text;
+                let indexOfParameterName = lineText.search(new RegExp('\\b' + parameter.name + '\\b'));
+                if (indexOfParameterName > 0) {
+                    let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new vscode.Position(lineNo, indexOfParameterName));
+                    if (locations && locations.length > 0) {
+                        let location = locations[0];
+                        let paramterRange: vscode.Range = TextRangeExt.createVSCodeRange(parameter.range);
+                        if (paramterRange.contains(location.range)) {
+                            parametersNeeded.push(parameter);
+                            break;
+                        }
                     }
                 }
             }
