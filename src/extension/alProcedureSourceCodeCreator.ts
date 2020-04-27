@@ -2,6 +2,9 @@ import *  as vscode from 'vscode';
 import { ALProcedure } from "./alProcedure";
 import { ALVariable } from './alVariable';
 import { ReturnTypeAnalzyer } from './Extract Procedure/returnTypeAnalyzer';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
 
 export class ALProcedureSourceCodeCreator {
     public static createProcedureDefinition(procedure: ALProcedure): string {
@@ -29,9 +32,9 @@ export class ALProcedureSourceCodeCreator {
         return procedureDefinition;
     }
 
-    static createProcedureCallDefinition(newProcedureName: string, parameters: ALVariable[], returnTypeAnalyzer: ReturnTypeAnalzyer): string {
+    static async createProcedureCallDefinition(document: vscode.TextDocument, rangeToExtract: vscode.Range, newProcedureName: string, parameters: ALVariable[], returnTypeAnalyzer: ReturnTypeAnalzyer): Promise<string> {
         let procedureCall: string = '';
-        if(returnTypeAnalyzer.getAddVariableToCallingPosition()){
+        if (returnTypeAnalyzer.getAddVariableToCallingPosition()) {
             // TODO: If I add the returnedValue-Variable, I have to add it also to the variables
             // procedureCall += 'returnedValue := ';
         }
@@ -43,8 +46,13 @@ export class ALProcedureSourceCodeCreator {
             procedureCall += parameters[i].name;
         }
         procedureCall += ')';
-        if(returnTypeAnalyzer.getAddSemicolon()){
-            procedureCall += ';';
+
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let ifTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getIfStatement()]);
+        if (!ifTreeNode) {
+            if (!document.lineAt(rangeToExtract.end.line).text.substr(rangeToExtract.end.character).startsWith(';')) {
+                procedureCall += ';';
+            }
         }
         return procedureCall;
     }

@@ -12,20 +12,17 @@ export class ReturnTypeAnalzyer {
     private returnType: string | undefined;
     private addVariableToCallingPosition: boolean;
     private addVariableToExtractedRange: boolean;
-    private addSemicolon: boolean;
     constructor(document: vscode.TextDocument, rangeToExtract: vscode.Range) {
         this.document = document;
         this.rangeToExtract = rangeToExtract;
         this.addVariableToCallingPosition = false;
         this.addVariableToExtractedRange = false;
-        this.addSemicolon = true;
         this.returnType = undefined;
     }
     public async analyze() {
         let returnTypeIf: string | undefined = await this.getReturnValueIfStatement(this.document, this.rangeToExtract);
         if (returnTypeIf) {
             this.addVariableToExtractedRange = true;
-            this.addSemicolon = false;
             this.returnType = returnTypeIf;
             return;
         }
@@ -44,9 +41,6 @@ export class ReturnTypeAnalzyer {
     }
     public getAddVariableToCallingPosition(): boolean {
         return this.addVariableToCallingPosition;
-    }
-    public getAddSemicolon(): boolean {
-        return this.addSemicolon;
     }
     private async getReturnValueIfStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);

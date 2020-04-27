@@ -26,18 +26,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             let newProcedureCharacterPos: number = editor.document.lineAt(editor.selection.start.line).text.indexOf(RenameMgt.newProcedureName + '(');
             let posOfProcedureCall = new vscode.Position(editor.selection.start.line, newProcedureCharacterPos);
 
-            let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', editor.document.uri, posOfProcedureCall);
-            if (locations && locations.length > 0) {
-                SyntaxTree.clearInstance();
-                let syntaxTree = await SyntaxTree.getInstance(editor.document);
-                let methodTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(locations[0].range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration()]);
-                if (methodTreeNode && methodTreeNode.fullSpan) {
-                    let rangeToFormat: vscode.Range = TextRangeExt.createVSCodeRange(methodTreeNode.fullSpan);
-                    editor.selection = new vscode.Selection(rangeToFormat.start, rangeToFormat.end);
-                    await vscode.commands.executeCommand('editor.action.formatSelection', rangeToFormat.start, rangeToFormat.end);
-                }
-            }
-
             editor.selection = new vscode.Selection(posOfProcedureCall, posOfProcedureCall);
         }
         vscode.commands.executeCommand('editor.action.rename');
@@ -63,7 +51,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         if (!procedureObject) {
             return;
         }
-        let procedureCallingText: string = ALProcedureSourceCodeCreator.createProcedureCallDefinition(RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalzyer);
+        let procedureCallingText: string = await ALProcedureSourceCodeCreator.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalzyer);
 
         let codeActionToCreateProcedure: vscode.CodeAction | undefined;
         codeActionToCreateProcedure = await this.createCodeAction(document, procedureCallingText, procedureObject, rangeExpanded);
@@ -140,6 +128,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         if (!selectedText.endsWith(';')) {
             selectedText += ';';
         }
+        selectedText = this.fixIndentation(document, rangeExpanded, selectedText);
         procedure.setBody(selectedText);
         return procedure;
     }
@@ -380,4 +369,18 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         };
         return fix;
     }
+    private fixIndentation(document: vscode.TextDocument, rangeExpanded: vscode.Range, selectedText: string) {
+        let firstNonWhiteSpaceCharacter = document.lineAt(rangeExpanded.start.line).firstNonWhitespaceCharacterIndex;
+        let whiteSpacesSelectedText = '';
+        for (let i = 0; i < firstNonWhiteSpaceCharacter; i++) {
+            whiteSpacesSelectedText += ' ';
+        }
+        let whiteSpacesInProcedure = '';
+        for (let i = 0; i < 8; i++) {
+            whiteSpacesInProcedure += ' ';
+        }
+        selectedText = selectedText.replace(new RegExp('\r\n' + whiteSpacesSelectedText, 'g'), '\r\n' + whiteSpacesInProcedure);
+        return selectedText;
+    }
 }
+
