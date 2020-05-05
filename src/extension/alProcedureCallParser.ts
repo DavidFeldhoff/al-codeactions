@@ -9,19 +9,20 @@ import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 import { ALVariableParser } from './alVariableParser';
 import { ALSymbolHandler } from './alSymbolHandler';
 import { DocumentUtils } from './documentUtils';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
 
 export class ALProcedureCallParser {
     private document: vscode.TextDocument;
     private diagnostic: vscode.Diagnostic;
-    private rangeOfWholeProcedureCall: vscode.Range;
-    private callingProcedureSymbol: any;
     private callingALObject?: ALObject;
     private calledALObject: ALObject | undefined;
     private calledProcedureName: string;
 
-    constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range, diagnostic: vscode.Diagnostic) {
+    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
         this.diagnostic = diagnostic;
-        this.rangeOfWholeProcedureCall = rangeOfProcedureCall;
         this.document = document;
         this.calledProcedureName = document.getText(diagnostic.range);
     }
@@ -31,16 +32,21 @@ export class ALProcedureCallParser {
 
         let callingObjectSymbol = await this.getCallingObjectSymbol();
         this.callingALObject = new ALObject(callingObjectSymbol.name, callingObjectSymbol.icon, callingObjectSymbol.id, this.document.uri);
-
-        this.callingProcedureSymbol = await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(this.document.uri, this.rangeOfWholeProcedureCall.start.line);
     }
 
     public async getProcedure(): Promise<ALProcedure | undefined> {
         let returnType: string | undefined;
         let parameters: ALVariable[];
 
-        let procedureCall: string = this.document.getText(this.rangeOfWholeProcedureCall);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
+        let invocationExpressionRange: vscode.Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
+        let procedureCall: string = this.document.getText(invocationExpressionRange);
 
+        let assignmentStatementTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(invocationExpressionRange.start, [FullSyntaxTreeNodeKind.getAssignmentStatement(), FullSyntaxTreeNodeKind.getCompoundAssignmentStatement()]);
+        if (assignmentStatementTreeNode && assignmentStatementTreeNode.childNodes) {
+            let assignedTreeNode: ALFullSyntaxTreeNode = assignmentStatementTreeNode.childNodes[0];
+        }
         let rangeOfReturnPart: vscode.Range | undefined;
         let rangeOfProcedureCall: vscode.Range;
         if (procedureCall.includes(':=')) {
@@ -105,8 +111,8 @@ export class ALProcedureCallParser {
             isLocal = true;
         }
 
-        let parametersRange: vscode.Range = ALParameterParser.getParameterCallRangeOfDiagnostic(this.document, this.diagnostic);
-        parameters = await this.getParametersOfProcedureCall(parametersRange, this.calledProcedureName);
+        let argumentListRange: vscode.Range = ALParameterParser.getArgumentListRangeOfDiagnostic(this.document, this.diagnostic);
+        parameters = await this.createParametersOutOfArgumentListRange(argumentListRange, this.calledProcedureName);
 
         return new ALProcedure(this.calledProcedureName, parameters, [], returnType, isLocal, this.calledALObject as ALObject);
     }
@@ -118,8 +124,8 @@ export class ALProcedureCallParser {
                 return true;
         }
     }
-    private async getParametersOfProcedureCall(rangeOfParameterCall: vscode.Range, procedureNameToCreate: string): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.parseParameterCallRangeToALVariableArray(rangeOfParameterCall, this.callingProcedureSymbol, this.document);
+    private async createParametersOutOfArgumentListRange(rangeOfArgumentList: vscode.Range, procedureNameToCreate: string): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListRange(rangeOfArgumentList, this.document);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;

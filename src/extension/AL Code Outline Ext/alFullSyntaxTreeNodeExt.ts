@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { downloadAndUnzipVSCode } from "vscode-test";
+import { FullSyntaxTreeNodeKind } from './fullSyntaxTreeNodeKind';
+import { TextRangeExt } from './textRangeExt';
 
 export class ALFullSyntaxTreeNodeExt {
     public static collectChildNodes(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean, outList: ALFullSyntaxTreeNode[]) {
@@ -13,6 +15,15 @@ export class ALFullSyntaxTreeNodeExt {
                     this.collectChildNodes(treeNode.childNodes[i], kindOfSyntaxTreeNode, searchAllLevels, outList);
                 }
             }
+        }
+    }
+    public static getFirstChildNodeOfKind(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean): ALFullSyntaxTreeNode | undefined {
+        let outList: ALFullSyntaxTreeNode[] = [];
+        this.collectChildNodes(treeNode, kindOfSyntaxTreeNode, searchAllLevels, outList);
+        if (outList.length === 0) {
+            return undefined;
+        } else {
+            return outList[0];
         }
     }
 
@@ -72,5 +83,24 @@ export class ALFullSyntaxTreeNodeExt {
             node = (node.childNodes as ALFullSyntaxTreeNode[])[index];
         });
         return node;
+    }
+    public static getValueOfPropertyName(mainNode: ALFullSyntaxTreeNode, propertyName: string): ALFullSyntaxTreeNode | undefined {
+        let propertyLists: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(mainNode, FullSyntaxTreeNodeKind.getPropertyList(), false, propertyLists);
+        if (propertyLists.length === 1) {
+            let propertyList: ALFullSyntaxTreeNode = propertyLists[0];
+            let properties: ALFullSyntaxTreeNode[] = [];
+            ALFullSyntaxTreeNodeExt.collectChildNodes(propertyList, FullSyntaxTreeNodeKind.getProperty(), false, properties);
+            if (properties.length > 0) {
+                let propertiesOfSearchedProperty: ALFullSyntaxTreeNode[] = properties.filter(property => property.name && property.name.trim().toLowerCase() === propertyName.trim().toLowerCase());
+                if (propertiesOfSearchedProperty.length > 0) {
+                    let propertyOfSearchedProperty: ALFullSyntaxTreeNode = propertiesOfSearchedProperty[0];
+                    if (propertyOfSearchedProperty.childNodes && propertyOfSearchedProperty.childNodes.length === 2) {
+                        return propertyOfSearchedProperty.childNodes[1];
+                    }
+                }
+            }
+        }
+        return undefined;
     }
 }

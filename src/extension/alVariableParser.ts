@@ -5,8 +5,15 @@ import { ALSymbolHandler } from './alSymbolHandler';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 import { DocumentUtils } from './documentUtils';
 import { ALParameterParser } from './alParameterParser';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SyntaxTreeExt } from './AL Code Outline Ext/syntaxTreeExt';
 
 export class ALVariableParser {
+
     public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
         let alCodeOutlineExtension = await ALCodeOutlineExtension.getInstance();
         let api = alCodeOutlineExtension.getAPI();
@@ -36,6 +43,20 @@ export class ALVariableParser {
             procedureOrTriggerName = variableSymbol.parent.parent.name;
         }
         return new ALVariable(variableSymbol.name, procedureOrTriggerName, false, variableSymbol.subtype);
+    }
+    static async parseVariableDeclarationToALVariable(document: vscode.TextDocument, variableDeclarationTreeNode: ALFullSyntaxTreeNode): Promise<ALVariable> {
+        if (variableDeclarationTreeNode.name && variableDeclarationTreeNode.childNodes && variableDeclarationTreeNode.childNodes.length > 2) {
+            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+            //get method
+            let vscodeRange: vscode.Range = TextRangeExt.createVSCodeRange(variableDeclarationTreeNode.fullSpan);
+            let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(vscodeRange.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
+
+            //get type
+            let rangeOfType: vscode.Range = TextRangeExt.createVSCodeRange(variableDeclarationTreeNode.childNodes[variableDeclarationTreeNode.childNodes.length - 1].fullSpan);
+            let type: string = document.getText(rangeOfType);
+            return new ALVariable(variableDeclarationTreeNode.name, methodOrTriggerTreeNode?.name, false, type);
+        }
+        throw new Error('Unable to parse variable');
     }
     static parseParameterSymbolToALVariable(parameterSymbol: any): ALVariable {
         let procedureOrTriggerName: string | undefined;
@@ -81,7 +102,7 @@ export class ALVariableParser {
                         if (line.includes('OptionMembers')) {
                             let textOptionValues = line.substr(line.indexOf('OptionMembers'));
                             textOptionValues = textOptionValues.substr(textOptionValues.indexOf('=') + 1);
-                            textOptionValues = textOptionValues.substr(0,textOptionValues.lastIndexOf(';')).trim();
+                            textOptionValues = textOptionValues.substr(0, textOptionValues.lastIndexOf(';')).trim();
                             symbol.fullName = symbol.fullName.trim() + ' ' + textOptionValues;
                             break;
                         }
@@ -93,39 +114,77 @@ export class ALVariableParser {
         return new ALVariable(symbol.name, undefined, false, symbol.subtype);
     }
 
-    public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, variableCallRange: vscode.Range): Promise<ALVariable | undefined> {
-        let variableCall: string = document.getText(variableCallRange);
-        //With VariableCall I mean 'Customer."No."' e.g.
-        if (variableCall.includes('.')) {
-            let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
-            if (!objectRange) {
-                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+    public static async parseMemberAccessExpressionToALVariableUsingSymbols(document: vscode.TextDocument, variableCallRange: vscode.Range): Promise<ALVariable | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let memberAccessExpression: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(variableCallRange.start, [FullSyntaxTreeNodeKind.getMemberAccessExpression()]);
+        if (memberAccessExpression && memberAccessExpression.childNodes && memberAccessExpression.childNodes.length === 2 && memberAccessExpression.childNodes[1].name) {
+            let methodOrTriggerTreeNode = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, variableCallRange.start);
+            let vscodeRange: vscode.Range = TextRangeExt.createVSCodeRange(memberAccessExpression.childNodes[1].fullSpan);
+            let hovers: vscode.Hover[] | undefined = await vscode.commands.executeCommand('vscode.executeHoverProvider', document.uri, vscodeRange.start);
+            let hoverMessage: string = '';
+            if (hovers) {
+                for (let i = 0; i < hovers.length; i++) {
+                    let markedStrings: IterableIterator<vscode.MarkedString> = hovers[i].contents.values();
+                    let markedString: IteratorResult<vscode.MarkedString, any>;
+                    do {
+                        markedString = markedStrings.next();
+                        if (markedString) {
+                            hoverMessage += markedString.value;
+                        }
+                    } while (markedString);
+                }
             }
-            let childNameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange, objectRange.end.translate(0, 1));
-            if (!childNameRange) {
-                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
-            }
-            const alSymbolHandler = new ALSymbolHandler();
-            let searchedSymbol = await alSymbolHandler.findSymbol(document, childNameRange?.start, document.getText(childNameRange));
-            if (!isUndefined(searchedSymbol)) {
-                let uri = alSymbolHandler.getLastUri() as vscode.Uri;
-                let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
-                return alVariable;
-            }
+            let hoverMessageFirstLine = hoverMessage.split('\r\n')[0];
+            let type = hoverMessageFirstLine.substr(hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
+            // let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, vscodeRange.start);
+            // if (locations && locations.length > 0) {
+            //     let location = locations[0];
+            //     let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(location.uri);
+            //     let otherSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDocument);
+            //     otherSyntaxTree.findTreeNode(location.range.start);
+            //     let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(otherSyntaxTree, location.range.start);
+            //     let paramterRange: vscode.Range = TextRangeExt.createVSCodeRange(parameter.range);
+            //     if (paramterRange.contains(location.range)) {
+            //         parametersNeeded.push(parameter);
+            //         break;
+            //     }
+            // }
+            return new ALVariable(memberAccessExpression.childNodes[1].name, methodOrTriggerTreeNode?.name, false, type);
         } else {
-            const alSymbolHandler = new ALSymbolHandler();
-            let nameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
-            if (!nameRange) {
-                throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
-            }
-            let searchedSymbol = await alSymbolHandler.findSymbol(document, variableCallRange.start, document.getText(nameRange));
-            if (!isUndefined(searchedSymbol)) {
-                let uri = alSymbolHandler.getLastUri() as vscode.Uri;
-                let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
-                return alVariable;
-            }
+            return undefined;
         }
-        return undefined;
+        // let variableCall: string = document.getText(variableCallRange);
+        // //With VariableCall I mean 'Customer."No."' e.g.
+        // if (variableCall.includes('.')) {
+        //     let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
+        //     if (!objectRange) {
+        //         throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+        //     }
+        //     let childNameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange, objectRange.end.translate(0, 1));
+        //     if (!childNameRange) {
+        //         throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+        //     }
+        //     const alSymbolHandler = new ALSymbolHandler();
+        //     let searchedSymbol = await alSymbolHandler.findSymbol(document, childNameRange?.start, document.getText(childNameRange));
+        //     if (!isUndefined(searchedSymbol)) {
+        //         let uri = alSymbolHandler.getLastUri() as vscode.Uri;
+        //         let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
+        //         return alVariable;
+        //     }
+        // } else {
+        //     const alSymbolHandler = new ALSymbolHandler();
+        //     let nameRange = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
+        //     if (!nameRange) {
+        //         throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
+        //     }
+        //     let searchedSymbol = await alSymbolHandler.findSymbol(document, variableCallRange.start, document.getText(nameRange));
+        //     if (!isUndefined(searchedSymbol)) {
+        //         let uri = alSymbolHandler.getLastUri() as vscode.Uri;
+        //         let alVariable: ALVariable = await this.parseFieldSymbolToALVariable(searchedSymbol, uri);
+        //         return alVariable;
+        //     }
+        // }
+        // return undefined;
     }
     static parsePrimitiveTypes(document: vscode.TextDocument, variableCallRange: vscode.Range): ALVariable | undefined {
         let alVariable: ALVariable | undefined;
