@@ -14,6 +14,7 @@ import { SupportedDiagnosticCodes } from '../../extension/supportedDiagnosticCod
 suite('ALCreateProcedureCA Test Suite', function () {
 	let codeunit1Document: vscode.TextDocument;
 	let tableDocument: vscode.TextDocument;
+	let pageDocument: vscode.TextDocument;
 	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
 		this.timeout(0);
@@ -27,6 +28,10 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		fileName = path.resolve(ALTestProject.dir, 'table.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			tableDocument = document;
+		});
+		fileName = path.resolve(ALTestProject.dir, 'page.al');
+		await vscode.workspace.openTextDocument(fileName).then(document => {
+			pageDocument = document;
 		});
 
 		vscode.window.showInformationMessage('Start all tests of ALCodeActionProvider.');
@@ -155,6 +160,21 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters.length, 1);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
+	});
+	test('getProcedureToCreate_DotInVariableName', async () => {
+		let procedureName = 'MissingProcedureWithDotInVariableName';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, '"Pass Nos."');
+		assert.equal(alProcedure.parameters[0].type, 'Code[20]');
 	});
 
 	test('getProcedureToCreate_OfOtherObject', async () => {
@@ -433,6 +453,40 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[0].type, "Integer");
 		assert.equal(alProcedure.parameters[1].name, 'myInt');
 		assert.equal(alProcedure.parameters[1].type, "Integer");
+	});
+	test('getProcedureToCreate_Table_RecsAsParameter', async function () {
+		let procedureName = 'MissingProcedureWithRecsAsParameter';
+		let rangeOfProcedureName = getRangeOfProcedureName(tableDocument, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(tableDocument, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 2);
+		assert.equal(alProcedure.parameters[0].name, 'Rec');
+		assert.equal(alProcedure.parameters[0].type, 'Record MyTable');
+		assert.equal(alProcedure.parameters[1].name, 'xRec');
+		assert.equal(alProcedure.parameters[1].type, 'Record MyTable');
+	});
+	test('getProcedureToCreate_Page_RecsAsParameter', async function () {
+		let procedureName = 'MissingProcedureWithRecsAsParameter';
+		let rangeOfProcedureName = getRangeOfProcedureName(pageDocument, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(pageDocument, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 2);
+		assert.equal(alProcedure.parameters[0].name, 'Rec');
+		assert.equal(alProcedure.parameters[0].type, 'Record Vendor');
+		assert.equal(alProcedure.parameters[1].name, 'xRec');
+		assert.equal(alProcedure.parameters[1].type, 'Record Vendor');
 	});
 	
 

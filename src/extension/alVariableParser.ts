@@ -4,7 +4,6 @@ import { ALVariable } from "./alVariable";
 import { ALSymbolHandler } from './alSymbolHandler';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 import { DocumentUtils } from './documentUtils';
-import { ALParameterParser } from './alParameterParser';
 
 export class ALVariableParser {
     public static async findAllVariablesInDocument(document: vscode.TextDocument): Promise<ALVariable[]> {
@@ -81,7 +80,7 @@ export class ALVariableParser {
                         if (line.includes('OptionMembers')) {
                             let textOptionValues = line.substr(line.indexOf('OptionMembers'));
                             textOptionValues = textOptionValues.substr(textOptionValues.indexOf('=') + 1);
-                            textOptionValues = textOptionValues.substr(0,textOptionValues.lastIndexOf(';')).trim();
+                            textOptionValues = textOptionValues.substr(0, textOptionValues.lastIndexOf(';')).trim();
                             symbol.fullName = symbol.fullName.trim() + ' ' + textOptionValues;
                             break;
                         }
@@ -96,7 +95,7 @@ export class ALVariableParser {
     public static async parseVariableCallToALVariableUsingSymbols(document: vscode.TextDocument, variableCallRange: vscode.Range): Promise<ALVariable | undefined> {
         let variableCall: string = document.getText(variableCallRange);
         //With VariableCall I mean 'Customer."No."' e.g.
-        if (variableCall.includes('.')) {
+        if (variableCall.match(/^(\w+|"[^"]+")\.(\w+|"[^"]+").*$/)) {
             let objectRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(document, variableCallRange);
             if (!objectRange) {
                 throw new Error('Unexpected Error in parseVariableCallToALVariableUsingSymbols with ' + document.getText(variableCallRange));
