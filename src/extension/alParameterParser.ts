@@ -36,13 +36,13 @@ export class ALParameterParser {
         for (let i = 0; i < argumentRanges.length; i++) {
             let variable = await ALVariableHandler.getALVariableByName(document, argumentRanges[i]);
             if (isUndefined(variable)) {
+                let variableCall = document.getText(argumentRanges[i]); //Customer."No." e.g.
+                variable = await ALVariableParser.parseMemberAccessExpressionToALVariableUsingSymbols(document, argumentRanges[i]);
+            }
+            if (isUndefined(variable)) {
                 if (document.getText(argumentRanges[i]).trim().toLowerCase() === 'rec') {
                     variable = await ALVariableHandler.getRecAsALVariable(document);
                 }
-            }
-            if (isUndefined(variable)) {
-                let variableCall = document.getText(argumentRanges[i]); //Customer."No." e.g.
-                variable = await ALVariableParser.parseMemberAccessExpressionToALVariableUsingSymbols(document, argumentRanges[i]);
             }
             if (isUndefined(variable)) {
                 variable = ALVariableParser.parsePrimitiveTypes(document, argumentRanges[i]);

@@ -37,7 +37,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
 
 
     public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        SyntaxTree.clearInstance();
+        SyntaxTree.clearInstances();
 
         let rangeAnalyzer: RangeAnalzyer = new RangeAnalzyer(document, range);
         await rangeAnalyzer.analyze();

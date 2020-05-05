@@ -140,6 +140,27 @@ export class FullSyntaxTreeNodeKind {
     public static getOptionAccessExpression(): string {
         return 'OptionAccessExpression';
     }
+    public static getMemberAccessExpression(): string {
+        return 'MemberAccessExpression';
+    }
+    public static getArrayIndexExpression(): string {
+        return 'ArrayIndexExpression';
+    }
+    public static getGlobalVarSection(): string {
+        return 'GlobalVarSection';
+    }
+    public static getVarSection(): string {
+        return 'VarSection';
+    }
+    public static getVariableDeclaration(): string {
+        return 'VariableDeclaration';
+    }
+    public static getParameterList(): string {
+        return 'ParameterList';
+    }
+    public static getParameter(): string {
+        return 'Parameter';
+    }
     public static getArgumentList(): string {
         return 'ArgumentList';
     }
@@ -148,8 +169,5 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getReturnValue(): string {
         return "ReturnValue";
-    }
-    public static getArrayIndexExpression(): string {
-        return 'ArrayIndexExpression';
     }
 }
