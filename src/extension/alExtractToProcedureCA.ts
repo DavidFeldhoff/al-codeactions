@@ -37,7 +37,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
 
 
     public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        SyntaxTree.clearInstance();
+        SyntaxTree.clearInstances();
 
         let rangeAnalyzer: RangeAnalzyer = new RangeAnalzyer(document, range);
         await rangeAnalyzer.analyze();
@@ -200,26 +200,14 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         if (procedureOrTrigger.kind === 236 && procedureOrTrigger.name.toLowerCase() === 'onrun') {
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
             let cuObjects: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getCodeunitObject());
-            if (cuObjects) {
+            if (cuObjects.length === 1) {
                 let cuObject: ALFullSyntaxTreeNode = cuObjects[0];
-                let propertyLists: ALFullSyntaxTreeNode[] = [];
-                ALFullSyntaxTreeNodeExt.collectChildNodes(cuObject, FullSyntaxTreeNodeKind.getPropertyList(), false, propertyLists);
-                if (propertyLists.length === 1) {
-                    let propertyList: ALFullSyntaxTreeNode = propertyLists[0];
-                    let properties: ALFullSyntaxTreeNode[] = [];
-                    ALFullSyntaxTreeNodeExt.collectChildNodes(propertyList, FullSyntaxTreeNodeKind.getProperty(), false, properties);
-                    if (properties.length > 0) {
-                        let tableNoProperties: ALFullSyntaxTreeNode[] = properties.filter(property => property.name && property.name.trim().toLowerCase() === 'tableno');
-                        if (tableNoProperties.length > 0) {
-                            let tableNoProperty: ALFullSyntaxTreeNode = tableNoProperties[0];
-                            if (tableNoProperty.childNodes && tableNoProperty.childNodes.length === 2) {
-                                let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(tableNoProperty.childNodes[1].fullSpan);
-                                let type = 'Record ' + document.getText(rangeOfTableNo);
-                                if (document.getText(rangeExpanded).includes('Rec')) {
-                                    parameters.push(new ALVariable('Rec', procedureOrTrigger.name, true, type));
-                                }
-                            }
-                        }
+                let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(cuObject, 'TableNo');
+                if (valueOfPropertyTreeNode) {
+                    let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
+                    let type = 'Record ' + document.getText(rangeOfTableNo);
+                    if (document.getText(rangeExpanded).includes('Rec')) {
+                        parameters.push(new ALVariable('Rec', procedureOrTrigger.name, true, type));
                     }
                 }
             }
