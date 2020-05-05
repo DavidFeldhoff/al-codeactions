@@ -32,6 +32,11 @@ export class ALParameterParser {
                 variable = await ALVariableParser.parseVariableCallToALVariableUsingSymbols(document, parameterRanges[i]);
             }
             if (isUndefined(variable)) {
+                if (parameter.trim().toLowerCase() === 'rec' || parameter.trim().toLowerCase() === 'xrec') {
+                    variable = await ALVariableHandler.getRecAsALVariable(document, parameterRanges[i]);
+                }
+            }
+            if (isUndefined(variable)) {
                 variable = ALVariableParser.parsePrimitiveTypes(document, parameterRanges[i]);
             }
             if (isUndefined(variable)) {
