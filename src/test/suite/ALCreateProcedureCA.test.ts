@@ -13,6 +13,7 @@ import { SupportedDiagnosticCodes } from '../../extension/supportedDiagnosticCod
 
 suite('ALCreateProcedureCA Test Suite', function () {
 	let codeunit1Document: vscode.TextDocument;
+	let testcodeunitDocument: vscode.TextDocument;
 	let tableDocument: vscode.TextDocument;
 	let pageDocument: vscode.TextDocument;
 	this.timeout(0);
@@ -24,6 +25,10 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			codeunit1Document = document;
+		});
+		fileName = path.resolve(ALTestProject.dir, 'testcodeunit.al');
+		await vscode.workspace.openTextDocument(fileName).then(document => {
+			testcodeunitDocument = document;
 		});
 		fileName = path.resolve(ALTestProject.dir, 'table.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
@@ -246,7 +251,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, 'arg');
+		assert.equal(alProcedure.parameters[0].name, 'myProcedure');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ProcedureWithProcedureCallInside2', async () => {
@@ -261,7 +266,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, 'arg');
+		assert.equal(alProcedure.parameters[0].name, 'myProcedureWithTwoParams');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myInteger');
 		assert.equal(alProcedure.parameters[1].type, 'Integer');
@@ -278,7 +283,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, 'arg');
+		assert.equal(alProcedure.parameters[0].name, 'myProcedure');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myInteger');
 		assert.equal(alProcedure.parameters[1].type, 'Integer');
@@ -289,15 +294,32 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
 		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
-		//TODO: Not supported yet
-		assert.equal(alProcedure, undefined);
-		// assert.notEqual(alProcedure, undefined, 'Procedure should be created');
-		// alProcedure = alProcedure as ALProcedure;
-		// assert.equal(alProcedure.name, procedureName);
-		// assert.equal(alProcedure.isLocal, true);
-		//assert.notEqual(alProcedure.returnType, undefined);
-		// assert.equal(alProcedure.getReturnTypeAsString(), "Integer");
-		// assert.equal(alProcedure.parameters.length, 0);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), "Text");
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_MultilineProcedureCall', async () => {
+		let procedureName = 'MultilineProcedureCall';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 2);
+		assert.equal(alProcedure.parameters[0].name, 'myInteger');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
+		assert.equal(alProcedure.parameters[0].isVar, false);
+		assert.equal(alProcedure.parameters[1].name, 'myBoolean');
+		assert.equal(alProcedure.parameters[1].type, 'Boolean');
+		assert.equal(alProcedure.parameters[1].isVar, false);
 	});
 	test('getProcedureToCreate_CallingProcedureWithParameterIncludingBrackets', async function () {
 		let procedureName = 'creatableProcedure';
@@ -312,7 +334,23 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
 		assert.equal(alProcedure.parameters[0].name, 'LineDisplay');
-		assert.equal(alProcedure.parameters[0].type, 'Option " ","DM-D101","IBM VFD (serielle Direktverbindung)"');
+		assert.equal(alProcedure.parameters[0].type, 'Option');
+	});
+	test('getProcedureToCreate_RecOnRunTrigger', async function () {
+		let procedureName = 'ProcedureWithRecInOnRunTrigger';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'Rec');
+		assert.equal(alProcedure.parameters[0].type, 'Record MyTable');
+		assert.equal(alProcedure.parameters[0].isVar, false);
 	});
 
 	//Currently these tests can't run on a pipeline because the executeDefinitionProvider fails in finding the symbols.
@@ -333,7 +371,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[1].name, 'Reserve');
 		assert.equal(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
 		assert.equal(alProcedure.parameters[2].name, '"Application Method"');
-		assert.equal(alProcedure.parameters[2].type, 'Option Manual,"Apply to Oldest"');
+		assert.equal(alProcedure.parameters[2].type, 'Option');
 	}); //first time interacting with the symbols and another extensin can take some time.
 	test('getProcedureToCreate_FieldsOfSameAppAsParameter', async function () {
 		let procedureName = 'MissingProcedureWithFieldsOfSameAppAsParameter';
@@ -347,7 +385,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, 'MyField');
+		assert.equal(alProcedure.parameters[0].name, '"MyField"');
 		assert.equal(alProcedure.parameters[0].type, "Integer");
 	});
 
@@ -407,6 +445,223 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[3].name, 'arg4');
 		assert.equal(alProcedure.parameters[3].type, "Boolean");
 	});
+	test('getProcedureToCreate_IfStatement', async function () {
+		let procedureName = 'MissingProcedureInsideIfStatement';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_AssignmentStatement', async function () {
+		let procedureName = 'MissingProcedureInAssignmentStatement';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_LogicalOrStatement', async function () {
+		let procedureName = 'MissingProcedureInLogicalOrStatement';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_LogicalAndStatement', async function () {
+		let procedureName = 'MissingProcedureInLogicalAndStatement';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_UnaryNotStatement', async function () {
+		let procedureName = 'MissingProcedureWithUnaryNotExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_LessThanExpression', async function () {
+		let procedureName = 'MissingProcedureLessThanExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_LessOrEqualsThanExpression', async function () {
+		let procedureName = 'MissingProcedureLessOrEqualsThanExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_GreaterThanExpression', async function () {
+		let procedureName = 'MissingProcedureGreatherThanExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_GreaterOrEqualsThanExpression', async function () {
+		let procedureName = 'MissingProcedureGreatherOrEqualsThanExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_EqualsExpression', async function () {
+		let procedureName = 'MissingProcedureEqualsExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_NotEqualsExpression', async function () {
+		let procedureName = 'MissingProcedureNotEqualsExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_AddExpression', async function () {
+		let procedureName = 'MissingProcedureInAddExpression';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_VariableListDeclaredVariables', async function () {
+		let procedureName = 'MissingProcedureWithVariableListDeclaredVariables';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Decimal');
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'myDecimal1');
+		assert.equal(alProcedure.parameters[0].type, 'Decimal');
+		assert.equal(alProcedure.parameters[0].isVar, false);
+	});
+	test('getProcedureToCreate_VariableListDeclaredVariables', async function () {
+		let procedureName = 'MissingProcedureWithTempRec';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'TempMyTable');
+		assert.equal(alProcedure.parameters[0].type, 'Record MyTable temporary');
+		assert.equal(alProcedure.parameters[0].isVar, true);
+	});
+	test('getProcedureToCreate_Parenthesis', async function () {
+		let procedureName = 'MissingProcedureInParenthesis';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+
+	test('getProcedureToCreate_TestProcedure', async function () {
+		let procedureName = 'TestfuncInTestProcedure';
+		let rangeOfProcedureName = getRangeOfProcedureName(testcodeunitDocument, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(testcodeunitDocument, diagnostic);
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+
+
 	test('getProcedureToCreate_EventSubscriber', async function () {
 		let procedureName = 'testfuncInSubscriber';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);

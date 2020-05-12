@@ -37,57 +37,44 @@ export class ALVariableHandler {
         }
         return undefined;
     }
-    public static getALVariableByNameOfSymbol(variableName: string, symbol?: any): ALVariable | undefined {
-        if (isUndefined(symbol)) {
-            return;
-        }
-        let variable: ALVariable | undefined;
-        let objectSymbol: any = symbol;
-        if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(symbol.kind)) {
-            objectSymbol = symbol.parent;
-            let localVariables: any[] = [];
-            symbol.collectChildSymbols(241, true, localVariables);
-            if (localVariables && localVariables.length > 0) {
-                for (let i = 0; i < localVariables.length; i++) {
-                    let localVariable = localVariables[i];
-                    let localVariableName = localVariable.name;
-                    if(!ALVariableHandler.hasQuotes(variableName) && ALVariableHandler.hasQuotes(localVariableName)){
-                        variableName = '"' + variableName + '"';
-                    }
-                    if(ALVariableHandler.hasQuotes(variableName) && !ALVariableHandler.hasQuotes(localVariableName)){
-                        localVariableName = '"' + localVariableName + '"';
-                    }
-                    if (localVariableName.toLowerCase() === variableName.toLowerCase()) {
-                        return ALVariableParser.parseVariableSymbolToALVariable(localVariable);
-                    }
+    public static async getALVariableByName(document: vscode.TextDocument, variableRange: vscode.Range): Promise<ALVariable | undefined> {
+        let variableName: string = document.getText(variableRange);
+
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(variableRange.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
+        if (methodOrTriggerTreeNode) {
+            let varSectionTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
+            if (varSectionTreeNode) {
+                let variable: ALVariable | undefined = await this.getALVariableByNameSearchingInVarSection(document, variableName, varSectionTreeNode);
+                if (variable) {
+                    return variable;
                 }
             }
         }
-        if (objectSymbol.childSymbols) {
-            let globalVarSymbols: any[] = [];
-            objectSymbol.collectChildSymbols(428, true, globalVarSymbols);
-
-            globalVarSymbols.forEach(globalVarSymbol => {
-                let globalVariables: any[] = [];
-                globalVarSymbol.collectChildSymbols(241, true, globalVariables); //241 = Variable
-                if (globalVariables && globalVariables.length > 0) {
-                    for (let i = 0; i < globalVariables.length; i++) {
-                        let globalVariableName = globalVariables[i].name;
-                        if(!ALVariableHandler.hasQuotes(variableName) && ALVariableHandler.hasQuotes(globalVariableName)){
-                            variableName = '"' + variableName + '"';
-                        }
-                        if(ALVariableHandler.hasQuotes(variableName) && !ALVariableHandler.hasQuotes(globalVariableName)){
-                            globalVariableName = '"' + globalVariableName + '"';
-                        }   
-                        if (globalVariableName.toLowerCase() === variableName.toLowerCase()) {
-                            variable = ALVariableParser.parseVariableSymbolToALVariable(globalVariables[i]);
-                            break;
-                        }
-                    }
-                }
-            });
+        let globalVarSectionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(variableRange.start, [FullSyntaxTreeNodeKind.getGlobalVarSection()]);
+        if (globalVarSectionTreeNode) {
+            let variable: ALVariable | undefined = await this.getALVariableByNameSearchingInVarSection(document, variableName, globalVarSectionTreeNode);
+            if (variable) {
+                return variable;
+            }
         }
-        return variable;
+    }
+    private static async getALVariableByNameSearchingInVarSection(document: vscode.TextDocument, variableName: string, varSectionTreeNode: ALFullSyntaxTreeNode): Promise<ALVariable | undefined> {
+        let variableDeclarations: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(varSectionTreeNode, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, variableDeclarations);
+        for (let i = 0; i < variableDeclarations.length; i++) {
+            let localVariableDeclaration: ALFullSyntaxTreeNode = variableDeclarations[i];
+            if (localVariableDeclaration.childNodes && localVariableDeclaration.childNodes[0].kind === FullSyntaxTreeNodeKind.getIdentifierName() && localVariableDeclaration.childNodes[0].name) {
+                let localVariableIdentifierName: string = localVariableDeclaration.childNodes[0].name;
+                //Remove quotes if they are the first and last characters
+                localVariableIdentifierName = localVariableIdentifierName.trim().toLowerCase().replace(/^"(.*)"$/, '$1');
+                variableName = variableName.trim().toLowerCase().replace(/^"(.*)"$/, '$1');
+                if (localVariableIdentifierName === variableName) {
+                    return await ALVariableParser.parseVariableDeclarationToALVariable(document, localVariableDeclaration);
+                }
+            }
+        }
+        return undefined;
     }
     static hasQuotes(text: string): boolean {
         text = text.trim();

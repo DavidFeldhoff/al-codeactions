@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { downloadAndUnzipVSCode } from "vscode-test";
 import { FullSyntaxTreeNodeKind } from './fullSyntaxTreeNodeKind';
+import { TextRangeExt } from './textRangeExt';
 
 export class ALFullSyntaxTreeNodeExt {
     public static collectChildNodes(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean, outList: ALFullSyntaxTreeNode[]) {
@@ -14,6 +15,15 @@ export class ALFullSyntaxTreeNodeExt {
                     this.collectChildNodes(treeNode.childNodes[i], kindOfSyntaxTreeNode, searchAllLevels, outList);
                 }
             }
+        }
+    }
+    public static getFirstChildNodeOfKind(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean): ALFullSyntaxTreeNode | undefined {
+        let outList: ALFullSyntaxTreeNode[] = [];
+        this.collectChildNodes(treeNode, kindOfSyntaxTreeNode, searchAllLevels, outList);
+        if (outList.length === 0) {
+            return undefined;
+        } else {
+            return outList[0];
         }
     }
 

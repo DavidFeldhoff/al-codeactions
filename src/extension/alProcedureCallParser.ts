@@ -1,27 +1,26 @@
 import * as vscode from 'vscode';
 import { ALProcedure } from './alProcedure';
-import { ALVariableHandler } from './alVariableHandler';
 import { ALVariable } from './alVariable';
 import { ALParameterParser } from './alParameterParser';
 import { ALObject } from './alObject';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
-import { ALVariableParser } from './alVariableParser';
-import { ALSymbolHandler } from './alSymbolHandler';
 import { DocumentUtils } from './documentUtils';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
+import { TypeDetective } from './typeDetective';
+import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 
 export class ALProcedureCallParser {
     private document: vscode.TextDocument;
     private diagnostic: vscode.Diagnostic;
-    private rangeOfWholeProcedureCall: vscode.Range;
-    private callingProcedureSymbol: any;
-    private callingALObject?: ALObject;
     private calledALObject: ALObject | undefined;
     private calledProcedureName: string;
 
-    constructor(document: vscode.TextDocument, rangeOfProcedureCall: vscode.Range, diagnostic: vscode.Diagnostic) {
+    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
         this.diagnostic = diagnostic;
-        this.rangeOfWholeProcedureCall = rangeOfProcedureCall;
         this.document = document;
         this.calledProcedureName = document.getText(diagnostic.range);
     }
@@ -30,70 +29,11 @@ export class ALProcedureCallParser {
         this.calledALObject = new ALObject(calledObjectSymbol.name, calledObjectSymbol.icon, calledObjectSymbol.id, await this.getDocumentUriOfCalledObject());
 
         let callingObjectSymbol = await this.getCallingObjectSymbol();
-        this.callingALObject = new ALObject(callingObjectSymbol.name, callingObjectSymbol.icon, callingObjectSymbol.id, this.document.uri);
-
-        this.callingProcedureSymbol = await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(this.document.uri, this.rangeOfWholeProcedureCall.start.line);
     }
 
     public async getProcedure(): Promise<ALProcedure | undefined> {
         let returnType: string | undefined;
         let parameters: ALVariable[];
-
-        let procedureCall: string = this.document.getText(this.rangeOfWholeProcedureCall);
-
-        let rangeOfReturnPart: vscode.Range | undefined;
-        let rangeOfProcedureCall: vscode.Range;
-        if (procedureCall.includes(':=')) {
-            rangeOfReturnPart = new vscode.Range(this.rangeOfWholeProcedureCall.start, new vscode.Position(this.rangeOfWholeProcedureCall.start.line, procedureCall.indexOf(':=') + this.rangeOfWholeProcedureCall.start.character));
-            let amountSpacesAtEnd: number = this.document.getText(rangeOfReturnPart).length - this.document.getText(rangeOfReturnPart).trimRight().length;
-            rangeOfReturnPart = new vscode.Range(rangeOfReturnPart.start, rangeOfReturnPart.end.translate(0, amountSpacesAtEnd * -1));
-            let rangeOfReturnPartText: string = this.document.getText(rangeOfReturnPart); //for debugging purposes
-            rangeOfProcedureCall = new vscode.Range(rangeOfReturnPart.end.translate(0, 2), this.rangeOfWholeProcedureCall.end);
-            let amountSpacesAtBeginning: number = this.document.getText(rangeOfProcedureCall).length - this.document.getText(rangeOfProcedureCall).trimLeft().length;
-            rangeOfProcedureCall = new vscode.Range(rangeOfProcedureCall.start.translate(0, amountSpacesAtBeginning), rangeOfProcedureCall.end);
-            let rangeOfProcedureCallText: string = this.document.getText(rangeOfProcedureCall); //for debugging purposes
-        } else {
-            rangeOfProcedureCall = this.rangeOfWholeProcedureCall;
-        }
-
-        if (rangeOfReturnPart) {
-            let wordRange: vscode.Range | undefined = DocumentUtils.getNextWordRangeInsideLine(this.document, this.rangeOfWholeProcedureCall);
-            if (wordRange) {
-                let rangeNextCharacter = new vscode.Range(wordRange.end, wordRange.end.translate(0, 1));
-                let textNextCharacter = this.document.getText(rangeNextCharacter);
-                if (this.document.getText(rangeNextCharacter) === '.') {
-                    let objectTextRange = wordRange;
-                    let fieldOrMethodTextRange = DocumentUtils.getNextWordRangeInsideLine(this.document, this.rangeOfWholeProcedureCall, objectTextRange.end);
-                    if (fieldOrMethodTextRange) {
-                        let alSymbolHandler: ALSymbolHandler = new ALSymbolHandler();
-                        let symbol = await alSymbolHandler.findSymbol(this.document, fieldOrMethodTextRange.start, this.document.getText(fieldOrMethodTextRange));
-                        if (symbol) {
-                            let uri: vscode.Uri = alSymbolHandler.getLastUri() as vscode.Uri;
-                            if (ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(symbol.kind)) {
-                                //TODO: Procedure as parameter: Get type of parameter
-                                // returnType =
-                            } else if (ALCodeOutlineExtension.isSymbolKindVariableOrParameter(symbol.kind)) {
-                                returnType = symbol.subtype;
-                            } else if (ALCodeOutlineExtension.isSymbolKindTableField(symbol.kind)) {
-                                returnType = (await ALVariableParser.parseFieldSymbolToALVariable(symbol, uri)).type;
-                            }
-                        }
-                    }
-                } else {
-                    //TODO: Procedure as parameter: Missing branch
-                    let alSymbolHandler: ALSymbolHandler = new ALSymbolHandler();
-                    let symbol = await alSymbolHandler.findSymbol(this.document, wordRange.start, this.document.getText(wordRange));
-                    if (symbol) {
-                        let uri: vscode.Uri = alSymbolHandler.getLastUri() as vscode.Uri;
-                        if (ALCodeOutlineExtension.isSymbolKindVariableOrParameter(symbol.kind)) {
-                            returnType = symbol.subtype;
-                        } else if (ALCodeOutlineExtension.isSymbolKindTableField(symbol.kind)) {
-                            returnType = (await ALVariableParser.parseFieldSymbolToALVariable(symbol, uri)).type;
-                        }
-                    }
-                }
-            }
-        }
 
         let isLocal: boolean;
         if (this.diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString()) {
@@ -105,11 +45,79 @@ export class ALProcedureCallParser {
             isLocal = true;
         }
 
-        let parametersRange: vscode.Range = ALParameterParser.getParameterCallRangeOfDiagnostic(this.document, this.diagnostic);
-        parameters = await this.getParametersOfProcedureCall(parametersRange, this.calledProcedureName);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
+        let invocationExpressionRange: vscode.Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
+        invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
+        
+        let argumentList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(invocationExpressionTreeNode, FullSyntaxTreeNodeKind.getArgumentList(), false) as ALFullSyntaxTreeNode;
+        parameters = await this.createParametersOutOfArgumentListTreeNode(argumentList, this.calledProcedureName);
+
+        returnType = await this.getReturnType(this.document, invocationExpressionRange);
 
         return new ALProcedure(this.calledProcedureName, parameters, [], returnType, isLocal, this.calledALObject as ALObject);
     }
+    private async getReturnType(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
+        while (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getParenthesizedExpression()) {
+            invocationExpressionTreeNode = invocationExpressionTreeNode.parentNode;
+        }
+        if (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind && invocationExpressionTreeNode.parentNode.childNodes) {
+            switch (invocationExpressionTreeNode.parentNode.kind) {
+                //TODO: Variable, Parameter, Table Field, Rec.TableField, If Statement
+                case FullSyntaxTreeNodeKind.getArgumentList():
+                    let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
+                    let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', this.document.uri, TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.span).start, ',');
+                    if (signatureHelp) {
+                        let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
+                        let procedureDeclarationLine = signatureHelp.signatures[0].label;
+                        let parentInvocation: ALFullSyntaxTreeNode | undefined = invocationExpressionTreeNode.parentNode.parentNode;
+                        if (parentInvocation && parentInvocation.childNodes && parentInvocation.childNodes[0].identifier) {
+                            let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(parentInvocation.childNodes[0].identifier) + parentInvocation.childNodes[0].identifier.length);
+                            let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
+                            let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
+                            if (matcher && matcher.groups) {
+                                return matcher.groups['type'].trim();
+                            }
+                        }
+                    }
+                    break;
+                case FullSyntaxTreeNodeKind.getUnaryMinusExpression():
+                case FullSyntaxTreeNodeKind.getUnaryPlusExpression():
+                    return 'Decimal';
+                case FullSyntaxTreeNodeKind.getIfStatement():
+                case FullSyntaxTreeNodeKind.getLogicalAndExpression():
+                case FullSyntaxTreeNodeKind.getLogicalOrExpression():
+                case FullSyntaxTreeNodeKind.getUnaryNotExpression():
+                    return 'Boolean';
+                case FullSyntaxTreeNodeKind.getArrayIndexExpression():
+                    return 'Integer';
+                case FullSyntaxTreeNodeKind.getAssignmentStatement():
+                case FullSyntaxTreeNodeKind.getCompoundAssignmentStatement():
+                case FullSyntaxTreeNodeKind.getLessThanExpression():
+                case FullSyntaxTreeNodeKind.getLessThanOrEqualExpression():
+                case FullSyntaxTreeNodeKind.getGreaterThanOrEqualExpression():
+                case FullSyntaxTreeNodeKind.getGreaterThanExpression():
+                case FullSyntaxTreeNodeKind.getEqualsExpression():
+                case FullSyntaxTreeNodeKind.getNotEqualsExpression():
+                case FullSyntaxTreeNodeKind.getAddExpression():
+                case FullSyntaxTreeNodeKind.getSubtractExpression():
+                case FullSyntaxTreeNodeKind.getMultiplyExpression():
+                case FullSyntaxTreeNodeKind.getDivideExpression():
+                    //If the parent node is one of these kinds, then it always has to be found the kind of the counterpart
+                    let indexOfInvocationTreeNode: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
+                    let indexOfOtherTreeNode: number = indexOfInvocationTreeNode[0] === 0 ? 1 : 0;
+                    let otherTreeNode: ALFullSyntaxTreeNode = invocationExpressionTreeNode.parentNode.childNodes[indexOfOtherTreeNode];
+
+                    let typeDetective2: TypeDetective = new TypeDetective(this.document, otherTreeNode);
+                    await typeDetective2.getTypeOfTreeNode();
+                    return typeDetective2.getType();
+            }
+        }
+        return undefined;
+    }
+
     private canObjectContainProcedures(alObject: ALObject) {
         switch (alObject.type.toString().toLowerCase()) {
             case "enum":
@@ -118,8 +126,8 @@ export class ALProcedureCallParser {
                 return true;
         }
     }
-    private async getParametersOfProcedureCall(rangeOfParameterCall: vscode.Range, procedureNameToCreate: string): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.parseParameterCallRangeToALVariableArray(rangeOfParameterCall, this.callingProcedureSymbol, this.document);
+    private async createParametersOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, this.document);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
