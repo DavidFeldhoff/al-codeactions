@@ -9,6 +9,9 @@ import { RenameMgt } from './checkRename';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 import { ToolsGetSyntaxTreeSymbolsRequest } from './ToolsGetSyntaxTreeSymbolsRequest';
 import { ToolsGetSyntaxTreeRequest } from './toolsGetSyntaxTreeRequest';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
 
 export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
@@ -23,7 +26,7 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
             return;
         }
 
-        if (!this.considerLine(document, range, diagnostic)) {
+        if (!await this.considerLine(document, range, diagnostic)) {
             return;
         }
 
@@ -42,23 +45,28 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
         }
     }
 
-    private considerLine(document: vscode.TextDocument, range: vscode.Range, diagnostic: vscode.Diagnostic): boolean {
+    private async considerLine(document: vscode.TextDocument, range: vscode.Range, diagnostic: vscode.Diagnostic): Promise<boolean> {
         let textLine = document.lineAt(diagnostic.range.end.line).text;
         if (textLine.length > diagnostic.range.end.character) {
             let nextCharacter = textLine.charAt(diagnostic.range.end.character);
-            if (nextCharacter === '(' && textLine.substr(diagnostic.range.end.character).includes(')')) {
-                return true;
+            if (nextCharacter === '(') {
+                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+                let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+                if (invocationExpressionTreeNode) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public async createProcedureObject(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<ALProcedure | undefined> {
-        let rangeOfProcedureCall = new ALSourceCodeHandler(document).expandRangeToRangeOfProcedureCall(diagnostic.range);
-        if (isUndefined(rangeOfProcedureCall)) {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+        if (isUndefined(invocationExpressionTreeNode)) {
             return;
         } else {
-            let alProcedureCreator = new ALProcedureCallParser(document, rangeOfProcedureCall, diagnostic);
+            let alProcedureCreator = new ALProcedureCallParser(document, diagnostic);
             await alProcedureCreator.initialize();
             let procedureToCreate = await alProcedureCreator.getProcedure();
             return procedureToCreate;

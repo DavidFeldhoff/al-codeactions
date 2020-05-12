@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import { RegExpCreator } from './regexpCreator';
-import { isUndefined, isNull } from 'util';
-import { ALObject } from './alObject';
+import { isUndefined } from 'util';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { DocumentUtils } from './documentUtils';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
@@ -79,54 +77,6 @@ export class ALSourceCodeHandler {
         return false;
     }
 
-    public expandRangeToRangeOfProcedureCall(rangeOfProcedureName: vscode.Range): vscode.Range | undefined {
-        let lineText = this.document.lineAt(rangeOfProcedureName.start).text;
-
-        let positionBeforeOpeningBracket = new vscode.Position(rangeOfProcedureName.end.line, rangeOfProcedureName.end.character);
-        //TODO: Procedure as parameter: Not yet supported
-        if (lineText.substr(0, positionBeforeOpeningBracket.character).includes('(')) {
-            return undefined;
-        }
-
-        // expand procedureRange to the right side
-        let indexOfmatchingClosingBracket: vscode.Position | undefined = DocumentUtils.findMatchingClosingBracket(this.document, positionBeforeOpeningBracket);
-        if (isUndefined(indexOfmatchingClosingBracket)) {
-            return undefined;
-        }
-        let endOfProcedureCall: vscode.Position = indexOfmatchingClosingBracket.translate(0, 1);
-
-        // expand procedureRange to the left side
-        let beginningOfProcedureCall = rangeOfProcedureName.start;
-        let chars = lineText.split('');
-        for (let i = rangeOfProcedureName.start.character - 1; i >= 0; i--) {
-            let char = chars[i];
-            if (char === '.') {
-                let startOfCalledObject: vscode.Position | undefined = this.expandToCalledObject(this.document, beginningOfProcedureCall.with(undefined, i));
-                if (!startOfCalledObject) {
-                    throw new Error('Could not find called object.');
-                }
-                i = startOfCalledObject.character;
-                beginningOfProcedureCall = startOfCalledObject.with(undefined, i);
-            }
-            if (char === '=') {
-                if (chars[i - 1] === ':') {
-                    let startOfCalledObject: vscode.Position | undefined = this.expandToFieldOrProcedureAndObject(this.document, beginningOfProcedureCall.with(undefined, i - 1));
-                    if (!startOfCalledObject) {
-                        throw new Error('Could not find called object.');
-                    }
-                    i = startOfCalledObject.character;
-                    beginningOfProcedureCall = startOfCalledObject.with(undefined, i);
-                    break;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        let procedureCallRange = new vscode.Range(beginningOfProcedureCall, endOfProcedureCall);
-        return procedureCallRange;
-
-    }
     expandToCalledObject(document: vscode.TextDocument, positionOfDot: vscode.Position): vscode.Position | undefined {
         let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfDot);
         if (!rangeOfCalledObject) {

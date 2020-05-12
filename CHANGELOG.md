@@ -2,6 +2,29 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.2
+
+- Create Procedure Code Action
+  - supports creation of procedure in Test-Methods
+  - supports various more statements where procedures could be created and the return type is identified correctly, e.g.:
+    - As parameter of another procedure call: The procedure takes the type of the appropriate parameter as return value.
+    - If Statement: created procedure returns boolean
+    - Assignment statement: created procedure returns the type of the variable which will be assigned
+    - Mathematical statements like add, subtract, multiply: created procedure returns Decimal or Integer
+    - Logical Statements like "true && notexistingprocedure()" returns boolean
+    - ...
+  - supports creation of multiline procedures
+  - temporary variables will be declared as var-Parameters
+- Extract to procedure Code Action
+  - Remove "Preferred Fix"-Property as it isn't working and does not make much sense.
+  - hand over the return value of a procedure if it is used inside the selection
+- Technical rebuild of extension
+
+## 0.2.1
+
+- Improvement to "Create Procedure": Rec and xRec are now recognized in Tables, Pages, Request Pages and Codeunits.
+- small bugfix if a dot was included in the variable name
+
 ## 0.2.0
 
 - First (beta) version of the "Extract procedure"-function.
