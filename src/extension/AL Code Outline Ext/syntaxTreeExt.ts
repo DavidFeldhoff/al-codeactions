@@ -7,8 +7,24 @@ export class SyntaxTreeExt {
     private constructor() {
 
     }
+    
+    static getObjectTreeNode(syntaxTree: SyntaxTree, position: vscode.Position): ALFullSyntaxTreeNode | undefined {
+        let kinds: string[] = [
+            FullSyntaxTreeNodeKind.getTableObject(),
+            FullSyntaxTreeNodeKind.getTableExtensionObject(),
+            FullSyntaxTreeNodeKind.getPageObject(),
+            FullSyntaxTreeNodeKind.getPageExtensionObject(),
+            FullSyntaxTreeNodeKind.getCodeunitObject(),
+            FullSyntaxTreeNodeKind.getReportObject(),
+            FullSyntaxTreeNodeKind.getXmlPortObject()
+        ]
+        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, kinds);
+        return objectTreeNode;
+    }
+
     static getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree: SyntaxTree, position: vscode.Position): ALFullSyntaxTreeNode | undefined {
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
         return methodOrTriggerTreeNode;
     }
+
 }

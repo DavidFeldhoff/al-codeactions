@@ -14,23 +14,44 @@ export class FullSyntaxTreeNodeKind {
     public static getTableObject(): string {
         return 'TableObject';
     }
+    public static getTableExtensionObject(): string {
+        return 'TableExtensionObject';
+    }
     public static getPageObject(): string {
         return 'PageObject';
     }
+    public static getPageExtensionObject(): string {
+        return 'PageExtensionObject';
+    }
+    public static getPageCustomizationObject(): string {
+        return 'PageCustomizationObject';
+    }
     public static getCodeunitObject(): string {
         return 'CodeunitObject';
+    }
+    public static getReportObject(): string {
+        return 'ReportObject';
+    }
+    public static getXmlPortObject(): string {
+        return 'XmlPortObject';
+    }
+    public static getEnumType(): string{
+        return 'EnumType';
+    }
+    public static getEnumExtensionType(): string{
+        return 'EnumExtensionType';
+    }
+    public static getProfileObject(): string{
+        return 'ProfileObject';
+    }
+    public static getInterface(): string {
+        return 'Interface';
     }
     public static getRequestPage(): string {
         return 'RequestPage';
     }
     public static getReportDataItem(): string {
         return 'ReportDataItem';
-    }
-    public static getParameterList(): string {
-        return 'ParameterList';
-    }
-    public static getParameter(): string {
-        return 'Parameter';
     }
     public static getPropertyList(): string {
         return 'PropertyList';
@@ -70,6 +91,12 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getVariableDeclaration(): string {
         return 'VariableDeclaration';
+    }
+    public static getVariableListDeclaration(): string {
+        return 'VariableListDeclaration';
+    }
+    public static getVariableDeclarationName(): string {
+        return 'VariableDeclarationName';
     }
     public static getMemberAccessExpression(): string {
         return 'MemberAccessExpression';
@@ -140,20 +167,8 @@ export class FullSyntaxTreeNodeKind {
     public static getOptionAccessExpression(): string {
         return 'OptionAccessExpression';
     }
-    public static getMemberAccessExpression(): string {
-        return 'MemberAccessExpression';
-    }
     public static getArrayIndexExpression(): string {
         return 'ArrayIndexExpression';
-    }
-    public static getGlobalVarSection(): string {
-        return 'GlobalVarSection';
-    }
-    public static getVarSection(): string {
-        return 'VarSection';
-    }
-    public static getVariableDeclaration(): string {
-        return 'VariableDeclaration';
     }
     public static getParameterList(): string {
         return 'ParameterList';
@@ -169,5 +184,29 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getReturnValue(): string {
         return "ReturnValue";
+    }
+    public static getLiteralExpression(): string {
+        return 'LiteralExpression';
+    }
+    public static getBooleanLiteralValue(): string {
+        return 'BooleanLiteralValue';
+    }
+    public static getStringLiteralValue(): string {
+        return 'StringLiteralValue';
+    }
+    public static getInt32SignedLiteralValue(): string {
+        return 'Int32SignedLiteralValue';
+    }
+    public static getDecimalSignedLiteralValue(): string {
+        return 'DecimalSignedLiteralValue';
+    }
+    public static getUnaryMinusExpression(): string {
+        return 'UnaryMinusExpression';
+    }
+    public static getUnaryPlusExpression(): string {
+        return 'UnaryPlusExpression';
+    }
+    public static getObjectId(): string {
+        return 'ObjectId';
     }
 }

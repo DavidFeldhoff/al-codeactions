@@ -293,6 +293,27 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.equal(alProcedure.parameters[0].isVar, true);
         assert.equal(alProcedure.variables.length, 0);
     });
+    test('ProcedureWithUsedReturnValue', async () => {
+        let procedureName = 'testProcedureWithUsedReturnValue';
+        let textToExtractStart = 'myReturnValue := Customer."No."; //extract this line';
+        let textToExtractEnd = 'myReturnValue := Customer."No."; //extract this line';
+        let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
+        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        await returnTypeAnalyzer.analyze();
+        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
+        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        alProcedure = alProcedure as ALProcedure;
+        assert.equal(alProcedure.isLocal, true);
+        assert.equal(alProcedure.returnType, undefined);
+        assert.equal(alProcedure.parameters.length, 2);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer temporary');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.parameters[1].type.toLowerCase(), 'code[20]');
+        assert.equal(alProcedure.parameters[1].name.toLowerCase(), 'myreturnvalue');
+        assert.equal(alProcedure.parameters[1].isVar, true);
+        assert.equal(alProcedure.variables.length, 0);
+    });
 
 
     function getRange(document: vscode.TextDocument, procedureName: string, textToExtractStart: string, textToExtractEnd: string): vscode.Range {

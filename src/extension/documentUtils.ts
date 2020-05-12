@@ -183,7 +183,7 @@ export class DocumentUtils {
         let newEnd: vscode.Position = currentRange.end;
         for (let i = currentRange.start.line; i <= currentRange.end.line; i++) {
             let startPositionToSearch = i === currentRange.start.line ? currentRange.start.character : 0;
-            let textStartingAtPosition = document.lineAt(i).text.substr(startPositionToSearch);
+            let textStartingAtPosition = document.lineAt(i).text.substring(startPositionToSearch);
             if (textStartingAtPosition.trimLeft().length > 0) {
                 let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimLeft().length;
                 newStart = new vscode.Position(i, startPositionToSearch + amountSpaces);
@@ -191,8 +191,8 @@ export class DocumentUtils {
             }
         }
         for (let i = currentRange.end.line; i >= currentRange.start.line; i--) {
-            let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : document.lineAt(i).text.length - 1;
-            let textStartingAtPosition = document.lineAt(i).text.substr(0, endPositionToSearch);
+            let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : document.lineAt(i).text.length;
+            let textStartingAtPosition = document.lineAt(i).text.substring(0, endPositionToSearch);
             if (textStartingAtPosition.trimRight().length > 0) {
                 let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimRight().length;
                 newEnd = new vscode.Position(i, endPositionToSearch - amountSpaces);
