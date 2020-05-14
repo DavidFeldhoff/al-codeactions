@@ -8,7 +8,7 @@ import { DocumentUtils } from './documentUtils';
 import { ALVariable } from './alVariable';
 import { ALVariableParser } from './alVariableParser';
 import { ALObject } from './alObject';
-import { RenameMgt } from './checkRename';
+import { RenameMgt } from './renameMgt';
 import { SyntaxTree } from './AL Code Outline/syntaxTree';
 import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
 import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
@@ -24,8 +24,11 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
     static async renameMethod(): Promise<any> {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
-            let newProcedureCharacterPos: number = editor.document.lineAt(editor.selection.start.line).text.indexOf(RenameMgt.newProcedureName + '(');
-            let posOfProcedureCall = new vscode.Position(editor.selection.start.line, newProcedureCharacterPos);
+            let newCharacterPos: number = editor.document.lineAt(editor.selection.start.line).text.indexOf(RenameMgt.newProcedureName + '(');
+            if (newCharacterPos < 0) {
+                newCharacterPos = editor.document.lineAt(editor.selection.start.line).text.indexOf(RenameMgt.newLabelName);
+            }
+            let posOfProcedureCall = new vscode.Position(editor.selection.start.line, newCharacterPos);
 
             editor.selection = new vscode.Selection(posOfProcedureCall, posOfProcedureCall);
         }
@@ -298,7 +301,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
                 } else if (lineNo === rangeExpanded.end.line) {
                     lineText = lineText.substring(0, rangeExpanded.end.character);
                 }
-                let indexOfParameterName = lineText.search(new RegExp('\\b' + identifierTreeNode.name + '\\b','i'));
+                let indexOfParameterName = lineText.search(new RegExp('\\b' + identifierTreeNode.name + '\\b', 'i'));
                 if (indexOfParameterName > 0) {
                     let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new vscode.Position(lineNo, indexOfParameterName));
                     if (locations && locations.length > 0) {
