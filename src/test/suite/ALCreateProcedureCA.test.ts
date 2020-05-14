@@ -365,13 +365,15 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
-		assert.equal(alProcedure.parameters.length, 3);
+		assert.equal(alProcedure.parameters.length, 4);
 		assert.equal(alProcedure.parameters[0].name, '"No."');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, 'Reserve');
+		assert.equal(alProcedure.parameters[1].name, 'Reserve1');
 		assert.equal(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
 		assert.equal(alProcedure.parameters[2].name, '"Application Method"');
 		assert.equal(alProcedure.parameters[2].type, 'Option');
+		assert.equal(alProcedure.parameters[3].name, 'Reserve2');
+		assert.equal(alProcedure.parameters[3].type, 'Enum "Reserve Method"');
 	}); //first time interacting with the symbols and another extensin can take some time.
 	test('getProcedureToCreate_FieldsOfSameAppAsParameter', async function () {
 		let procedureName = 'MissingProcedureWithFieldsOfSameAppAsParameter';

@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { ALCreateProcedureCA } from './extension/alCreateProcedureCA';
 import { ALExtractToProcedureCA } from './extension/alExtractToProcedureCA';
-import { RenameMgt } from './extension/checkRename';
 import { OwnConsole } from './extension/console';
 
 export function activate(context: vscode.ExtensionContext) {
