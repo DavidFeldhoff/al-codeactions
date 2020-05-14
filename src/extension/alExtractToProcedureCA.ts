@@ -8,7 +8,7 @@ import { DocumentUtils } from './documentUtils';
 import { ALVariable } from './alVariable';
 import { ALVariableParser } from './alVariableParser';
 import { ALObject } from './alObject';
-import { RenameMgt } from './checkRename';
+import { RenameMgt } from './renameMgt';
 import { SyntaxTree } from './AL Code Outline/syntaxTree';
 import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
 import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
