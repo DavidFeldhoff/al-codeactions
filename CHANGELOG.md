@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.3
+
+- Create Procedure Code Action
+  - If the parameter was a value of an enum, then a Variant-Parameter was created. That's fixed now.
+
 ## 0.2.2
 
 - Create Procedure Code Action
