@@ -65,6 +65,7 @@ export class TypeDetective {
                 }
                 break;
             case FullSyntaxTreeNodeKind.getParenthesizedExpression():
+            case FullSyntaxTreeNodeKind.getOptionAccessExpression():
                 if (this.treeNode.childNodes) {
                     let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
                     let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
