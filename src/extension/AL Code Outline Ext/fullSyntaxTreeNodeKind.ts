@@ -35,13 +35,13 @@ export class FullSyntaxTreeNodeKind {
     public static getXmlPortObject(): string {
         return 'XmlPortObject';
     }
-    public static getEnumType(): string{
+    public static getEnumType(): string {
         return 'EnumType';
     }
-    public static getEnumExtensionType(): string{
+    public static getEnumExtensionType(): string {
         return 'EnumExtensionType';
     }
-    public static getProfileObject(): string{
+    public static getProfileObject(): string {
         return 'ProfileObject';
     }
     public static getInterface(): string {
@@ -82,6 +82,9 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getMethodDeclaration(): string {
         return 'MethodDeclaration';
+    }
+    public static getMemberAttribute(): string {
+        return 'MemberAttribute';
     }
     public static getGlobalVarSection(): string {
         return 'GlobalVarSection';
@@ -178,6 +181,12 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getArgumentList(): string {
         return 'ArgumentList';
+    }
+    public static getAttributeArgumentList(): string {
+        return 'AttributeArgumentList';
+    }
+    public static getLiteralAttributeArgument(): string {
+        return 'LiteralAttributeArgument';
     }
     public static getExitStatement(): string {
         return 'ExitStatement';

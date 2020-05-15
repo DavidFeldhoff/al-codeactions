@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { ALProcedure } from './alProcedure';
-import { ALProcedureCallParser } from './alProcedureCallParser';
-import { ALProcedureSourceCodeCreator } from './alProcedureSourceCodeCreator';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
-import { ALSourceCodeHandler } from './alSourceCodeHandler';
-import { SyntaxTree } from './AL Code Outline/syntaxTree';
-import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { ALProcedure } from '../alProcedure';
+import { ALProcedureCallParser } from '../alProcedureCallParser';
+import { ALProcedureSourceCodeCreator } from '../alProcedureSourceCodeCreator';
+import { SupportedDiagnosticCodes } from '../supportedDiagnosticCodes';
+import { ALSourceCodeHandler } from '../alSourceCodeHandler';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 
 export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
