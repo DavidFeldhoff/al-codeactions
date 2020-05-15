@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../alExtension';
-import { ALExtractToProcedureCA } from '../../extension/alExtractToProcedureCA';
+import { ALExtractToProcedureCA } from '../../extension/Code Actions/alExtractToProcedureCA';
 import { ALProcedure } from '../../extension/alProcedure';
 import { ReturnTypeAnalzyer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
 

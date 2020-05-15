@@ -5,23 +5,18 @@ import { ToolsGetFullSyntaxTreeRequest } from './toolsGetFullSyntaxTreeRequest';
 import { ALFullSyntaxTreeNode } from './alFullSyntaxTreeNode';
 import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+
 export class SyntaxTree {
     private static instances: Map<vscode.TextDocument, SyntaxTree | undefined> = new Map();
     private fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined;
     private constructor(fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined) {
         this.fullSyntaxTreeResponse = fullSyntaxTreeResponse;
     }
-    public static async getInstance(document: vscode.TextDocument): Promise<SyntaxTree> {
-        if (!this.instances.get(document)) {
+    public static async getInstance(document: vscode.TextDocument, newInstance?: boolean): Promise<SyntaxTree> {
+        if (!this.instances.get(document) || newInstance) {
             this.instances.set(document, new SyntaxTree(await this.getFullSyntaxTree(document)));
         }
         return this.instances.get(document) as SyntaxTree;
-    }
-    public static clearInstance(document: vscode.TextDocument) {
-        this.instances.delete(document);
-    }
-    public static clearInstances() {
-        this.instances.clear();
     }
     private static async getFullSyntaxTree(document: vscode.TextDocument): Promise<ToolsGetFullSyntaxTreeResponse | undefined> {
         let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
