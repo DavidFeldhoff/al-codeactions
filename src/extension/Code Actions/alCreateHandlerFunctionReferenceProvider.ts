@@ -6,11 +6,11 @@ import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTree
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 
-export class ALCreateHandlerFunctionReferences implements vscode.ReferenceProvider {
+export class ALCreateHandlerFunctionReferenceProvider implements vscode.ReferenceProvider {
 
     async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
         let locationsReferenced: vscode.Location[] = [];
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document, true);
         let methodIdentifierTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position);
         if (methodIdentifierTreeNode && methodIdentifierTreeNode.parentNode && methodIdentifierTreeNode.parentNode.kind && methodIdentifierTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getMethodDeclaration()) {
             let handlerFunctionName: string = document.getText(TextRangeExt.createVSCodeRange(methodIdentifierTreeNode.fullSpan));
@@ -27,7 +27,9 @@ export class ALCreateHandlerFunctionReferences implements vscode.ReferenceProvid
 
     private getReferenceLocations(syntaxTree: SyntaxTree, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location[] {
         let locationsReferenced: vscode.Location[] = [];
-        locationsReferenced = locationsReferenced.concat(this.getReferenceLocationsInSameDocument(syntaxTree, document, handlerFunctionName));
+        locationsReferenced = locationsReferenced.concat(
+            this.getReferenceLocationsInSameDocument(syntaxTree, document, handlerFunctionName)
+        );
         return locationsReferenced;
     }
 
@@ -65,14 +67,24 @@ export class ALCreateHandlerFunctionReferences implements vscode.ReferenceProvid
             return undefined;
         }
 
-        let handlerFunctionTreeNodes: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(memberAttribute, FullSyntaxTreeNodeKind.getLiteralAttributeArgument(), true, handlerFunctionTreeNodes);
-        for (let i = 0; i < handlerFunctionTreeNodes.length; i++) {
-            let rangeOfHandlerFunctionUsed: vscode.Range = TextRangeExt.createVSCodeRange(handlerFunctionTreeNodes[i].fullSpan);
-            let handlerFunction: string = document.getText(rangeOfHandlerFunctionUsed);
-            handlerFunction = handlerFunction.substring(1, handlerFunction.length - 1);
-            if (handlerFunction.toLowerCase() === handlerFunctionName.toLowerCase()) {
-                return new vscode.Location(document.uri, rangeOfHandlerFunctionUsed);
+        let handlerFunctionsTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(memberAttribute, FullSyntaxTreeNodeKind.getLiteralAttributeArgument(), true);
+        if (handlerFunctionsTreeNode) {
+            let rangeOfFunctions: vscode.Range = TextRangeExt.createVSCodeRange(handlerFunctionsTreeNode.fullSpan);
+            let startCharacter: number = rangeOfFunctions.start.character;
+            let handlerFunctionsString: string = document.getText(rangeOfFunctions);
+            if (handlerFunctionsString.trim() !== '') {
+                handlerFunctionsString = handlerFunctionsString.substring(1, handlerFunctionsString.length - 1);
+                startCharacter++; // due to the removed '
+                let handlerFunctionsArr = handlerFunctionsString.split(',');
+                for (let i = 0; i < handlerFunctionsArr.length; i++) {
+                    if (handlerFunctionsArr[i].toLowerCase() === handlerFunctionName.toLowerCase()) {
+                        let wordRange: vscode.Range | undefined = document.getWordRangeAtPosition(new vscode.Position(rangeOfFunctions.start.line, startCharacter));
+                        if (wordRange) {
+                            return new vscode.Location(document.uri, wordRange);
+                        }
+                    }
+                    startCharacter += handlerFunctionsArr[i].length + 1; // due to the removed , by split
+                }
             }
         }
         return undefined;
@@ -91,6 +103,7 @@ export class ALCreateHandlerFunctionReferences implements vscode.ReferenceProvid
             'requestpagehandler',
             'sendnotificationhandler',
             'sessionsettingshandler',
+            'strmenuhandler'
         ];
 
         let memberAttributes: ALFullSyntaxTreeNode[] = [];

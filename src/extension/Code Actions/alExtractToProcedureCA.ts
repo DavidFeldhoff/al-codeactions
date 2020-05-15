@@ -38,7 +38,10 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
 
 
     public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        SyntaxTree.clearInstances();
+        if (range.start.compareTo(range.end) === 0) { //performance
+            return;
+        }
+        await SyntaxTree.getInstance(document, true); //create new syntax tree instance
 
         let rangeAnalyzer: RangeAnalzyer = new RangeAnalzyer(document, range);
         await rangeAnalyzer.analyze();
@@ -298,7 +301,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
                 } else if (lineNo === rangeExpanded.end.line) {
                     lineText = lineText.substring(0, rangeExpanded.end.character);
                 }
-                let indexOfParameterName = lineText.search(new RegExp('\\b' + identifierTreeNode.name + '\\b','i'));
+                let indexOfParameterName = lineText.search(new RegExp('\\b' + identifierTreeNode.name + '\\b', 'i'));
                 if (indexOfParameterName > 0) {
                     let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new vscode.Position(lineNo, indexOfParameterName));
                     if (locations && locations.length > 0) {

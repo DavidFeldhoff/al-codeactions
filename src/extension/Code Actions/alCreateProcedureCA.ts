@@ -46,7 +46,7 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
         if (textLine.length > diagnostic.range.end.character) {
             let nextCharacter = textLine.charAt(diagnostic.range.end.character);
             if (nextCharacter === '(') {
-                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document, true);
                 let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
                 if (invocationExpressionTreeNode) {
                     return true;

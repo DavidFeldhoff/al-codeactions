@@ -14,16 +14,19 @@ See here how it works:
 
 ### Extract Procedure
 
-*"Source Code refactoring can improve the quality and maintainability of your project by restructuring your code while not modifying the runtime behavior"* **- VSCode Docs.**  
-Well, I tried to add this feature to the AL Language. It's definitely not perfect yet, but I think it's good enough to share with you and get some early feedback (hopefully).  
-So, what is possible?  
-You can select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hand them over as parameter or add them as local variables. For the moment the parameters are always var-Parameters, but I'm working on improving it to check if the "var" is necessary. Furthermore I'm currently not sure if I should delete the local variables which are (currently) not used anymore in the calling procedure. I think it could be quite annoying if you planned to use them afterwards, but the code action just deleted them?!  
-After the new procedure is created you can rename it directly. Please feel free to test this one and I appreciate any feedback! Your feedback will always help me prioritizing :)
+Select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hands them over as parameter or adds them as local variables. For the moment the parameters are always var-Parameters, but I'm considering to improve it to check if the "var" is necessary.  
+After the new procedure is created you can rename it directly.  
 And I have to admit that this feature is currently not working with report dataitems because I don't recognize them as parameters yet.  
 Before showing this feature in action I would like to thank Andrzej for his support (again).
 
 ![demo](images/ExtractRepeat.gif)
 ![demo](images/ExtractIf.gif)
+
+### References to HandlerFunctions
+
+The AL language does not provide references or definitions for handler functions yet which is why you can't jump between these. This extension fixed it to improve your daily test writing. I know, it has nothing to do with code actions, but it was annoying..
+
+![demo](images/HandlerFunctionReferences.gif)
 
 ## Requirements
 

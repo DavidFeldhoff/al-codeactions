@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.4
+
+- Add References to Handler Functions
+
 ## 0.2.3
 
 - Create Procedure Code Action

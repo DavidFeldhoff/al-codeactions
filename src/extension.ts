@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { ALCreateProcedureCA } from './extension/Code Actions/alCreateProcedureCA';
 import { ALExtractToProcedureCA } from './extension/Code Actions/alExtractToProcedureCA';
 import { OwnConsole } from './extension/console';
-import { ALCreateHandlerFunctionReferences } from './extension/Code Actions/alCreateHandlerFunctionReferences';
+import { ALCreateHandlerFunctionReferenceProvider } from './extension/Code Actions/alCreateHandlerFunctionReferenceProvider';
+import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Code Actions/alCreateHandlerFunctionDefinitionProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -23,7 +24,10 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('alcodeactions.renameMethod', () => ALExtractToProcedureCA.renameMethod())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ALCreateHandlerFunctionReferences())
+		vscode.languages.registerReferenceProvider('al', new ALCreateHandlerFunctionReferenceProvider())
+	);
+	context.subscriptions.push(
+		vscode.languages.registerDefinitionProvider('al', new ALCreateHandlerFunctionDefinitionProvider())
 	);
 }
 
