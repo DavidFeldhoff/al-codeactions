@@ -24,7 +24,7 @@ Before showing this feature in action I would like to thank Andrzej for his supp
 
 ### References to HandlerFunctions
 
-The AL language does not provide references or definitions for handler functions yet which is why you can't jump between these. This extension fixed it to improve your daily test writing. I know, it has nothing to do with code actions, but it was annoying..
+The AL language does not provide references or definitions for handler functions yet which is why you can't jump between these with F12 or Shift+F12. This extension fixed it to improve your daily test writing. I know, it has nothing to do with code actions, but it was annoying..
 
 ![demo](images/HandlerFunctionReferences.gif)
 
