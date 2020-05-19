@@ -5,6 +5,7 @@ import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
 import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
 import { OwnConsole } from './console';
 import { DocumentUtils } from './documentUtils';
+import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 
 export class TypeDetective {
     private document: vscode.TextDocument;
@@ -140,9 +141,8 @@ export class TypeDetective {
                     let hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
                     if (hoverMessageFirstLine.includes(':')) {
                         this.type = hoverMessageFirstLine.substr(hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
-                        if (this.type === 'Label') {
-                            this.type = 'Text';
-                        }
+                        this.type = this.fixHoverMessage(this.type);
+
                         this.checkIsVar(hoverMessageFirstLine);
                         await this.checkIsTemporary(hoverMessageFirstLine, document, position);
                         if (this.isTemporary) {
@@ -160,6 +160,18 @@ export class TypeDetective {
             OwnConsole.ownConsole.appendLine('Unable to get type of range:\r\n' + document.getText(range));
             return false;
         }
+    }
+    private fixHoverMessage(type: string): string {
+        if (type === 'Label') {
+            type = 'Text';
+        }
+        if (type.trim().startsWith('TestPage')) {
+            let testpageType = type.trim().substr('TestPage'.length).trim();
+            if (testpageType.includes(' ') && !testpageType.startsWith('"')) {
+                type = 'TestPage "' + type.substr('TestPage'.length).trim() + '"';
+            }
+        }
+        return type;
     }
 
     private checkIsVar(hoverMessageFirstLine: string) {
@@ -195,5 +207,65 @@ export class TypeDetective {
 
             }
         }
+    }
+    public static async findReturnTypeOfPosition(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
+        while (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getParenthesizedExpression()) {
+            invocationExpressionTreeNode = invocationExpressionTreeNode.parentNode;
+        }
+        if (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind && invocationExpressionTreeNode.parentNode.childNodes) {
+            switch (invocationExpressionTreeNode.parentNode.kind) {
+                //TODO: Variable, Parameter, Table Field, Rec.TableField, If Statement
+                case FullSyntaxTreeNodeKind.getArgumentList():
+                    let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
+                    let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.span).start, ',');
+                    if (signatureHelp) {
+                        let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
+                        let procedureDeclarationLine = signatureHelp.signatures[0].label;
+                        let parentInvocation: ALFullSyntaxTreeNode | undefined = invocationExpressionTreeNode.parentNode.parentNode;
+                        if (parentInvocation && parentInvocation.childNodes && parentInvocation.childNodes[0].identifier) {
+                            let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(parentInvocation.childNodes[0].identifier) + parentInvocation.childNodes[0].identifier.length);
+                            let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
+                            let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
+                            if (matcher && matcher.groups) {
+                                return matcher.groups['type'].trim();
+                            }
+                        }
+                    }
+                    break;
+                case FullSyntaxTreeNodeKind.getUnaryMinusExpression():
+                case FullSyntaxTreeNodeKind.getUnaryPlusExpression():
+                    return 'Decimal';
+                case FullSyntaxTreeNodeKind.getIfStatement():
+                case FullSyntaxTreeNodeKind.getLogicalAndExpression():
+                case FullSyntaxTreeNodeKind.getLogicalOrExpression():
+                case FullSyntaxTreeNodeKind.getUnaryNotExpression():
+                    return 'Boolean';
+                case FullSyntaxTreeNodeKind.getArrayIndexExpression():
+                    return 'Integer';
+                case FullSyntaxTreeNodeKind.getAssignmentStatement():
+                case FullSyntaxTreeNodeKind.getCompoundAssignmentStatement():
+                case FullSyntaxTreeNodeKind.getLessThanExpression():
+                case FullSyntaxTreeNodeKind.getLessThanOrEqualExpression():
+                case FullSyntaxTreeNodeKind.getGreaterThanOrEqualExpression():
+                case FullSyntaxTreeNodeKind.getGreaterThanExpression():
+                case FullSyntaxTreeNodeKind.getEqualsExpression():
+                case FullSyntaxTreeNodeKind.getNotEqualsExpression():
+                case FullSyntaxTreeNodeKind.getAddExpression():
+                case FullSyntaxTreeNodeKind.getSubtractExpression():
+                case FullSyntaxTreeNodeKind.getMultiplyExpression():
+                case FullSyntaxTreeNodeKind.getDivideExpression():
+                    //If the parent node is one of these kinds, then it always has to be found the kind of the counterpart
+                    let indexOfInvocationTreeNode: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
+                    let indexOfOtherTreeNode: number = indexOfInvocationTreeNode[0] === 0 ? 1 : 0;
+                    let otherTreeNode: ALFullSyntaxTreeNode = invocationExpressionTreeNode.parentNode.childNodes[indexOfOtherTreeNode];
+
+                    let typeDetective2: TypeDetective = new TypeDetective(document, otherTreeNode);
+                    await typeDetective2.getTypeOfTreeNode();
+                    return typeDetective2.getType();
+            }
+        }
+        return undefined;
     }
 }

@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { ALVariable } from "./alVariable";
+import { ALVariable } from "../Entities/alVariable";
 import { isUndefined } from 'util';
-import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
-import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
-import { SyntaxTree } from './AL Code Outline/syntaxTree';
-import { SyntaxTreeExt } from './AL Code Outline Ext/syntaxTreeExt';
-import { TypeDetective } from './typeDetective';
-import { DocumentUtils } from './documentUtils';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
+import { TypeDetective } from '../typeDetective';
+import { DocumentUtils } from '../documentUtils';
 
 export class ALParameterParser {
     public static parseALVariableArrayToParameterDeclarationString(variableArray: ALVariable[]): string {
@@ -61,6 +61,14 @@ export class ALParameterParser {
         }
 
         return variables;
+    }
+    public static async createParametersOutOfArgumentListTreeNode(document: vscode.TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document);
+        parameters.forEach(parameter => {
+            parameter.isLocal = true;
+            parameter.procedure = procedureNameToCreate;
+        });
+        return parameters;
     }
 
     static async getArgumentRangeArrayOutOfArgumentListRange(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): Promise<vscode.Range[]> {

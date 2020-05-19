@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../alExtension';
 import { ALExtractToProcedureCA } from '../../extension/Code Actions/alExtractToProcedureCA';
-import { ALProcedure } from '../../extension/alProcedure';
+import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { ReturnTypeAnalzyer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
 
 suite('ALExtractProcedureCA Test Suite', function () {

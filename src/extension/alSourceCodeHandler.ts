@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { SupportedDiagnosticCodes } from './Create Procedure/supportedDiagnosticCodes';
 import { DocumentUtils } from './documentUtils';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
 
 export class ALSourceCodeHandler {
 
@@ -77,58 +80,18 @@ export class ALSourceCodeHandler {
         return false;
     }
 
-    expandToCalledObject(document: vscode.TextDocument, positionOfDot: vscode.Position): vscode.Position | undefined {
-        let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfDot);
-        if (!rangeOfCalledObject) {
-            throw new Error('Could not find return type');
-        }
-        return rangeOfCalledObject.start;
-    }
-    expandToFieldOrProcedureAndObject(document: vscode.TextDocument, positionOfAssignment: vscode.Position): vscode.Position | undefined {
-        let line = document.lineAt(positionOfAssignment.line).text;
-        let rangeOfFieldOrProcedure: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfAssignment);
-        if (!rangeOfFieldOrProcedure) {
-            throw new Error('Could not find return type');
-        }
-        let char = line.charAt(rangeOfFieldOrProcedure.start.character - 1);
-        if (char === '.') {
-            let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, rangeOfFieldOrProcedure.start.translate(0, -1));
-            if (!rangeOfCalledObject) {
-                throw new Error('Could not find return type');
+    public async isInvocationExpression(range: vscode.Range): Promise<boolean>{
+        let textLine = this.document.lineAt(range.end.line).text;
+        if (textLine.length > range.end.character) {
+            let nextCharacter = textLine.charAt(range.end.character);
+            if (nextCharacter === '(') {
+                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+                let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+                if (invocationExpressionTreeNode) {
+                    return true;
+                }
             }
-            return rangeOfCalledObject.start;
         }
-        return rangeOfFieldOrProcedure.start;
-    }
-
-    public getRelevantDiagnosticOfCurrentPosition(range: vscode.Range) {
-        let diagnostics = vscode.languages.getDiagnostics(this.document.uri).filter(d => {
-            let isAL = this.checkDiagnosticsLanguage(d);
-            let samePos = this.checkDiagnosticsPosition(d, range);
-            let validCode: boolean = this.checkDiagnosticsCode(d);
-            return isAL && samePos && validCode;
-        });
-
-        return diagnostics.length === 1 ? diagnostics[0] : undefined;
-    }
-    private checkDiagnosticsLanguage(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.source)) {
-            return false;
-        }
-        return d.source.toLowerCase() === 'al';
-    }
-    private checkDiagnosticsCode(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.code)) {
-            return false;
-        }
-        let supportedDiagnosticCodes: string[] = [];
-        for (var enumMember in SupportedDiagnosticCodes) {
-            supportedDiagnosticCodes.push(enumMember.toString());
-        }
-        return supportedDiagnosticCodes.includes(d.code.toString());
-    }
-
-    private checkDiagnosticsPosition(d: vscode.Diagnostic, range: vscode.Range): boolean {
-        return d.range.contains(range);
+        return false;
     }
 }

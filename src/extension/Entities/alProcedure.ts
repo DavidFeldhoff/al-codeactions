@@ -1,6 +1,6 @@
 import { isUndefined } from "util";
 import { ALVariable } from './alVariable';
-import { ALParameterParser } from "./alParameterParser";
+import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { ALObject } from "./alObject";
 
 export class ALProcedure {

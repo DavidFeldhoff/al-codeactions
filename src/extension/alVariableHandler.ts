@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { ALVariable } from './alVariable';
-import { ALVariableParser } from './alVariableParser';
+import { ALVariable } from './Entities/alVariable';
+import { ALVariableParser } from './Entity Parser/alVariableParser';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
 import { SyntaxTree } from './AL Code Outline/syntaxTree';
 import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
@@ -10,91 +10,6 @@ import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeN
 import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
 
 export class ALVariableHandler {
-    private variables: ALVariable[] = [];
-    private document: vscode.TextDocument;
-    constructor(document: vscode.TextDocument) {
-        this.document = document;
-    }
-
-    public async search() {
-        this.variables = await ALVariableParser.findAllVariablesInDocument(this.document);
-    }
-
-    public getAllVariables(): ALVariable[] {
-        return this.variables;
-    }
-    public getALVariableByName(variableName: string, procedureName?: string): ALVariable | undefined {
-        if (!isUndefined(procedureName)) {
-            let localVariable = this.getLocalVariableByName(procedureName, variableName);
-            if (!isUndefined(localVariable)) {
-                return localVariable;
-            }
-        }
-
-        const globalVariable = this.getGlobalVariableByName(variableName);
-        if (!isUndefined(globalVariable)) {
-            return globalVariable;
-        }
-        return undefined;
-    }
-    public static async getALVariableByName(document: vscode.TextDocument, variableRange: vscode.Range): Promise<ALVariable | undefined> {
-        let variableName: string = document.getText(variableRange);
-
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(variableRange.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
-        if (methodOrTriggerTreeNode) {
-            let varSectionTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
-            if (varSectionTreeNode) {
-                let variable: ALVariable | undefined = await this.getALVariableByNameSearchingInVarSection(document, variableName, varSectionTreeNode);
-                if (variable) {
-                    return variable;
-                }
-            }
-        }
-        let globalVarSectionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(variableRange.start, [FullSyntaxTreeNodeKind.getGlobalVarSection()]);
-        if (globalVarSectionTreeNode) {
-            let variable: ALVariable | undefined = await this.getALVariableByNameSearchingInVarSection(document, variableName, globalVarSectionTreeNode);
-            if (variable) {
-                return variable;
-            }
-        }
-    }
-    private static async getALVariableByNameSearchingInVarSection(document: vscode.TextDocument, variableName: string, varSectionTreeNode: ALFullSyntaxTreeNode): Promise<ALVariable | undefined> {
-        let variableDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSectionTreeNode, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, variableDeclarations);
-        for (let i = 0; i < variableDeclarations.length; i++) {
-            let localVariableDeclaration: ALFullSyntaxTreeNode = variableDeclarations[i];
-            if (localVariableDeclaration.childNodes && localVariableDeclaration.childNodes[0].kind === FullSyntaxTreeNodeKind.getIdentifierName() && localVariableDeclaration.childNodes[0].name) {
-                let localVariableIdentifierName: string = localVariableDeclaration.childNodes[0].name;
-                //Remove quotes if they are the first and last characters
-                localVariableIdentifierName = localVariableIdentifierName.trim().toLowerCase().replace(/^"(.*)"$/, '$1');
-                variableName = variableName.trim().toLowerCase().replace(/^"(.*)"$/, '$1');
-                if (localVariableIdentifierName === variableName) {
-                    return await ALVariableParser.parseVariableDeclarationToALVariable(document, localVariableDeclaration);
-                }
-            }
-        }
-        return undefined;
-    }
-    static hasQuotes(text: string): boolean {
-        text = text.trim();
-        return text.startsWith('"') && text.endsWith('"');
-    }
-
-    private getGlobalVariableByName(variableName: string) {
-        return this.variables.find(v =>
-            v.isLocal === false &&
-            isUndefined(v.procedure) &&
-            v.name === variableName);
-    }
-
-    private getLocalVariableByName(procedureName: string, variableName: string): ALVariable | undefined {
-        let localVariable = this.variables.find(v =>
-            v.isLocal === true &&
-            v.procedure === procedureName &&
-            v.name === variableName);
-        return localVariable;
-    }
     static async getRecAsALVariable(document: vscode.TextDocument, variableRange: vscode.Range): Promise<ALVariable | undefined> {
         let variableName = document.getText(variableRange); //Rec or xRec
 
@@ -102,7 +17,7 @@ export class ALVariableHandler {
         let objects: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getCodeunitObject());
         if (objects.length === 1) {
             let cuObject: ALFullSyntaxTreeNode = objects[0];
-            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(cuObject, 'TableNo');
+            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, cuObject, 'TableNo');
             if (valueOfPropertyTreeNode) {
                 let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
                 return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfTableNo));
@@ -120,7 +35,7 @@ export class ALVariableHandler {
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getPageObject());
         if (objects.length === 1) {
             let pageObject: ALFullSyntaxTreeNode = objects[0];
-            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(pageObject, 'SourceTable');
+            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, pageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
                 return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable));
@@ -128,8 +43,8 @@ export class ALVariableHandler {
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getRequestPage());
         if (objects.length === 1) {
-            let cuObject: ALFullSyntaxTreeNode = objects[0];
-            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(cuObject, 'SourceTable');
+            let requestPageObject: ALFullSyntaxTreeNode = objects[0];
+            let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, requestPageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
                 return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable));

@@ -1,12 +1,25 @@
-import *  as vscode from 'vscode';
-import { ALProcedure } from "./alProcedure";
-import { ALVariable } from './alVariable';
-import { ReturnTypeAnalzyer } from './Extract Procedure/returnTypeAnalyzer';
-import { SyntaxTree } from './AL Code Outline/syntaxTree';
-import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import * as vscode from 'vscode';
+import { ICreateProcedure } from "./ICreateProcedure";
+import { ALProcedure } from "../../Entities/alProcedure";
+import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALVariable } from '../../Entities/alVariable';
+import { ReturnTypeAnalzyer } from '../../Extract Procedure/returnTypeAnalyzer';
 
-export class ALProcedureSourceCodeCreator {
+export class CreateProcedure {
+    public static async createProcedure(procedureCreator: ICreateProcedure): Promise<ALProcedure> {
+        await procedureCreator.initialize();
+        return new ALProcedure(
+            procedureCreator.getProcedureName(),
+            await procedureCreator.getParameters(),
+            await procedureCreator.getVariables(),
+            await procedureCreator.getReturnType(),
+            procedureCreator.isLocal(),
+            await procedureCreator.getObject()
+        );
+    }
+
     public static createProcedureDefinition(procedure: ALProcedure): string {
         let returnType = procedure.getReturnTypeAsString();
         let returnString = "";
