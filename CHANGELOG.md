@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.6
+
+- edited Readme.
+
 ## 0.2.5
 
 - Create Procedure Code Action
