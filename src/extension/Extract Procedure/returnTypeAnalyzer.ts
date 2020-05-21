@@ -6,7 +6,7 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 
-export class ReturnTypeAnalzyer {
+export class ReturnTypeAnalyzer {
     private document: vscode.TextDocument;
     private rangeToExtract: vscode.Range;
     private returnType: string | undefined;

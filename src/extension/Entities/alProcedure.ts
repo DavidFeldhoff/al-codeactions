@@ -1,6 +1,6 @@
 import { isUndefined } from "util";
 import { ALVariable } from './alVariable';
-import { ALParameterParser } from "./alParameterParser";
+import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { ALObject } from "./alObject";
 
 export class ALProcedure {
@@ -12,13 +12,18 @@ export class ALProcedure {
     public isLocal: boolean;
     private body: string | undefined;
     public ObjectOfProcedure: ALObject;
-    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, ALObject: ALObject) {
+    public memberAttributes: string[];
+    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], ALObject: ALObject) {
         this.name = name;
         this.parameters = parameters;
         this.variables = variables;
         this.returnType = returnValue;
         this.isLocal = isLocal;
+        this.memberAttributes = memberAttributes;
         this.ObjectOfProcedure = ALObject;
+    }
+    public getMemberAttributes(): string[] {
+        return this.memberAttributes;
     }
     public getParametersAsString(): string {
         return ALParameterParser.parseALVariableArrayToParameterDeclarationString(this.parameters);

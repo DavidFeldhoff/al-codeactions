@@ -6,7 +6,7 @@ import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTree
 import { OwnConsole } from '../console';
 import { DocumentUtils } from '../documentUtils';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-export class RangeAnalzyer {
+export class RangeAnalyzer {
     private document: vscode.TextDocument;
     private selectedRange: vscode.Range;
     private expandedRange: vscode.Range | undefined;

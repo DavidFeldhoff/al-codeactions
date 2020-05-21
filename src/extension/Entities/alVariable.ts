@@ -6,9 +6,11 @@ export class ALVariable {
     public isLocal: boolean;
     public isVar: boolean;
     public procedure: string | undefined;
-    constructor(name: string, procedure: string | undefined, isVar: boolean, type: string) {
+    constructor(name: string, procedure: string | undefined, isVar: boolean, type: string, modifyVarName: boolean) {
         this.name = name;
-        this.name = this.addBrackets(this.name);
+        if (modifyVarName) {
+            this.name = this.addBrackets(this.name);
+        }
         this.procedure = procedure;
         this.isLocal = !isUndefined(procedure);
         this.isVar = isVar;
@@ -16,7 +18,7 @@ export class ALVariable {
     }
     public getVariableDeclarationString(): string {
         let declarationString = "";
-        if(this.isVar){
+        if (this.isVar) {
             declarationString = "var ";
         }
         declarationString += this.name;
@@ -24,16 +26,9 @@ export class ALVariable {
         declarationString += this.type;
         return declarationString;
     }
-    private addBrackets(name: string) {
+    private addBrackets(name: string): string {
         name = name.trim();
-        if(name.startsWith('"') && name.endsWith('"')){
-            return name;
-        }
-        for(let i = 0; i < name.length; i++){
-            if(!name.charAt(i).match(/\w/)){
-                return '"' + name + '"';
-            }
-        }
+        name = name.replace(/[^\w]/g, '');
         return name;
     }
 }

@@ -36,23 +36,7 @@
 	"activationEvents": [
 		"onLanguage:al"
 	],
-	"contributes": {
-		"commands": [
-			{
-				"title": "Extract Method",
-				"category": "AL CodeActions",
-				"command": "alcodeactions.renameMethod"
-			}
-		],
-		"menus": {
-			"commandPalette": [
-				{
-					"command": "alcodeactions.renameMethod",
-					"when": "false"
-				}
-			]
-		}
-	},
+	"contributes": {},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",

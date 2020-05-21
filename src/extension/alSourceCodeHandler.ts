@@ -1,8 +1,14 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { SupportedDiagnosticCodes } from './Create Procedure/supportedDiagnosticCodes';
 import { DocumentUtils } from './documentUtils';
 import { ALCodeOutlineExtension } from './devToolsExtensionContext';
+import { SyntaxTree } from './AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
+import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SyntaxTreeExt } from './AL Code Outline Ext/syntaxTreeExt';
+import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
 
 export class ALSourceCodeHandler {
 
@@ -11,17 +17,45 @@ export class ALSourceCodeHandler {
         this.document = document;
     }
     public async getPositionToInsertProcedure(currentLineNo: number | undefined): Promise<vscode.Position> {
-        let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
-        let symbolsLibrary = await azalDevTools.symbolsService.loadDocumentSymbols(this.document.uri);
-        let objectSymbol = symbolsLibrary.rootSymbol.findFirstObjectSymbol();
-
-        let position;
-        if (!isUndefined(currentLineNo)) {
-            position = await this.getNextPositionToInsertProcedureStartingAtLine(this.document, currentLineNo, objectSymbol);
-        } else {
-            position = this.getLastPositionToInsertProcedureStartingAtEndOfDocument(this.document, objectSymbol);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+        let objectTreeNode: ALFullSyntaxTreeNode = await this.getObjectTreeNode(currentLineNo);
+        if (currentLineNo) {
+            let position = new vscode.Position(currentLineNo, 0);
+            let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, new vscode.Position(currentLineNo, 0));
+            if (methodOrTriggerTreeNode && methodOrTriggerTreeNode.parentNode && methodOrTriggerTreeNode.parentNode === objectTreeNode) {
+                return TextRangeExt.createVSCodeRange(methodOrTriggerTreeNode.fullSpan).end;
+            }
         }
-        return position;
+        let positionToInsert: vscode.Position | undefined = this.getLastMethodOrTrigger(objectTreeNode);
+        if (positionToInsert) {
+            return positionToInsert;
+        } else {
+            let objectRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(objectTreeNode.fullSpan));
+            return objectRange.end.translate(0, -1);
+        }
+    }
+    private getLastMethodOrTrigger(objectTreeNode: ALFullSyntaxTreeNode): vscode.Position | undefined {
+        let methodOrTriggers: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getMethodDeclaration(), false, methodOrTriggers);
+        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, methodOrTriggers);
+        let lastPosition: vscode.Position | undefined;
+        for (let i = 0; i < methodOrTriggers.length; i++) {
+            let rangeOfMethodOrTrigger: vscode.Range = TextRangeExt.createVSCodeRange(methodOrTriggers[i].fullSpan);
+            if (!lastPosition) {
+                lastPosition = rangeOfMethodOrTrigger.end;
+            } else if (rangeOfMethodOrTrigger.end.compareTo(lastPosition) > 0) {
+                lastPosition = rangeOfMethodOrTrigger.end;
+            }
+        }
+        return lastPosition;
+    }
+    private async getObjectTreeNode(currentLineNo: number | undefined): Promise<ALFullSyntaxTreeNode> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+        if (currentLineNo) {
+            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(currentLineNo, 0)) as ALFullSyntaxTreeNode;
+        } else {
+            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(0, 0)) as ALFullSyntaxTreeNode;
+        }
     }
 
     private async getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number, objectSymbol: any): Promise<vscode.Position> {
@@ -37,7 +71,7 @@ export class ALSourceCodeHandler {
 
         for (let i = currentLineNo; i < document.lineCount; i++) {
             if (this.isPossiblePositionToInsertProcedure(document, i)) {
-                return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
+                return new vscode.Position(i + 1, 0);
             }
         }
         //if the end of the current procedure wasn't found fall back and take the last possible position to insert the procedure.
@@ -58,7 +92,7 @@ export class ALSourceCodeHandler {
             }
 
             if (this.isPossiblePositionToInsertProcedure(document, i) || (endLineNoOfGlobalVars && i === endLineNoOfGlobalVars - 1)) {
-                return new vscode.Position(i, document.lineAt(i).text.trimRight().length);
+                return new vscode.Position(i + 1, 0);
             }
         }
         if (isUndefined(lineOfClosingBracket)) {
@@ -77,58 +111,18 @@ export class ALSourceCodeHandler {
         return false;
     }
 
-    expandToCalledObject(document: vscode.TextDocument, positionOfDot: vscode.Position): vscode.Position | undefined {
-        let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfDot);
-        if (!rangeOfCalledObject) {
-            throw new Error('Could not find return type');
-        }
-        return rangeOfCalledObject.start;
-    }
-    expandToFieldOrProcedureAndObject(document: vscode.TextDocument, positionOfAssignment: vscode.Position): vscode.Position | undefined {
-        let line = document.lineAt(positionOfAssignment.line).text;
-        let rangeOfFieldOrProcedure: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, positionOfAssignment);
-        if (!rangeOfFieldOrProcedure) {
-            throw new Error('Could not find return type');
-        }
-        let char = line.charAt(rangeOfFieldOrProcedure.start.character - 1);
-        if (char === '.') {
-            let rangeOfCalledObject: vscode.Range | undefined = DocumentUtils.getPreviousWordRange(document, rangeOfFieldOrProcedure.start.translate(0, -1));
-            if (!rangeOfCalledObject) {
-                throw new Error('Could not find return type');
+    public async isInvocationExpression(range: vscode.Range): Promise<boolean> {
+        let textLine = this.document.lineAt(range.end.line).text;
+        if (textLine.length > range.end.character) {
+            let nextCharacter = textLine.charAt(range.end.character);
+            if (nextCharacter === '(') {
+                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+                let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+                if (invocationExpressionTreeNode) {
+                    return true;
+                }
             }
-            return rangeOfCalledObject.start;
         }
-        return rangeOfFieldOrProcedure.start;
-    }
-
-    public getRelevantDiagnosticOfCurrentPosition(range: vscode.Range) {
-        let diagnostics = vscode.languages.getDiagnostics(this.document.uri).filter(d => {
-            let isAL = this.checkDiagnosticsLanguage(d);
-            let samePos = this.checkDiagnosticsPosition(d, range);
-            let validCode: boolean = this.checkDiagnosticsCode(d);
-            return isAL && samePos && validCode;
-        });
-
-        return diagnostics.length === 1 ? diagnostics[0] : undefined;
-    }
-    private checkDiagnosticsLanguage(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.source)) {
-            return false;
-        }
-        return d.source.toLowerCase() === 'al';
-    }
-    private checkDiagnosticsCode(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.code)) {
-            return false;
-        }
-        let supportedDiagnosticCodes: string[] = [];
-        for (var enumMember in SupportedDiagnosticCodes) {
-            supportedDiagnosticCodes.push(enumMember.toString());
-        }
-        return supportedDiagnosticCodes.includes(d.code.toString());
-    }
-
-    private checkDiagnosticsPosition(d: vscode.Diagnostic, range: vscode.Range): boolean {
-        return d.range.contains(range);
+        return false;
     }
 }

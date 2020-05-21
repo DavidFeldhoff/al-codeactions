@@ -1,14 +1,16 @@
 import * as assert from 'assert';
 import * as path from 'path';
-
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { ALCreateProcedureCA } from '../../extension/Code Actions/alCreateProcedureCA';
-import { ALProcedure } from '../../extension/alProcedure';
-import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../alExtension';
-import { SupportedDiagnosticCodes } from '../../extension/supportedDiagnosticCodes';
+import { ALTestProject } from './ALTestProject';
+import { CreateProcedureAL0118 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0118';
+import { SupportedDiagnosticCodes } from '../../extension/Create Procedure/supportedDiagnosticCodes';
+import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
+import { ALProcedure } from '../../extension/Entities/alProcedure';
+import { CreateProcedureAL0132 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0132';
+
 // import * as myExtension from '../extension';
 
 suite('ALCreateProcedureCA Test Suite', function () {
@@ -47,7 +49,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -60,7 +62,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -73,7 +75,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -90,7 +92,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -106,7 +108,39 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'myInteger');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
+	});
+	test('getProcedureToCreate_ReturnValue3', async () => {
+		let procedureName = 'MissingProcedureWithReturn3';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'myInteger');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
+	});
+	test('getProcedureToCreate_ReturnValue4', async () => {
+		let procedureName = 'MissingProcedureWithReturn4';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -123,7 +157,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -139,7 +173,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -155,7 +189,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -171,14 +205,14 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, '"Pass Nos."');
+		assert.equal(alProcedure.parameters[0].name, 'PassNos');
 		assert.equal(alProcedure.parameters[0].type, 'Code[20]');
 	});
 
@@ -187,7 +221,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0132(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -205,7 +239,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0132(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -224,7 +258,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0132(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -236,7 +270,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
 		assert.equal(alProcedure.parameters[1].name, 'myBoolean');
 		assert.equal(alProcedure.parameters[1].type, 'Boolean');
-		assert.equal(alProcedure.ObjectOfProcedure.name, "FirstCodeunit");
+		assert.equal(alProcedure.ObjectOfProcedure.name, '"FirstCodeunit"');
 	});
 
 	test('getProcedureToCreate_ProcedureWithProcedureCallInside1', async () => {
@@ -244,7 +278,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -259,7 +293,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -276,7 +310,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -293,7 +327,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -307,7 +341,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -326,7 +360,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -341,7 +375,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -359,18 +393,18 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 4);
-		assert.equal(alProcedure.parameters[0].name, '"No."');
+		assert.equal(alProcedure.parameters[0].name, 'No');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
 		assert.equal(alProcedure.parameters[1].name, 'Reserve1');
 		assert.equal(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
-		assert.equal(alProcedure.parameters[2].name, '"Application Method"');
+		assert.equal(alProcedure.parameters[2].name, 'ApplicationMethod');
 		assert.equal(alProcedure.parameters[2].type, 'Option');
 		assert.equal(alProcedure.parameters[3].name, 'Reserve2');
 		assert.equal(alProcedure.parameters[3].type, 'Enum "Reserve Method"');
@@ -380,14 +414,14 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, '"MyField"');
+		assert.equal(alProcedure.parameters[0].name, 'MyField');
 		assert.equal(alProcedure.parameters[0].type, "Integer");
 	});
 
@@ -396,16 +430,16 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, '"No.1"');
+		assert.equal(alProcedure.parameters[0].name, 'No1');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, '"No.2"');
+		assert.equal(alProcedure.parameters[1].name, 'No2');
 		assert.equal(alProcedure.parameters[1].type, "Code[20]");
 	});
 	test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter2', async function () {
@@ -413,17 +447,32 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, '"No.1"');
+		assert.equal(alProcedure.parameters[0].name, 'No1');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, '"No.2"');
+		assert.equal(alProcedure.parameters[1].name, 'No2');
 		assert.equal(alProcedure.parameters[1].type, "Code[20]");
+	});
+	test('getProcedureToCreate_QuotedNameAsParameterWhichMissesQuotes', async function () {
+		let procedureName = 'MissingProcedureWithQuotedNameAsParameter';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'SalesOrderTestPage');
+		assert.equal(alProcedure.parameters[0].type, 'TestPage "Sales Order"');
 	});
 
 	test('getProcedureToCreate_PrimitiveTypes', async function () {
@@ -431,7 +480,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -452,7 +501,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -465,7 +514,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -478,7 +527,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -491,7 +540,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -504,7 +553,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -517,7 +566,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -530,7 +579,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -543,7 +592,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -556,7 +605,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -569,7 +618,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -582,7 +631,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -595,7 +644,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -608,7 +657,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -624,7 +673,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -640,7 +689,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -654,7 +703,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(testcodeunitDocument, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(testcodeunitDocument, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(testcodeunitDocument,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -669,7 +718,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(codeunit1Document, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -682,7 +731,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(tableDocument, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(tableDocument, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(tableDocument,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -698,7 +747,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(tableDocument, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(tableDocument, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(tableDocument,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -716,7 +765,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(tableDocument, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(tableDocument, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(tableDocument,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);
@@ -733,7 +782,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let rangeOfProcedureName = getRangeOfProcedureName(pageDocument, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = 'AL0118';
-		let alProcedure = await new ALCreateProcedureCA().createProcedureObject(pageDocument, diagnostic);
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(pageDocument,diagnostic));
 		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.equal(alProcedure.name, procedureName);

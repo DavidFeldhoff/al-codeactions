@@ -1,26 +1,24 @@
 # AL CodeActions
 
-This extension provides code actions to the diagnostics reported by the AL Language extension.
-
 ## Features
 
 ### Create Procedure
 
-Currently there are code actions for the diagnostics AL0118 and AL0132 which are shown when there is no definition for a word in a specific file.  
-Of course the code action only shows up if the object with the missing definition is inside the current workspace, so that you are able to edit the file and create the procedure.  
-
-See here how it works:  
-![demo](images/createprocedures.gif)
+Currently there are code actions to create a missing procedure inside the same object or even of another object.  
+The return type is identified directly if the missing procedure is part of an assignment Statement, inside an if statement, used as parameter of another procedure call or something like that.  
+Furthermore it's possible to create missing handler functions.  
+See how it works at the end of this file.
 
 ### Extract Procedure
 
 Select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hands them over as parameter or adds them as local variables. For the moment the parameters are always var-Parameters, but I'm considering to improve it to check if the "var" is necessary.  
 After the new procedure is created you can rename it directly.  
 And I have to admit that this feature is currently not working with report dataitems because I don't recognize them as parameters yet.  
-Before showing this feature in action I would like to thank Andrzej for his support (again).
+Before showing this feature in action at the end of this file I would like to thank Andrzej for his support (again).
 
-![demo](images/ExtractRepeat.gif)
-![demo](images/ExtractIf.gif)
+### References to HandlerFunctions
+
+The AL language does not provide references or definitions for handler functions yet which is why you can't jump between these with F12 or Shift+F12. This extension fixed it to improve your daily test writing.  
 
 ### References to HandlerFunctions
 
@@ -42,6 +40,24 @@ The AL language does not provide references or definitions for handler functions
 ## Thanks to
 
 - Andrzej Zwierzchowski for your detailed explanations and helping me get started.
+
+## Demo
+
+### Demo Create Procedure
+
+![demo](images/createprocedures.gif)
+
+![demo](images/CreateHandlerFunctions.gif)
+
+### Demo Extract Procedure
+
+![demo](images/ExtractRepeat.gif)  
+
+![demo](images/ExtractIf.gif)
+
+### Demo References to HandlerFunctions
+
+![demo](images/HandlerFunctionReferences.gif)
 
 ## About me
 

@@ -1,24 +1,24 @@
-import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { ALProcedure } from '../alProcedure';
-import { ALProcedureSourceCodeCreator } from '../alProcedureSourceCodeCreator';
+import * as vscode from 'vscode';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALSourceCodeHandler } from '../alSourceCodeHandler';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { DocumentUtils } from '../documentUtils';
-import { ALVariable } from '../alVariable';
-import { ALVariableParser } from '../alVariableParser';
-import { ALObject } from '../alObject';
+import { ALObject } from '../Entities/alObject';
+import { ALProcedure } from '../Entities/alProcedure';
+import { ALVariable } from '../Entities/alVariable';
+import { ALObjectParser } from '../Entity Parser/alObjectParser';
+import { ALParameterParser } from '../Entity Parser/alParameterParser';
+import { ALVariableParser } from '../Entity Parser/alVariableParser';
+import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
+import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { RangeAnalzyer } from '../Extract Procedure/rangeAnalyzer';
-import { ReturnTypeAnalzyer } from '../Extract Procedure/returnTypeAnalyzer';
-import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { ALParameterParser } from '../alParameterParser';
-import { ALObjectParser } from '../alObjectParser';
 
 export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
     static async renameMethod(): Promise<any> {
@@ -43,19 +43,19 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         }
         await SyntaxTree.getInstance(document, true); //create new syntax tree instance
 
-        let rangeAnalyzer: RangeAnalzyer = new RangeAnalzyer(document, range);
+        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(document, range);
         await rangeAnalyzer.analyze();
         if (!rangeAnalyzer.isValidToExtract()) {
             return;
         }
         let rangeExpanded: vscode.Range = rangeAnalyzer.getExpandedRange();
-        let returnTypeAnalzyer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(document, rangeExpanded);
-        await returnTypeAnalzyer.analyze();
-        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalzyer);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(document, rangeExpanded);
+        await returnTypeAnalyzer.analyze();
+        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalyzer);
         if (!procedureObject) {
             return;
         }
-        let procedureCallingText: string = await ALProcedureSourceCodeCreator.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalzyer);
+        let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
         let codeActionToCreateProcedure: vscode.CodeAction | undefined;
         codeActionToCreateProcedure = await this.createCodeAction(document, procedureCallingText, procedureObject, rangeExpanded);
@@ -65,7 +65,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             return [codeActionToCreateProcedure];
         }
     }
-    public async provideProcedureObjectForCodeAction(document: vscode.TextDocument, rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalzyer): Promise<ALProcedure | undefined> {
+    public async provideProcedureObjectForCodeAction(document: vscode.TextDocument, rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
         if (!procedureOrTriggerTreeNode) {
@@ -75,16 +75,9 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         let parameterTreeNodes: ALFullSyntaxTreeNode[] = this.getParametersOfTreeNode(procedureOrTriggerTreeNode);
         let returnVariableTreeNode: ALFullSyntaxTreeNode | undefined = this.getReturnVariableOfTreeNode(procedureOrTriggerTreeNode);
 
-
         let variablesNeeded: ALFullSyntaxTreeNode[] = await this.getALVariablesNeededInNewProcedure(localVariableTreeNodes, document, rangeExpanded);
         let parametersNeeded: ALFullSyntaxTreeNode[] = await this.getParametersNeededInNewProcedure(parameterTreeNodes, document, rangeExpanded);
         let returnVariableNeeded: ALFullSyntaxTreeNode | undefined = await this.getReturnVariableNeeded(returnVariableTreeNode, document, rangeExpanded);
-        //>>>temporary fix because of bug in al language
-        //Show References of Parameter declared in triggers is not working.
-        if (procedureOrTriggerTreeNode.kind === FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
-            parametersNeeded = await this.getParametersNeededInNewProcedure_TriggerBugFix(parameterTreeNodes, document, rangeExpanded, parametersNeeded);
-        }
-        //<<<
 
         let variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[] = await this.getVariablesWhichBecomeVarParameters(variablesNeeded, document, rangeExpanded);
         let variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[] = this.getVariablesWhichBecomeNormalParameters();
@@ -114,40 +107,40 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         return returnVariableTreeNode;
     }
 
-    async createProcedureObject(document: vscode.TextDocument, rangeExpanded: vscode.Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalzyer): Promise<ALProcedure | undefined> {
+    async createProcedureObject(document: vscode.TextDocument, rangeExpanded: vscode.Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let procedure: ALProcedure;
         let parameters: ALVariable[] = [];
         let variables: ALVariable[] = [];
 
         //Codeunit onRun Trigger implicitly has a Rec Variable which is declared nowhere
         if (typeOfRecWhichBecomesVarParameter) {
-            parameters.push(new ALVariable('Rec', 'OnRun', true, typeOfRecWhichBecomesVarParameter));
+            parameters.push(new ALVariable('Rec', 'OnRun', true, typeOfRecWhichBecomesVarParameter, true));
         }
 
         for (let i = 0; i < parametersWhichBecomeNormalParameters.length; i++) {
-            parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeNormalParameters[i]));
+            parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeNormalParameters[i], false));
         }
         for (let i = 0; i < parametersWhichBecomeVarParameters.length; i++) {
-            let alVariable: ALVariable = await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeVarParameters[i]);
+            let alVariable: ALVariable = await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeVarParameters[i], false);
             alVariable.isVar = true;
             parameters.push(alVariable);
         }
 
-        let alVariablesWhichBecomveVarParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters);
-        alVariablesWhichBecomveVarParameters.forEach(variable => {
+        let alVariablesWhichBecomeVarParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters, false);
+        alVariablesWhichBecomeVarParameters.forEach(variable => {
             variable.isVar = true;
             parameters.push(variable);
         });
-        let alVariablesWhichBecomeNormalParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters);
+        let alVariablesWhichBecomeNormalParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters, false);
         alVariablesWhichBecomeNormalParameters.forEach(variable => {
             parameters.push(variable);
         });
-        let alVariablesWhichStayLocalVariables: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables);
+        let alVariablesWhichStayLocalVariables: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables, false);
         alVariablesWhichStayLocalVariables.forEach(variable => {
             variables.push(variable);
         });
         if (returnVariableWhichBecomesVarParameter) {
-            let alVariable: ALVariable = await ALVariableParser.parseReturnValueTreeNodeToALVariable(document, returnVariableWhichBecomesVarParameter);
+            let alVariable: ALVariable = await ALVariableParser.parseReturnValueTreeNodeToALVariable(document, returnVariableWhichBecomesVarParameter, false);
             alVariable.isVar = true;
             parameters.push(alVariable);
         }
@@ -160,7 +153,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             throw new Error('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
-        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, alObject);
+        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], alObject);
         let selectedText: string = document.getText(rangeExpanded).trim();
         if (returnType && returnTypeAnalyzer.getAddVariableToExtractedRange()) {
             let returnVariableName = 'returnValue';
@@ -227,16 +220,16 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
     }
     private async getSourceTableTypeOfCodeunitOnRunTrigger(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
         let textOfSelectedRange: string = document.getText(rangeExpanded);
-        if (textOfSelectedRange.match(/\bRec\b/)) {
+        if (textOfSelectedRange.match(/\bRec\b/) || textOfSelectedRange.match(/\bxRec\b/)) {
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
             if (methodOrTriggerTreeNode && methodOrTriggerTreeNode.kind === FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
                 let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
-                if (identifierTreeNode && identifierTreeNode.name && identifierTreeNode.name.toLowerCase() === 'onrun') {
+                if (identifierTreeNode && identifierTreeNode.identifier && identifierTreeNode.identifier.toLowerCase() === 'onrun') {
                     let cuObjects: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getCodeunitObject());
                     if (cuObjects.length === 1) {
                         let cuObject: ALFullSyntaxTreeNode = cuObjects[0];
-                        let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(cuObject, 'TableNo');
+                        let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, cuObject, 'TableNo');
                         if (valueOfPropertyTreeNode) {
                             let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
                             let type = 'Record ' + document.getText(rangeOfTableNo);
@@ -254,22 +247,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         return false;
     }
 
-    getBodyRangeOfProcedure(document: vscode.TextDocument, procedureOrTrigger: any): vscode.Range {
-        let bodyRange: vscode.Range | undefined;
-        let procedureRange: vscode.Range = new vscode.Range(procedureOrTrigger.range.start.line, procedureOrTrigger.range.start.character, procedureOrTrigger.range.end.line, procedureOrTrigger.range.end.character);
-        // find beginning
-        for (let i = procedureRange.start.line; i <= procedureRange.end.line; i++) {
-            if (document.lineAt(i).text.match(/^\s+\bbegin\b/)) {
-                bodyRange = new vscode.Range(i + 1, 0, procedureRange.end.line, procedureRange.end.character);
-                break;
-            }
-        }
-        if (!bodyRange) {
-            throw new Error('Could not find beginning of procedure or trigger in document ' + document.fileName + ' of procedure ' + procedureOrTrigger.name);
-        } else {
-            return bodyRange;
-        }
-    }
     async getParametersNeededInNewProcedure(parameters: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeSelected: vscode.Range): Promise<ALFullSyntaxTreeNode[]> {
         let parametersNeeded: ALFullSyntaxTreeNode[] = [];
         for (let i = 0; i < parameters.length; i++) {
@@ -281,38 +258,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
             if (await this.isOneOfReferencesInRange(document, range.start, rangeSelected)) {
                 parametersNeeded.push(parameterTreeNode);
-            }
-        }
-        return parametersNeeded;
-    }
-    private async getParametersNeededInNewProcedure_TriggerBugFix(parameters: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeExpanded: vscode.Range, parametersNeeded: ALFullSyntaxTreeNode[]): Promise<ALFullSyntaxTreeNode[]> {
-        for (let i = 0; i < parameters.length; i++) {
-            let parameterTreeNode: ALFullSyntaxTreeNode = parameters[i];
-            let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(parameterTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
-            if (!identifierTreeNode) {
-                continue;
-            }
-            for (let lineNo = rangeExpanded.start.line; lineNo <= rangeExpanded.end.line; lineNo++) {
-                let lineText: string = document.lineAt(lineNo).text;
-                if (lineNo === rangeExpanded.start.line && lineNo !== rangeExpanded.end.line) {
-                    lineText = lineText.substring(rangeExpanded.start.character);
-                } else if (lineNo === rangeExpanded.start.line && lineNo === rangeExpanded.end.line) {
-                    lineText = lineText.substring(rangeExpanded.start.character, rangeExpanded.end.character);
-                } else if (lineNo === rangeExpanded.end.line) {
-                    lineText = lineText.substring(0, rangeExpanded.end.character);
-                }
-                let indexOfParameterName = lineText.search(new RegExp('\\b' + identifierTreeNode.name + '\\b', 'i'));
-                if (indexOfParameterName > 0) {
-                    let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new vscode.Position(lineNo, indexOfParameterName));
-                    if (locations && locations.length > 0) {
-                        let location = locations[0];
-                        let parameterRange: vscode.Range = TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan);
-                        if (parameterRange.contains(location.range)) {
-                            parametersNeeded.push(parameterTreeNode);
-                            break;
-                        }
-                    }
-                }
             }
         }
         return parametersNeeded;
@@ -409,29 +354,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
     async getCurrentProcedureOrTriggerSymbol(document: vscode.TextDocument, position: vscode.Position): Promise<any> {
         return await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(document.uri, position.line);
     }
-    isResponseSymbolPartOfProcedure(currentResponseSymbol: any): boolean {
-        let symbolToCheck = currentResponseSymbol;
-        while (symbolToCheck.parent) {
-            if (symbolToCheck.parent.name === 'InvocationExpression') {
-                return true;
-            } else {
-                symbolToCheck = symbolToCheck.parent;
-            }
-        }
-        return false;
-    }
-    getProcedureResponseSymbolWhereCurrentResponseSymbolIsPartOf(currentResponseSymbol: any): any {
-        let symbolToCheck = currentResponseSymbol;
-        while (symbolToCheck.parent) {
-            if (symbolToCheck.parent.name === 'InvocationExpression') {
-                return symbolToCheck.parent;
-            } else {
-                symbolToCheck = symbolToCheck.parent;
-            }
-        }
-        throw new Error('Current response symbol is not a part of a procedure call');
-    }
-
     private async createCodeAction(currentDocument: vscode.TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
         let codeActionToCreateProcedure: vscode.CodeAction = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
 
@@ -447,8 +369,8 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         fix.edit = new vscode.WorkspaceEdit();
 
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line);
-        let textToInsert = ALProcedureSourceCodeCreator.createProcedureDefinition(procedure);
-        textToInsert = ALProcedureSourceCodeCreator.addLineBreaksToProcedureCall(document, position, textToInsert);
+        let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
+        textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
         fix.edit.insert(document.uri, position, textToInsert);
 
         fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
