@@ -181,24 +181,55 @@ export class DocumentUtils {
     public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
         let newStart: vscode.Position = currentRange.start;
         let newEnd: vscode.Position = currentRange.end;
+        let searchClosingTag: boolean = false;
         for (let i = currentRange.start.line; i <= currentRange.end.line; i++) {
             let startPositionToSearch = i === currentRange.start.line ? currentRange.start.character : 0;
-            let textStartingAtPosition = document.lineAt(i).text.substring(startPositionToSearch);
-            if (textStartingAtPosition.trimLeft().length > 0) {
-                let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimLeft().length;
-                newStart = new vscode.Position(i, startPositionToSearch + amountSpaces);
+            let textRestOfLine = document.lineAt(i).text.substring(startPositionToSearch);
+            if (searchClosingTag) {
+                if (!textRestOfLine.includes('*/')) { continue; } else {
+                    textRestOfLine = textRestOfLine.substring(textRestOfLine.indexOf('*/') + 2);
+                    searchClosingTag = false;
+                }
+            }
+            if (textRestOfLine.trimLeft().length > 0) {
+                if (textRestOfLine.trimLeft().startsWith('//')) {
+                    continue;
+                } else if (textRestOfLine.trimLeft().startsWith('/*')) {
+                    searchClosingTag = true;
+                    i--;
+                    continue;
+                }
+                newStart = new vscode.Position(i, document.lineAt(i).text.lastIndexOf(textRestOfLine.trimLeft()));
                 break;
             }
         }
-        for (let i = currentRange.end.line; i >= currentRange.start.line; i--) {
+        let searchForOpeningTag: Boolean = false;
+        for (let i = currentRange.end.line; i >= newStart.line; i--) {
             let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : document.lineAt(i).text.length;
-            let textStartingAtPosition = document.lineAt(i).text.substring(0, endPositionToSearch);
-            if (textStartingAtPosition.trimRight().length > 0) {
-                let amountSpaces = textStartingAtPosition.length - textStartingAtPosition.trimRight().length;
+            let startPositionToSearch = i === newStart.line ? newStart.character : 0;
+            let textFrom0ToEndPos = document.lineAt(i).text.substring(startPositionToSearch, endPositionToSearch);
+            if (searchForOpeningTag) {
+                if (!textFrom0ToEndPos.includes('/*')) { continue; } else {
+                    textFrom0ToEndPos = textFrom0ToEndPos.substring(0, textFrom0ToEndPos.indexOf('/*')).trimLeft();
+                }
+            }
+            if (textFrom0ToEndPos.trimRight().length > 0) {
+                if (!textFrom0ToEndPos.startsWith('//') && textFrom0ToEndPos.includes('//')) {
+                    textFrom0ToEndPos = textFrom0ToEndPos.substring(0, textFrom0ToEndPos.indexOf('//')).trimRight();
+                } else if (textFrom0ToEndPos.trimRight().endsWith('*/')) {
+                    searchForOpeningTag = true;
+                    i++;
+                    continue;
+                }
+                let amountSpaces = textFrom0ToEndPos.length - textFrom0ToEndPos.trimRight().length;
                 newEnd = new vscode.Position(i, endPositionToSearch - amountSpaces);
                 break;
             }
         }
-        return new vscode.Range(newStart, newEnd);
+        let newRange: vscode.Range = new vscode.Range(newStart, newEnd);
+        if (document.getText(newRange).startsWith('//') || document.getText(newRange).startsWith('/*')) {
+
+        }
+        return newRange;
     }
 }

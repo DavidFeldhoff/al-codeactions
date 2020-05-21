@@ -107,6 +107,18 @@ export class ALCodeOutlineExtension {
         kinds.push(239); //EventDeclaration
         kinds.push(50001); //LocalMethodDeclaration
         kinds.push(50037); //EventSubscriber
+        kinds.push(50038); //Test-Functions
+        kinds.push(50039); //ConfirmHandlerDeclaration
+        kinds.push(50040); //FilterPageHandlerDeclaration
+        kinds.push(50041); //HyperlinkHandlerDeclaration
+        kinds.push(50042); //MessageHandlerDeclaration
+        kinds.push(50043); //ModalPageHandlerDeclaration
+        kinds.push(50044); //PageHandlerDeclaration
+        kinds.push(50045); //ReportHandlerDeclaration
+        kinds.push(50046); //RequestPageHandlerDeclaration
+        kinds.push(50047); //SendNotificationHandlerDeclaration
+        kinds.push(50048); //SessionSettingsHandlerDeclaration
+        kinds.push(50049); //StrMenuHandlerDeclaration
         return kinds;
     }
 }

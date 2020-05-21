@@ -2,6 +2,15 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.5
+
+- Create Procedure Code Action
+  - HandlerFunctions: Now it's possible to create missing HandlerFunctions.
+  - Cursor Positioning: Now the cursor jumps directly to the position of the created procedure.
+  - Parameter Naming: Spaces and other special characters are removed so that there's no quotation necessary.
+- some performance improvements.
+- some smaller fixes.
+
 ## 0.2.4
 
 - Add References to Handler Functions
