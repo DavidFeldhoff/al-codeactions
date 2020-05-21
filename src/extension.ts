@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
+import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Code Actions/alCreateHandlerFunctionDefinitionProvider';
+import { ALCreateHandlerFunctionReferenceProvider } from './extension/Code Actions/alCreateHandlerFunctionReferenceProvider';
 import { ALCreateProcedureCA } from './extension/Code Actions/alCreateProcedureCA';
+import { ALCreateTriggerParameterReferenceProvider } from './extension/Code Actions/alCreateTriggerParameterReferenceProvider';
 import { ALExtractToProcedureCA } from './extension/Code Actions/alExtractToProcedureCA';
 import { OwnConsole } from './extension/console';
-import { ALCreateHandlerFunctionReferenceProvider } from './extension/Code Actions/alCreateHandlerFunctionReferenceProvider';
-import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Code Actions/alCreateHandlerFunctionDefinitionProvider';
-import { ALCreateTriggerParameterReferenceProvider } from './extension/Code Actions/alCreateTriggerParameterReferenceProvider';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
-import { CreateProcedure } from './extension/Create Procedure/Procedure Creator/CreateProcedure';
 import { ALProcedure } from './extension/Entities/alProcedure';
 
 export function activate(context: vscode.ExtensionContext) {

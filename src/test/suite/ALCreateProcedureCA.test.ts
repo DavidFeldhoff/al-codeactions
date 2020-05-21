@@ -1,16 +1,16 @@
 import * as assert from 'assert';
 import * as path from 'path';
-
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { ALProcedure } from '../../extension/Entities/alProcedure';
-import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../alExtension';
+import { ALTestProject } from './ALTestProject';
+import { CreateProcedureAL0118 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0118';
 import { SupportedDiagnosticCodes } from '../../extension/Create Procedure/supportedDiagnosticCodes';
 import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
-import { CreateProcedureAL0118 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0118';
+import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { CreateProcedureAL0132 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0132';
+
 // import * as myExtension from '../extension';
 
 suite('ALCreateProcedureCA Test Suite', function () {

@@ -1,24 +1,24 @@
-import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { ALProcedure } from '../Entities/alProcedure';
+import * as vscode from 'vscode';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALSourceCodeHandler } from '../alSourceCodeHandler';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { DocumentUtils } from '../documentUtils';
-import { ALVariable } from '../Entities/alVariable';
-import { ALVariableParser } from '../Entity Parser/alVariableParser';
 import { ALObject } from '../Entities/alObject';
-import { RenameMgt } from '../renameMgt';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALProcedure } from '../Entities/alProcedure';
+import { ALVariable } from '../Entities/alVariable';
+import { ALObjectParser } from '../Entity Parser/alObjectParser';
+import { ALParameterParser } from '../Entity Parser/alParameterParser';
+import { ALVariableParser } from '../Entity Parser/alVariableParser';
 import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
-import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { ALParameterParser } from '../Entity Parser/alParameterParser';
-import { ALObjectParser } from '../Entity Parser/alObjectParser';
-import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
+import { RenameMgt } from '../renameMgt';
 
 export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
     static async renameMethod(): Promise<any> {

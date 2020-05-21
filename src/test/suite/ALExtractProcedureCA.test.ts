@@ -1,14 +1,14 @@
 import * as assert from 'assert';
 import * as path from 'path';
-
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { ALTestProject } from './ALTestProject';
-import { ALLanguageExtension } from '../alExtension';
 import { ALExtractToProcedureCA } from '../../extension/Code Actions/alExtractToProcedureCA';
 import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
+import { ALLanguageExtension } from '../alExtension';
+import { ALTestProject } from './ALTestProject';
+
 
 suite('ALExtractProcedureCA Test Suite', function () {
     let codeunitToExtractDocument: vscode.TextDocument;
