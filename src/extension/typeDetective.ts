@@ -149,6 +149,8 @@ export class TypeDetective {
                             this.type += " temporary";
                         }
                         return true;
+                    } else if (hoverMessageFirstLine.startsWith('Enum')) {
+                        this.type = hoverMessageFirstLine;
                     }
                 }
                 OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:\r\n' + hoverMessage);
