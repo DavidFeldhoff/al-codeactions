@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.7
+
+- Create Procedure
+  - Fix direct usage of an enum: Type is now identified correctly.
+
 ## 0.2.6
 
 - edited Readme.
