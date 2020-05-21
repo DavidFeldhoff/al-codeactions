@@ -7,6 +7,7 @@ import { ALObject } from '../../Entities/alObject';
 import { CreateProcedureAL0132 } from '../Procedure Creator/CreateProcedureAL0132';
 import { CreateProcedure } from '../Procedure Creator/CreateProcedure';
 import { ALProcedure } from '../../Entities/alProcedure';
+import { CreateProcedureCommands } from '../CreateProcedureCommands';
 
 export class CodeActionCreatorAL0132 implements ICodeActionCreator {
     syntaxTree: SyntaxTree | undefined;
@@ -49,26 +50,22 @@ export class CodeActionCreatorAL0132 implements ICodeActionCreator {
     }
     private async createCodeAction(currentDocument: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction | undefined> {
         if (!procedureToCreate.ObjectOfProcedure.documentUri.fsPath.endsWith('dal')) {
-            await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri).then(async otherDocument => {
-                if (otherDocument) {
-                    let codeActionToCreateProcedure: vscode.CodeAction | undefined = await this.createFixToCreateProcedure(procedureToCreate, otherDocument);
-                    codeActionToCreateProcedure.isPreferred = true;
-                    return codeActionToCreateProcedure;
-                }
-            });
+            let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri);
+            let codeActionToCreateProcedure: vscode.CodeAction | undefined = this.createFixToCreateProcedure(procedureToCreate, otherDocument, diagnostic);
+            codeActionToCreateProcedure.isPreferred = true;
+            return codeActionToCreateProcedure;
         }
+
         return undefined;
     }
 
-    private async createFixToCreateProcedure(procedure: ALProcedure, document: vscode.TextDocument, currentLineNo?: number): Promise<vscode.CodeAction> {
-
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(currentLineNo);
-        let textToInsert = CreateProcedure.createProcedureDefinition(procedure);
-        textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
-
-        const fix = new vscode.CodeAction(`Create procedure ${procedure.name}`, vscode.CodeActionKind.QuickFix);
-        fix.edit = new vscode.WorkspaceEdit();
-        fix.edit.insert(document.uri, position, textToInsert);
-        return fix;
+    private createFixToCreateProcedure(procedure: ALProcedure, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
+        const codeAction = new vscode.CodeAction(`Create procedure ${procedure.name}`, vscode.CodeActionKind.QuickFix);
+        codeAction.command = {
+            command: CreateProcedureCommands.createProcedureCommand,
+            title: 'Create Procedure',
+            arguments: [document, diagnostic, procedure]
+        };
+        return codeAction;
     }
 }

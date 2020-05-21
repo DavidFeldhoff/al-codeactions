@@ -119,6 +119,38 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
 	});
+	test('getProcedureToCreate_ReturnValue3', async () => {
+		let procedureName = 'MissingProcedureWithReturn3';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'myInteger');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
+	});
+	test('getProcedureToCreate_ReturnValue4', async () => {
+		let procedureName = 'MissingProcedureWithReturn4';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
+		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters[0].name, 'myInteger');
+		assert.equal(alProcedure.parameters[0].type, 'Integer');
+	});
 
 	test('getProcedureToCreate_ReturnValueField1', async () => {
 		let procedureName = 'MissingProcedureWithFieldReturn1';
@@ -180,7 +212,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, '"Pass Nos."');
+		assert.equal(alProcedure.parameters[0].name, 'PassNos');
 		assert.equal(alProcedure.parameters[0].type, 'Code[20]');
 	});
 
@@ -368,11 +400,11 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 4);
-		assert.equal(alProcedure.parameters[0].name, '"No."');
+		assert.equal(alProcedure.parameters[0].name, 'No');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
 		assert.equal(alProcedure.parameters[1].name, 'Reserve1');
 		assert.equal(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
-		assert.equal(alProcedure.parameters[2].name, '"Application Method"');
+		assert.equal(alProcedure.parameters[2].name, 'ApplicationMethod');
 		assert.equal(alProcedure.parameters[2].type, 'Option');
 		assert.equal(alProcedure.parameters[3].name, 'Reserve2');
 		assert.equal(alProcedure.parameters[3].type, 'Enum "Reserve Method"');
@@ -389,7 +421,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 1);
-		assert.equal(alProcedure.parameters[0].name, '"MyField"');
+		assert.equal(alProcedure.parameters[0].name, 'MyField');
 		assert.equal(alProcedure.parameters[0].type, "Integer");
 	});
 
@@ -405,9 +437,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, '"No.1"');
+		assert.equal(alProcedure.parameters[0].name, 'No1');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, '"No.2"');
+		assert.equal(alProcedure.parameters[1].name, 'No2');
 		assert.equal(alProcedure.parameters[1].type, "Code[20]");
 	});
 	test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter2', async function () {
@@ -422,9 +454,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.parameters.length, 2);
-		assert.equal(alProcedure.parameters[0].name, '"No.1"');
+		assert.equal(alProcedure.parameters[0].name, 'No1');
 		assert.equal(alProcedure.parameters[0].type, "Code[20]");
-		assert.equal(alProcedure.parameters[1].name, '"No.2"');
+		assert.equal(alProcedure.parameters[1].name, 'No2');
 		assert.equal(alProcedure.parameters[1].type, "Code[20]");
 	});
 	test('getProcedureToCreate_QuotedNameAsParameterWhichMissesQuotes', async function () {

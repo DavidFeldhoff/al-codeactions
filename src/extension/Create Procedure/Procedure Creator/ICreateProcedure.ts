@@ -11,4 +11,6 @@ export interface ICreateProcedure {
     getParameters(): Promise<ALVariable[]>;
     getReturnType(): Promise<string | undefined>;
     getVariables(): Promise<ALVariable[]>;
+    getBody(): string | undefined;
+    getMemberAttributes(): string[];
 }

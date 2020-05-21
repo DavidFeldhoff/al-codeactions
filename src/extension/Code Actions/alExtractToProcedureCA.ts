@@ -13,8 +13,8 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { RangeAnalzyer } from '../Extract Procedure/rangeAnalyzer';
-import { ReturnTypeAnalzyer } from '../Extract Procedure/returnTypeAnalyzer';
+import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
+import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { ALParameterParser } from '../Entity Parser/alParameterParser';
 import { ALObjectParser } from '../Entity Parser/alObjectParser';
@@ -43,19 +43,19 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         }
         await SyntaxTree.getInstance(document, true); //create new syntax tree instance
 
-        let rangeAnalyzer: RangeAnalzyer = new RangeAnalzyer(document, range);
+        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(document, range);
         await rangeAnalyzer.analyze();
         if (!rangeAnalyzer.isValidToExtract()) {
             return;
         }
         let rangeExpanded: vscode.Range = rangeAnalyzer.getExpandedRange();
-        let returnTypeAnalzyer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(document, rangeExpanded);
-        await returnTypeAnalzyer.analyze();
-        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalzyer);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(document, rangeExpanded);
+        await returnTypeAnalyzer.analyze();
+        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalyzer);
         if (!procedureObject) {
             return;
         }
-        let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalzyer);
+        let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
         let codeActionToCreateProcedure: vscode.CodeAction | undefined;
         codeActionToCreateProcedure = await this.createCodeAction(document, procedureCallingText, procedureObject, rangeExpanded);
@@ -65,7 +65,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             return [codeActionToCreateProcedure];
         }
     }
-    public async provideProcedureObjectForCodeAction(document: vscode.TextDocument, rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalzyer): Promise<ALProcedure | undefined> {
+    public async provideProcedureObjectForCodeAction(document: vscode.TextDocument, rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
         if (!procedureOrTriggerTreeNode) {
@@ -107,40 +107,40 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         return returnVariableTreeNode;
     }
 
-    async createProcedureObject(document: vscode.TextDocument, rangeExpanded: vscode.Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalzyer): Promise<ALProcedure | undefined> {
+    async createProcedureObject(document: vscode.TextDocument, rangeExpanded: vscode.Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let procedure: ALProcedure;
         let parameters: ALVariable[] = [];
         let variables: ALVariable[] = [];
 
         //Codeunit onRun Trigger implicitly has a Rec Variable which is declared nowhere
         if (typeOfRecWhichBecomesVarParameter) {
-            parameters.push(new ALVariable('Rec', 'OnRun', true, typeOfRecWhichBecomesVarParameter));
+            parameters.push(new ALVariable('Rec', 'OnRun', true, typeOfRecWhichBecomesVarParameter, true));
         }
 
         for (let i = 0; i < parametersWhichBecomeNormalParameters.length; i++) {
-            parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeNormalParameters[i]));
+            parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeNormalParameters[i], false));
         }
         for (let i = 0; i < parametersWhichBecomeVarParameters.length; i++) {
-            let alVariable: ALVariable = await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeVarParameters[i]);
+            let alVariable: ALVariable = await ALParameterParser.parseParameterTreeNodeToALVariable(document, parametersWhichBecomeVarParameters[i], false);
             alVariable.isVar = true;
             parameters.push(alVariable);
         }
 
-        let alVariablesWhichBecomveVarParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters);
-        alVariablesWhichBecomveVarParameters.forEach(variable => {
+        let alVariablesWhichBecomeVarParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters, false);
+        alVariablesWhichBecomeVarParameters.forEach(variable => {
             variable.isVar = true;
             parameters.push(variable);
         });
-        let alVariablesWhichBecomeNormalParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters);
+        let alVariablesWhichBecomeNormalParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters, false);
         alVariablesWhichBecomeNormalParameters.forEach(variable => {
             parameters.push(variable);
         });
-        let alVariablesWhichStayLocalVariables: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables);
+        let alVariablesWhichStayLocalVariables: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables, false);
         alVariablesWhichStayLocalVariables.forEach(variable => {
             variables.push(variable);
         });
         if (returnVariableWhichBecomesVarParameter) {
-            let alVariable: ALVariable = await ALVariableParser.parseReturnValueTreeNodeToALVariable(document, returnVariableWhichBecomesVarParameter);
+            let alVariable: ALVariable = await ALVariableParser.parseReturnValueTreeNodeToALVariable(document, returnVariableWhichBecomesVarParameter, false);
             alVariable.isVar = true;
             parameters.push(alVariable);
         }
@@ -153,7 +153,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             throw new Error('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
-        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, alObject);
+        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], alObject);
         let selectedText: string = document.getText(rangeExpanded).trim();
         if (returnType && returnTypeAnalyzer.getAddVariableToExtractedRange()) {
             let returnVariableName = 'returnValue';
@@ -369,7 +369,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         fix.edit = new vscode.WorkspaceEdit();
 
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line);
-        let textToInsert = CreateProcedure.createProcedureDefinition(procedure);
+        let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
         textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
         fix.edit.insert(document.uri, position, textToInsert);
 

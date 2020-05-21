@@ -20,7 +20,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, cuObject, 'TableNo');
             if (valueOfPropertyTreeNode) {
                 let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfTableNo));
+                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfTableNo), true);
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getTableObject());
@@ -29,7 +29,7 @@ export class ALVariableHandler {
             let identifierList: ALFullSyntaxTreeNode[] = [];
             ALFullSyntaxTreeNodeExt.collectChildNodes(tableObject, FullSyntaxTreeNodeKind.getIdentifierName(), false, identifierList);
             if (identifierList.length === 1 && identifierList[0].identifier) {
-                return new ALVariable(variableName, undefined, true, 'Record ' + identifierList[0].identifier);
+                return new ALVariable(variableName, undefined, true, 'Record ' + identifierList[0].identifier, true);
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getPageObject());
@@ -38,7 +38,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, pageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable));
+                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable), true);
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getRequestPage());
@@ -47,7 +47,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, requestPageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable));
+                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable), true);
             }
         }
         return undefined;

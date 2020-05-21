@@ -8,7 +8,7 @@ import { ALTestProject } from './ALTestProject';
 import { ALLanguageExtension } from '../alExtension';
 import { ALExtractToProcedureCA } from '../../extension/Code Actions/alExtractToProcedureCA';
 import { ALProcedure } from '../../extension/Entities/alProcedure';
-import { ReturnTypeAnalzyer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
+import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
 
 suite('ALExtractProcedureCA Test Suite', function () {
     let codeunitToExtractDocument: vscode.TextDocument;
@@ -32,7 +32,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -56,7 +56,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -80,7 +80,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -104,7 +104,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -122,7 +122,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -140,7 +140,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\';';
         let textToExtractEnd = 'Customer.Insert();';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -159,7 +159,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'CodeunitToExtract.procedureWithCodeunitAsParameter(CodeunitToExtract);  //extract this line';
         let textToExtractEnd = 'CodeunitToExtract.procedureWithCodeunitAsParameter(CodeunitToExtract);  //extract this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -178,7 +178,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'MyPage.Run();  //extract this line';
         let textToExtractEnd = 'MyPage.Run();  //extract this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -197,7 +197,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Insert();  //extract this line';
         let textToExtractEnd = 'Customer.Insert();  //extract this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -218,7 +218,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\'; //extract from this line';
         let textToExtractEnd = 'Customer.Insert();  //to this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -236,7 +236,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\'; //extract from this line';
         let textToExtractEnd = 'Customer.Insert();  //to this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -257,10 +257,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
     });
     test('Before_ProcedureWithUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithUsedFilteringBefore';
-        let textToExtractStart = 'Customer.Name := \'Test\'; //extract from this line';
-        let textToExtractEnd = 'isCustomerEmpty := Customer.IsEmpty();  //to this line';
+        let textToExtractStart = '"Customer with Quotes".Name := \'Test\'; //extract from this line';
+        let textToExtractEnd = 'isCustomerEmpty := "Customer with Quotes".IsEmpty();  //to this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -269,7 +269,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.equal(alProcedure.returnType, undefined);
         assert.equal(alProcedure.parameters.length, 1);
         assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), '"customer with quotes"');
         assert.equal(alProcedure.parameters[0].isVar, true);
         assert.equal(alProcedure.variables.length, 1);
         assert.equal(alProcedure.variables[0].type.toLowerCase(), 'boolean');
@@ -280,7 +280,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'Customer.Name := \'Test\'; //extract this line';
         let textToExtractEnd = 'Customer.Name := \'Test\'; //extract this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
@@ -298,7 +298,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractStart = 'myReturnValue := Customer."No."; //extract this line';
         let textToExtractEnd = 'myReturnValue := Customer."No."; //extract this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
-        let returnTypeAnalyzer: ReturnTypeAnalzyer = new ReturnTypeAnalzyer(codeunitToExtractDocument, rangeToExtract);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
         assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');

@@ -1,51 +1,41 @@
-import { ICreateProcedure } from './ICreateProcedure';
 import * as vscode from 'vscode';
-import { ALProcedure } from '../../Entities/alProcedure';
-import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
-import { ALVariable } from '../../Entities/alVariable';
-import { ALObject } from '../../Entities/alObject';
 import { SyntaxTreeExt } from '../../AL Code Outline Ext/syntaxTreeExt';
+import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
+import { ALObject } from '../../Entities/alObject';
+import { ALVariable } from '../../Entities/alVariable';
 import { ALObjectParser } from '../../Entity Parser/alObjectParser';
+import { ICreateProcedure } from './ICreateProcedure';
 
-export class CreateProcedureAL0449 implements ICreateProcedure {
+export class CreateProcedureAL0499 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
     document: vscode.TextDocument;
     diagnostic: vscode.Diagnostic;
-    rangeOfProcedureName: vscode.Range;
+    procedureName: string;
     constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
-        if (!diagnostic.message) {
-            throw new Error('Message has to be filled.');
-        }
-        let regExpMatch: RegExpMatchArray | null = diagnostic.message.match(/The handler function ([^\s]+) was not found./);
-        if (!regExpMatch || !regExpMatch.groups) {
-            throw new Error('Cannot extract FunctionName of Handler Function');
-        }
-        let functionName: string = regExpMatch.groups[0];
-        let textOfDiagnostic: string = document.getText(diagnostic.range);
-        let startPos: vscode.Position = diagnostic.range.start.translate(0, textOfDiagnostic.indexOf(functionName));
-        this.rangeOfProcedureName = new vscode.Range(
-            startPos, startPos.translate(0, functionName.length));
+        this.procedureName = this.getProcedureNameOfDiagnosticMessage(diagnostic.message);
     }
     async initialize() {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
     }
     getProcedureName(): string {
-        return this.document.getText(this.rangeOfProcedureName);
+        return this.procedureName;
     }
-    async createProcedureObject(): Promise<ALProcedure | undefined> {
-        return;
+    getMemberAttributes(): string[] {
+        return [];
+    }
+    getBody(): string | undefined{
+        return undefined;
     }
     isLocal(): boolean {
-        return true;
+        return false;
     }
     async getVariables(): Promise<ALVariable[]> {
         return [];
     }
     async getParameters(): Promise<ALVariable[]> {
-        //TestPage
         return [];
     }
     async getReturnType(): Promise<string | undefined> {
@@ -57,5 +47,13 @@ export class CreateProcedureAL0449 implements ICreateProcedure {
             throw new Error('Object Tree node has to be found.');
         }
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
+    }
+
+    private getProcedureNameOfDiagnosticMessage(message: string): string {
+        let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);
+        if (!regExpMatch || !regExpMatch[1]) {
+            throw new Error('Cannot extract FunctionName of Handler Function');
+        }
+        return regExpMatch[1];
     }
 }

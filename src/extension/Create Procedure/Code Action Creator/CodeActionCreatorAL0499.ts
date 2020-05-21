@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { ICodeActionCreator } from "./ICodeActionCreator";
 import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { ICreateProcedure } from '../Procedure Creator/ICreateProcedure';
-import { CreateProcedureAL0449 } from '../Procedure Creator/CreateProcedureAL0499';
+import { CreateProcedureCommands } from '../CreateProcedureCommands';
+import { ICodeActionCreator } from "./ICodeActionCreator";
 
 export class CodeActionCreatorAL0499 implements ICodeActionCreator {
     syntaxTree: SyntaxTree | undefined;
@@ -17,6 +16,12 @@ export class CodeActionCreatorAL0499 implements ICodeActionCreator {
     }
 
     async createCodeActions(): Promise<vscode.CodeAction[] | undefined> {
-        return;
+        const codeAction = new vscode.CodeAction('Create HandlerFunction', vscode.CodeActionKind.QuickFix);
+        codeAction.command = {
+            command: CreateProcedureCommands.createHandlerCommand,
+            title: 'Create HandlerFunction',
+            arguments: [this.document, this.diagnostic]
+        };
+        return [codeAction];
     }
 }

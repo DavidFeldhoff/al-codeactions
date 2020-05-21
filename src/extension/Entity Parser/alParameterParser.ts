@@ -21,7 +21,7 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    static async parseParameterTreeNodeToALVariable(document: vscode.TextDocument, parameterTreeNode: ALFullSyntaxTreeNode): Promise<ALVariable> {
+    static async parseParameterTreeNodeToALVariable(document: vscode.TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
         if (!parameterTreeNode.kind || parameterTreeNode.kind !== FullSyntaxTreeNodeKind.getParameter()) {
             throw new Error('That\'s not a parameter tree node.');
         }
@@ -36,12 +36,12 @@ export class ALParameterParser {
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
             let rangeOfFullDeclaration: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
             let isVar: boolean = document.getText(rangeOfFullDeclaration).toLowerCase().startsWith('var');
-            return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, isVar, type);
+            return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, isVar, type, modifyVarName);
         } else {
             throw new Error('Variable declaration has no child nodes.');
         }
     }
-    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument): Promise<ALVariable[]> {
+    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
         if (!argumentListTreeNode.childNodes) {
             return variables;
@@ -55,15 +55,15 @@ export class ALParameterParser {
             let type: string = typeDetective.getType();
             let name: string = typeDetective.getName();
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();
-            let variable: ALVariable = new ALVariable(name, methodOrTriggerTreeNode?.name, isVar, type);
+            let variable: ALVariable = new ALVariable(name, methodOrTriggerTreeNode?.name, isVar, type, modifyVarNames);
             variable = ALParameterParser.getUniqueVariableName(variables, variable);
             variables.push(variable);
         }
 
         return variables;
     }
-    public static async createParametersOutOfArgumentListTreeNode(document: vscode.TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document);
+    public static async createParametersOutOfArgumentListTreeNode(document: vscode.TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
+        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;

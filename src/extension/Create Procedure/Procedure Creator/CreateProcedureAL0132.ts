@@ -29,6 +29,12 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     getProcedureName(): string {
         return this.document.getText(this.diagnostic.range);
     }
+    getMemberAttributes(): string[] {
+        return [];
+    }
+    getBody(): string | undefined {
+        return undefined;
+    }
     isLocal(): boolean {
         return false;
     }
@@ -40,7 +46,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
 
         let argumentList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(invocationExpressionTreeNode, FullSyntaxTreeNodeKind.getArgumentList(), false) as ALFullSyntaxTreeNode;
-        return await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range));
+        return await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range), true);
     }
     async getReturnType(): Promise<string | undefined> {
         if (!this.syntaxTree) { return undefined; }

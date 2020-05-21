@@ -5,6 +5,7 @@ import { ALSourceCodeHandler } from "../../alSourceCodeHandler";
 import { CreateProcedureAL0118 } from '../Procedure Creator/CreateProcedureAL0118';
 import { CreateProcedure } from '../Procedure Creator/CreateProcedure';
 import { ALProcedure } from '../../Entities/alProcedure';
+import { CreateProcedureCommands } from '../CreateProcedureCommands';
 
 export class CodeActionCreatorAL0118 implements ICodeActionCreator {
     syntaxTree: SyntaxTree | undefined;
@@ -31,21 +32,19 @@ export class CodeActionCreatorAL0118 implements ICodeActionCreator {
 
     private async createCodeAction(currentDocument: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction | undefined> {
         let codeActionToCreateProcedure: vscode.CodeAction =
-            await this.createFixToCreateProcedure(procedureToCreate, currentDocument, diagnostic.range.start.line);
+            await this.createFixToCreateProcedure(procedureToCreate, currentDocument, diagnostic);
 
         return codeActionToCreateProcedure;
     }
 
-    private async createFixToCreateProcedure(procedure: ALProcedure, document: vscode.TextDocument, currentLineNo?: number): Promise<vscode.CodeAction> {
-
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(currentLineNo);
-        let textToInsert = CreateProcedure.createProcedureDefinition(procedure);
-        textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
-
-        const fix = new vscode.CodeAction(`Create procedure ${procedure.name}`, vscode.CodeActionKind.QuickFix);
-        fix.edit = new vscode.WorkspaceEdit();
-        fix.edit.insert(document.uri, position, textToInsert);
-        fix.isPreferred = true;
-        return fix;
+    private async createFixToCreateProcedure(procedure: ALProcedure, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<vscode.CodeAction> {
+        const codeAction = new vscode.CodeAction(`Create procedure ${procedure.name}`, vscode.CodeActionKind.QuickFix);
+        codeAction.command = {
+            command: CreateProcedureCommands.createProcedureCommand,
+            title: 'Create Procedure',
+            arguments: [document, diagnostic, procedure]
+        };
+        codeAction.isPreferred = true;
+        return codeAction;
     }
 }
