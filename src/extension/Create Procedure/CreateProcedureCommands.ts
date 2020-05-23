@@ -45,7 +45,6 @@ export class CreateProcedureCommands {
         if (!handlerToAdd) {
             return;
         }
-        await SyntaxTree.getInstance(document, true);
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
         vscode.commands.executeCommand(this.createProcedureCommand, document, diagnostic, procedure);

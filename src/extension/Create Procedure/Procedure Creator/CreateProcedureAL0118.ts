@@ -22,7 +22,7 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
         this.diagnostic = diagnostic;
     }
     async initialize() {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
     }
     getProcedureName(): string {
         return this.document.getText(this.diagnostic.range);

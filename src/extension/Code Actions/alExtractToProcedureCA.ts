@@ -41,7 +41,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         if (range.start.compareTo(range.end) === 0) { //performance
             return;
         }
-        await SyntaxTree.getInstance(document, true); //create new syntax tree instance
 
         let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(document, range);
         await rangeAnalyzer.analyze();

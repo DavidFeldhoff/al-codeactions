@@ -19,7 +19,7 @@ export class CodeActionCreatorAL0132 implements ICodeActionCreator {
         this.diagnostic = diagnostic;
     }
     async considerLine(): Promise<boolean> {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
         if (await new ALSourceCodeHandler(this.document).isInvocationExpression(this.diagnostic.range)) {
             this.createProcedureAL0132 = new CreateProcedureAL0132(this.document, this.diagnostic);
             let objectOfNewProcedure: ALObject = await this.createProcedureAL0132.getObject();

@@ -16,7 +16,7 @@ export class CodeActionCreatorAL0118 implements ICodeActionCreator {
         this.diagnostic = diagnostic;
     }
     async considerLine(): Promise<boolean> {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
         if (await new ALSourceCodeHandler(this.document).isInvocationExpression(this.diagnostic.range)) {
             return true;
         }
