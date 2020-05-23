@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SyntaxTreeExt } from '../../AL Code Outline Ext/syntaxTreeExt';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
+import { DocumentUtils } from '../../documentUtils';
 import { ALObject } from '../../Entities/alObject';
 import { ALVariable } from '../../Entities/alVariable';
 import { ALObjectParser } from '../../Entity Parser/alObjectParser';
@@ -15,7 +16,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
-        this.procedureName = this.getProcedureNameOfDiagnosticMessage(diagnostic.message);
+        this.procedureName = DocumentUtils.getProcedureNameOfDiagnosticMessage(diagnostic.message);
     }
     async initialize() {
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
@@ -47,13 +48,5 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
             throw new Error('Object Tree node has to be found.');
         }
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
-    }
-
-    private getProcedureNameOfDiagnosticMessage(message: string): string {
-        let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);
-        if (!regExpMatch || !regExpMatch[1]) {
-            throw new Error('Cannot extract FunctionName of Handler Function');
-        }
-        return regExpMatch[1];
     }
 }
