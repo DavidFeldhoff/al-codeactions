@@ -30,13 +30,13 @@ export class CodeActionCreatorAL0132 implements ICodeActionCreator {
         return false;
     }
 
-    async createCodeActions(): Promise<vscode.CodeAction[] | undefined> {
+    async createCodeActions(): Promise<vscode.CodeAction[]> {
         if (!this.createProcedureAL0132) {
             throw new Error('considerLine has to be called first.');
         }
         let procedure: ALProcedure = await CreateProcedure.createProcedure(this.createProcedureAL0132);
         let codeAction: vscode.CodeAction | undefined = await this.createCodeAction(this.document, this.diagnostic, procedure);
-        return codeAction ? [codeAction] : undefined;
+        return codeAction ? [codeAction] : [];
     }
 
 

@@ -18,7 +18,7 @@ export class CodeActionCreatorAL0499 implements ICodeActionCreator {
         return true;
     }
 
-    async createCodeActions(): Promise<vscode.CodeAction[] | undefined> {
+    async createCodeActions(): Promise<vscode.CodeAction[]> {
         const codeAction = new vscode.CodeAction('Create HandlerFunction for ' + this.procedureName, vscode.CodeActionKind.QuickFix);
         codeAction.command = {
             command: CreateProcedureCommands.createHandlerCommand,

@@ -10,16 +10,15 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
 
     public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        let codeActionCreator: ICodeActionCreator | undefined = CreateProcedureFactory.getInstance(document, range);
-        if (!codeActionCreator) {
-            return;
+        let codeActionCreators: ICodeActionCreator[] = CreateProcedureFactory.getInstances(document, range);
+        let codeActions: vscode.CodeAction[] = [];
+        for (let i = 0; i < codeActionCreators.length; i++) {
+            if (!await codeActionCreators[i].considerLine()) {
+                return;
+            }
+            let newActions: vscode.CodeAction[] = await codeActionCreators[i].createCodeActions();
+            codeActions = codeActions.concat(newActions);
         }
-
-        if (!await codeActionCreator.considerLine()) {
-            return;
-        }
-
-        let codeActions: vscode.CodeAction[] | undefined = await codeActionCreator.createCodeActions();
         return codeActions;
     }
 }
