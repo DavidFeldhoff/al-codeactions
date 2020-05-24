@@ -2,6 +2,16 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.8
+
+- Extract Procedure
+  - Fixed performance issue. It's now quite fast again.
+  - Bugfix: Sometimes there was a semicolon missing after the new procedure was extracted.
+- Create Handlerfunction:
+  - The name of the Handlerfunction to create is now also displayed. This is helpful if multiple handler functions are missing.
+- General: The position of the procedure to insert is improved:
+  - The local/global procedures or handler functions are now in a fixed order which comply with the order of the "Sort procedures" Code action of the AZ AL Dev Tools/AL Code Outline Extension.
+
 ## 0.2.7
 
 - Create Procedure

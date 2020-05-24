@@ -9,7 +9,7 @@ export class ALCreateHandlerFunctionDefinitionProvider implements vscode.Definit
 
     async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location | vscode.Location[] | vscode.LocationLink[] | undefined> {
         let locations: vscode.Location[] = [];
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document, true);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         if (!this.isPositionInAttributeOfHandlerFunction(syntaxTree, document, position)) {
             return;
         }

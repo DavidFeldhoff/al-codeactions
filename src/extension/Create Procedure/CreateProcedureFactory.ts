@@ -7,20 +7,25 @@ import { CodeActionCreatorAL0132 } from './Code Action Creator/CodeActionCreator
 import { CodeActionCreatorAL0499 } from './Code Action Creator/CodeActionCreatorAL0499';
 
 export class CreateProcedureFactory {
-    public static getInstance(document: vscode.TextDocument, range: vscode.Range): ICodeActionCreator | undefined {
-        let diagnostic = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPosition(document, range);
-        if (!diagnostic) {
-            return;
+    public static getInstances(document: vscode.TextDocument, range: vscode.Range): ICodeActionCreator[] {
+        let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPosition(document, range);
+        if (diagnostics.length === 0) {
+            return [];
         }
-        switch (diagnostic.code) {
-            case SupportedDiagnosticCodes.AL0118.toString():
-                return new CodeActionCreatorAL0118(document, diagnostic);
-            case SupportedDiagnosticCodes.AL0132.toString():
-                return new CodeActionCreatorAL0132(document, diagnostic);
-            case SupportedDiagnosticCodes.AL0499.toString():
-                return new CodeActionCreatorAL0499(document, diagnostic);
-            default:
-                return;
-        }
+        let codeActionCreators: ICodeActionCreator[] = [];
+        diagnostics.forEach(diagnostic => {
+            switch (diagnostic.code) {
+                case SupportedDiagnosticCodes.AL0118.toString():
+                    codeActionCreators.push(new CodeActionCreatorAL0118(document, diagnostic));
+                    break;
+                case SupportedDiagnosticCodes.AL0132.toString():
+                    codeActionCreators.push(new CodeActionCreatorAL0132(document, diagnostic));
+                    break;
+                case SupportedDiagnosticCodes.AL0499.toString():
+                    codeActionCreators.push(new CodeActionCreatorAL0499(document, diagnostic));
+                    break;
+            }
+        });
+        return codeActionCreators;
     }
 }

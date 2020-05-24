@@ -9,6 +9,11 @@ import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNode
 import { SyntaxTreeExt } from './AL Code Outline Ext/syntaxTreeExt';
 import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
+import { ALProcedure } from './Entities/alProcedure';
+import { AZSymbolInformation } from './AL Code Outline/AZSymbolInformation';
+import { AZDocumentSymbolsLibrary } from './AL Code Outline/azALDocumentSymbolsService';
+import { AZSymbolInformationExt } from './AL Code Outline Ext/azSymbolInformationExt';
+import { AZSymbolKind } from './AL Code Outline/azSymbolKind';
 
 export class ALSourceCodeHandler {
 
@@ -16,23 +21,64 @@ export class ALSourceCodeHandler {
     constructor(document: vscode.TextDocument) {
         this.document = document;
     }
-    public async getPositionToInsertProcedure(currentLineNo: number | undefined): Promise<vscode.Position> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        let objectTreeNode: ALFullSyntaxTreeNode = await this.getObjectTreeNode(currentLineNo);
-        if (currentLineNo) {
-            let position = new vscode.Position(currentLineNo, 0);
-            let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, new vscode.Position(currentLineNo, 0));
-            if (methodOrTriggerTreeNode && methodOrTriggerTreeNode.parentNode && methodOrTriggerTreeNode.parentNode === objectTreeNode) {
-                return TextRangeExt.createVSCodeRange(methodOrTriggerTreeNode.fullSpan).end;
+    public async getPositionToInsertProcedure(currentLineNo: number | undefined, procedureToInsert: ALProcedure): Promise<vscode.Position> {
+        let azDocumentSymbolsLibrary: AZDocumentSymbolsLibrary = await AZDocumentSymbolsLibrary.getInstance(this.document);
+        let objectSymbol = azDocumentSymbolsLibrary.getObjectSymbol();
+        if (!objectSymbol) {
+            throw new Error('Unable to get position to insert the procedure.');
+        }
+        let allMethods: AZSymbolInformation[] = [];
+        let testKinds: AZSymbolKind[] = [
+            AZSymbolKind.TestDeclaration,
+            AZSymbolKind.ConfirmHandlerDeclaration,
+            AZSymbolKind.FilterPageHandlerDeclaration,
+            AZSymbolKind.HyperlinkHandlerDeclaration,
+            AZSymbolKind.MessageHandlerDeclaration,
+            AZSymbolKind.ModalPageHandlerDeclaration,
+            AZSymbolKind.PageHandlerDeclaration,
+            //AZSymbolKind.RecallNotificationHandler, // is missing
+            AZSymbolKind.ReportHandlerDeclaration,
+            AZSymbolKind.RequestPageHandlerDeclaration,
+            AZSymbolKind.SendNotificationHandlerDeclaration,
+            AZSymbolKind.SessionSettingsHandlerDeclaration,
+            AZSymbolKind.StrMenuHandlerDeclaration
+        ];
+        let kinds: AZSymbolKind[] = testKinds.concat([
+            AZSymbolKind.TriggerDeclaration,
+            AZSymbolKind.MethodDeclaration,
+            AZSymbolKind.LocalMethodDeclaration,
+            AZSymbolKind.EventSubscriberDeclaration,
+            AZSymbolKind.EventDeclaration,
+            AZSymbolKind.BusinessEventDeclaration,
+            AZSymbolKind.IntegrationEventDeclaration
+        ]);
+        AZSymbolInformationExt.collectChildNodes(objectSymbol, kinds, false, allMethods);
+        allMethods.sort((methodA, methodB) => {
+            if (methodA.kind !== methodB.kind) {
+                return (kinds.indexOf(methodA.kind) - kinds.indexOf(methodB.kind));
+            }
+            let rangeA: vscode.Range = TextRangeExt.createVSCodeRange(methodA.range);
+            let rangeB: vscode.Range = TextRangeExt.createVSCodeRange(methodB.range);
+            return rangeA.start.compareTo(rangeB.start);
+        });
+        let procedureToInsertKind: AZSymbolKind = AZSymbolInformationExt.getSymbolKindOfALProcedure(procedureToInsert);
+        let filteredMethods: AZSymbolInformation[] = allMethods.filter(method => method.kind === procedureToInsertKind);
+        if (filteredMethods.length !== 0) {
+            return TextRangeExt.createVSCodeRange(filteredMethods[filteredMethods.length - 1].range).end;
+        }
+        for (let i = kinds.indexOf(procedureToInsertKind) + 1; i < kinds.length; i++) {
+            let filteredMethods: AZSymbolInformation[] = allMethods.filter(method => method.kind === kinds[i]);
+            if (filteredMethods.length !== 0) {
+                return TextRangeExt.createVSCodeRange(filteredMethods[0].range).start;
             }
         }
-        let positionToInsert: vscode.Position | undefined = this.getLastMethodOrTrigger(objectTreeNode);
-        if (positionToInsert) {
-            return positionToInsert;
-        } else {
-            let objectRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(objectTreeNode.fullSpan));
-            return objectRange.end.translate(0, -1);
+        for (let i = kinds.indexOf(procedureToInsertKind) - 1; i >= 0; i--) {
+            let filteredMethods: AZSymbolInformation[] = allMethods.filter(method => method.kind === kinds[i]);
+            if (filteredMethods.length !== 0) {
+                return TextRangeExt.createVSCodeRange(filteredMethods[filteredMethods.length - 1].range).end;
+            }
         }
+        return TextRangeExt.createVSCodeRange(objectSymbol.range).end.translate(0, -1);
     }
     private getLastMethodOrTrigger(objectTreeNode: ALFullSyntaxTreeNode): vscode.Position | undefined {
         let methodOrTriggers: ALFullSyntaxTreeNode[] = [];
@@ -56,59 +102,6 @@ export class ALSourceCodeHandler {
         } else {
             return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(0, 0)) as ALFullSyntaxTreeNode;
         }
-    }
-
-    private async getNextPositionToInsertProcedureStartingAtLine(document: vscode.TextDocument, currentLineNo: number, objectSymbol: any): Promise<vscode.Position> {
-        if (objectSymbol.childSymbols) {
-            for (let i = 0; i < objectSymbol.childSymbols.length; i++) {
-                if (objectSymbol.childSymbols[i].range.start.line <= currentLineNo && objectSymbol.childSymbols[i].range.end.line >= currentLineNo) {
-                    if (!ALCodeOutlineExtension.isSymbolKindProcedureOrTrigger(objectSymbol.childSymbols[i].kind)) {
-                        return this.getLastPositionToInsertProcedureStartingAtEndOfDocument(document, objectSymbol);
-                    }
-                }
-            }
-        }
-
-        for (let i = currentLineNo; i < document.lineCount; i++) {
-            if (this.isPossiblePositionToInsertProcedure(document, i)) {
-                return new vscode.Position(i + 1, 0);
-            }
-        }
-        //if the end of the current procedure wasn't found fall back and take the last possible position to insert the procedure.
-        return this.getLastPositionToInsertProcedureStartingAtEndOfDocument(document, objectSymbol);
-    }
-
-    private getLastPositionToInsertProcedureStartingAtEndOfDocument(document: vscode.TextDocument, objectSymbol: any): vscode.Position {
-        let globalVarSection: any[] = [];
-        objectSymbol.collectChildSymbols(428, true, globalVarSection);
-        let endLineNoOfGlobalVars: number | undefined;
-        if (globalVarSection.length > 0) {
-            endLineNoOfGlobalVars = globalVarSection[0].range.end.line;
-        }
-        let lineOfClosingBracket: number | undefined;
-        for (let i = document.lineCount - 1; i > 0; i--) {
-            if (document.lineAt(i).text.startsWith('}')) {
-                lineOfClosingBracket = i;
-            }
-
-            if (this.isPossiblePositionToInsertProcedure(document, i) || (endLineNoOfGlobalVars && i === endLineNoOfGlobalVars - 1)) {
-                return new vscode.Position(i + 1, 0);
-            }
-        }
-        if (isUndefined(lineOfClosingBracket)) {
-            throw new Error("Unable to find position to insert procedure in file " + document.fileName + ".");
-        } else {
-            return new vscode.Position(lineOfClosingBracket, 0);
-        }
-    }
-    private isPossiblePositionToInsertProcedure(document: vscode.TextDocument, lineNo: number): boolean {
-        let closingTags = ["end;", "}"];
-        let textLine = document.lineAt(lineNo);
-        if (textLine.firstNonWhitespaceCharacterIndex === 4) {
-            let trimmedText = textLine.text.toLowerCase().trim();
-            return closingTags.includes(trimmedText);
-        }
-        return false;
     }
 
     public async isInvocationExpression(range: vscode.Range): Promise<boolean> {
