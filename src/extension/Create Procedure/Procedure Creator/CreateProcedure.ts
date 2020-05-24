@@ -6,6 +6,7 @@ import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
 import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { ALVariable } from '../../Entities/alVariable';
 import { ReturnTypeAnalyzer } from '../../Extract Procedure/returnTypeAnalyzer';
+import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
 
 export class CreateProcedure {
     public static async createProcedure(procedureCreator: ICreateProcedure): Promise<ALProcedure> {
@@ -73,11 +74,13 @@ export class CreateProcedure {
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let ifTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getIfStatement()]);
-        if (!ifTreeNode) {
-            if (!document.lineAt(rangeToExtract.end.line).text.substr(rangeToExtract.end.character).startsWith(';')) {
-                procedureCall += ';';
+        if (ifTreeNode && ifTreeNode.childNodes) {
+            let rangeOfIfExpression: vscode.Range = TextRangeExt.createVSCodeRange(ifTreeNode.childNodes[0].fullSpan);
+            if (rangeOfIfExpression.contains(rangeToExtract)) {
+                return procedureCall;
             }
         }
+        procedureCall += ';';
         return procedureCall;
     }
 

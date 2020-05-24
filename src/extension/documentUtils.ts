@@ -232,4 +232,12 @@ export class DocumentUtils {
         }
         return newRange;
     }
+
+    public static getProcedureNameOfDiagnosticMessage(message: string): string {
+        let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);
+        if (!regExpMatch || !regExpMatch[1]) {
+            throw new Error('Cannot extract FunctionName of Handler Function');
+        }
+        return regExpMatch[1];
+    }
 }

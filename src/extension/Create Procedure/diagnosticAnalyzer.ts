@@ -6,7 +6,7 @@ export class DiagnosticAnalzyer {
     public constructor() {
 
     }
-    public getValidDiagnosticOfCurrentPosition(document: vscode.TextDocument, range: vscode.Range) {
+    public getValidDiagnosticOfCurrentPosition(document: vscode.TextDocument, range: vscode.Range): vscode.Diagnostic[] {
         let diagnostics = vscode.languages.getDiagnostics(document.uri).filter(d => {
             let isAL = this.checkDiagnosticsLanguage(d);
             let samePos = this.checkDiagnosticsPosition(d, range);
@@ -14,7 +14,7 @@ export class DiagnosticAnalzyer {
             return isAL && samePos && validCode;
         });
 
-        return diagnostics.length > 0 ? diagnostics[0] : undefined; //always just fix one
+        return diagnostics;
     }
     private checkDiagnosticsLanguage(d: vscode.Diagnostic): boolean {
         if (isUndefined(d.source)) {

@@ -11,7 +11,7 @@ export class ALCreateTriggerParameterReferenceProvider implements vscode.Referen
 
     async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
         let locationsReferenced: vscode.Location[] = [];
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document, true);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let parameterTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getParameter()]);
         if (!parameterTreeNode) {
             return;

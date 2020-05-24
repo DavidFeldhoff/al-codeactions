@@ -45,7 +45,6 @@ export class CreateProcedureCommands {
         if (!handlerToAdd) {
             return;
         }
-        await SyntaxTree.getInstance(document, true);
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
         vscode.commands.executeCommand(this.createProcedureCommand, document, diagnostic, procedure);
@@ -83,7 +82,7 @@ export class CreateProcedureCommands {
 
     public static async addProcedureToSourceCode(document: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedure: ALProcedure) {
         let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo);
+        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
 
         let textToInsert = CreateProcedure.createProcedureDefinition(procedure, false);
         textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);

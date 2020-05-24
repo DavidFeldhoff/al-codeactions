@@ -10,7 +10,7 @@ export class ALCreateHandlerFunctionReferenceProvider implements vscode.Referenc
 
     async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
         let locationsReferenced: vscode.Location[] = [];
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document, true);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let methodIdentifierTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position);
         if (methodIdentifierTreeNode && methodIdentifierTreeNode.parentNode && methodIdentifierTreeNode.parentNode.kind && methodIdentifierTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getMethodDeclaration()) {
             let handlerFunctionName: string = document.getText(TextRangeExt.createVSCodeRange(methodIdentifierTreeNode.fullSpan));
