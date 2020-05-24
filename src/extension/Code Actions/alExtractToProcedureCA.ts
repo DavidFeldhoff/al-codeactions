@@ -350,9 +350,6 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         }
         return undefined;
     }
-    async getCurrentProcedureOrTriggerSymbol(document: vscode.TextDocument, position: vscode.Position): Promise<any> {
-        return await ALCodeOutlineExtension.getProcedureOrTriggerSymbolOfCurrentLine(document.uri, position.line);
-    }
     private async createCodeAction(currentDocument: vscode.TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
         let codeActionToCreateProcedure: vscode.CodeAction = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
 
@@ -367,7 +364,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         const fix = new vscode.CodeAction(`Extract to procedure`, vscode.CodeActionKind.QuickFix);
         fix.edit = new vscode.WorkspaceEdit();
 
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line);
+        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line, procedure);
         let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
         textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
         fix.edit.insert(document.uri, position, textToInsert);
