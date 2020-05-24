@@ -1,20 +1,23 @@
 import * as vscode from 'vscode';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { ToolsGetFullSyntaxTreeResponse } from './toolsGetFullSyntaxTreeResponse';
-import { ToolsGetFullSyntaxTreeRequest } from './toolsGetFullSyntaxTreeRequest';
-import { ALFullSyntaxTreeNode } from './alFullSyntaxTreeNode';
-import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
+import { ALFullSyntaxTreeNode } from './alFullSyntaxTreeNode';
+import { ToolsGetFullSyntaxTreeRequest } from './toolsGetFullSyntaxTreeRequest';
+import { ToolsGetFullSyntaxTreeResponse } from './toolsGetFullSyntaxTreeResponse';
 
 export class SyntaxTree {
     private static instances: Map<vscode.TextDocument, SyntaxTree | undefined> = new Map();
     private fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined;
-    private constructor(fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined) {
+    private documentContentOfCreation: string;
+    private constructor(fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined, currentDocumentContent: string) {
         this.fullSyntaxTreeResponse = fullSyntaxTreeResponse;
+        this.documentContentOfCreation = currentDocumentContent;
     }
-    public static async getInstance(document: vscode.TextDocument, newInstance?: boolean): Promise<SyntaxTree> {
-        if (!this.instances.get(document) || newInstance) {
-            this.instances.set(document, new SyntaxTree(await this.getFullSyntaxTree(document)));
+    public static async getInstance(document: vscode.TextDocument): Promise<SyntaxTree> {
+        let instance: SyntaxTree | undefined = this.instances.get(document);
+        if (!instance || instance.isOutdated(document.getText())) {
+            this.instances.set(document, new SyntaxTree(await this.getFullSyntaxTree(document), document.getText()));
         }
         return this.instances.get(document) as SyntaxTree;
     }
@@ -61,5 +64,8 @@ export class SyntaxTree {
         let outList: ALFullSyntaxTreeNode[] = [];
         ALFullSyntaxTreeNodeExt.collectChildNodes(this.fullSyntaxTreeResponse.root, searchForNodeKind, true, outList);
         return outList;
+    }
+    public isOutdated(documentContent: string): boolean {
+        return this.documentContentOfCreation !== documentContent;
     }
 }

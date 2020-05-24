@@ -24,7 +24,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         this.diagnostic = diagnostic;
     }
     async initialize() {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
     }
     getProcedureName(): string {
         return this.document.getText(this.diagnostic.range);
@@ -68,7 +68,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
             locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
             if (locations && locations.length > 0) {
                 let otherDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
-                let otherDocSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDoc, true);
+                let otherDocSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDoc);
                 let otherObjectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(otherDocSyntaxTree, locations[0].range.start);
                 if (otherObjectTreeNode) {
                     return ALObjectParser.parseObjectTreeNodeToALObject(otherDoc, otherObjectTreeNode);

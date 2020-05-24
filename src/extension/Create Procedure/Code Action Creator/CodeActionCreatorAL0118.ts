@@ -16,18 +16,18 @@ export class CodeActionCreatorAL0118 implements ICodeActionCreator {
         this.diagnostic = diagnostic;
     }
     async considerLine(): Promise<boolean> {
-        this.syntaxTree = await SyntaxTree.getInstance(this.document, true);
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
         if (await new ALSourceCodeHandler(this.document).isInvocationExpression(this.diagnostic.range)) {
             return true;
         }
         return false;
     }
 
-    async createCodeActions(): Promise<vscode.CodeAction[] | undefined> {
+    async createCodeActions(): Promise<vscode.CodeAction[]> {
         let createprocedureAL0118: CreateProcedureAL0118 = new CreateProcedureAL0118(this.document, this.diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
         let codeAction: vscode.CodeAction | undefined = await this.createCodeAction(this.document, this.diagnostic, procedure);
-        return codeAction ? [codeAction] : undefined;
+        return codeAction ? [codeAction] : [];
     }
 
     private async createCodeAction(currentDocument: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction | undefined> {
