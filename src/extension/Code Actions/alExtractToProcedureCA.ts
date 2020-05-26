@@ -280,7 +280,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
                     for (let x = 0; x < variableDeclarationNames.length; x++) {
                         let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[x].fullSpan));
                         if (await this.isOneOfReferencesInRange(document, range.start, rangeSelected)) {
-                            variablesNeeded.push(variableDeclarationNames[i]);
+                            variablesNeeded.push(variableDeclarationNames[x]);
                         }
                     }
                     break;

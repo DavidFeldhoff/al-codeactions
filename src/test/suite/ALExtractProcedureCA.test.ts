@@ -27,6 +27,28 @@ suite('ALExtractProcedureCA Test Suite', function () {
         vscode.window.showInformationMessage('Start all tests of ALExtractProcedure.');
     });
 
+    test('MultipleDeclarationsOfVariablesInOneLine', async () => {
+        let procedureName = 'OnRun';
+        let textToExtractStart = 'start := 4;';
+        let textToExtractEnd = 'result := start + addend;';
+        let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, rangeToExtract);
+        await returnTypeAnalyzer.analyze();
+        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCA().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
+        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        alProcedure = alProcedure as ALProcedure;
+        assert.equal(alProcedure.isLocal, true);
+        assert.equal(alProcedure.returnType, undefined);
+        assert.equal(alProcedure.parameters.length, 1);
+        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'integer');
+        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'result');
+        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.equal(alProcedure.variables.length, 2);
+        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'integer');
+        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'start');
+        assert.equal(alProcedure.variables[1].type.toLowerCase(), 'integer');
+        assert.equal(alProcedure.variables[1].name.toLowerCase(), 'addend');
+    });
     test('Before_ProcedureWithOneParameterByValue', async () => {
         let procedureName = 'testProcedureWithOneParameterByValue';
         let textToExtractStart = 'Customer.Name := \'Test\';';
@@ -230,7 +252,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
         assert.equal(alProcedure.parameters[0].isVar, true);
         assert.equal(alProcedure.variables.length, 0);
-    });    
+    });
     test('Before_ProcedureWithNotUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithNotUsedFilteringBefore';
         let textToExtractStart = 'Customer.Name := \'Test\'; //extract from this line';
@@ -322,7 +344,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let startPos: vscode.Position | undefined;
         let endPos: vscode.Position | undefined;
         for (let i = 0; i < document.lineCount; i++) {
-            if (document.lineAt(i).text.includes('procedure ' + procedureName + '(')) {
+            if (document.lineAt(i).text.includes('procedure ' + procedureName + '(') || document.lineAt(i).text.includes('trigger ' + procedureName + '(')) {
                 inProcedure = true;
             }
             if (inProcedure) {
