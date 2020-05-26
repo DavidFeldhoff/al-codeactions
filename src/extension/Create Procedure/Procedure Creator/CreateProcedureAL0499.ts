@@ -27,7 +27,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     getMemberAttributes(): string[] {
         return [];
     }
-    getBody(): string | undefined{
+    getBody(): string | undefined {
         return undefined;
     }
     isLocal(): boolean {
@@ -48,5 +48,8 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
             throw new Error('Object Tree node has to be found.');
         }
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
+    }
+    getJumpToCreatedProcedure(): boolean {
+        return true;
     }
 }

@@ -18,6 +18,7 @@ export class CreateProcedure {
             await procedureCreator.getReturnType(),
             procedureCreator.isLocal(),
             procedureCreator.getMemberAttributes(),
+            procedureCreator.getJumpToCreatedProcedure(),
             await procedureCreator.getObject()
         );
         let body = procedureCreator.getBody();
@@ -52,9 +53,23 @@ export class CreateProcedure {
             );
         }
         procedureDefinition += (withIndent ? "\t" : "") + "begin\r\n";
-        procedureDefinition += (withIndent ? "\t" : "") + "\t" + procedure.getBody() + "\r\n";
+        if (!this.skipBody(procedure)) {
+            procedureDefinition += (withIndent ? "\t" : "") + "\t" + procedure.getBody() + "\r\n";
+        }
         procedureDefinition += (withIndent ? "\t" : "") + "end;";
         return procedureDefinition;
+    }
+    private static skipBody(procedure: ALProcedure): boolean {
+        let attributesWithoutBody: string[] = [
+            'integrationevent',
+            'businessevent'
+        ];
+        for (let i = 0; i < attributesWithoutBody.length; i++) {
+            if (procedure.memberAttributes.some(attr => attr.toLowerCase().startsWith(attributesWithoutBody[i]))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static async createProcedureCallDefinition(document: vscode.TextDocument, rangeToExtract: vscode.Range, newProcedureName: string, parameters: ALVariable[], returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<string> {

@@ -152,7 +152,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             throw new Error('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
-        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], alObject);
+        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], false, alObject);
         let selectedText: string = document.getText(rangeExpanded).trim();
         if (returnType && returnTypeAnalyzer.getAddVariableToExtractedRange()) {
             let returnVariableName = 'returnValue';

@@ -13,4 +13,5 @@ export interface ICreateProcedure {
     getVariables(): Promise<ALVariable[]>;
     getBody(): string | undefined;
     getMemberAttributes(): string[];
+    getJumpToCreatedProcedure(): boolean;
 }

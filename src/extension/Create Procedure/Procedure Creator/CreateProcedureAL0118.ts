@@ -62,4 +62,7 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
         }
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
     }
+    getJumpToCreatedProcedure(): boolean {
+        return true;
+    }
 }
