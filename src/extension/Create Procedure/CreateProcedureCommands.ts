@@ -84,28 +84,23 @@ export class CreateProcedureCommands {
         let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
 
-        let textToInsert = CreateProcedure.createProcedureDefinition(procedure, false);
-        textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
-        let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
-        let editor: vscode.TextEditor;
-        if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
-            editor = vscode.window.activeTextEditor;
+        if (procedure.getJumpToCreatedPosition()) {
+            let textToInsert = CreateProcedure.createProcedureDefinition(procedure, false);
+            textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+            let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
+            let editor: vscode.TextEditor;
+            if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
+                editor = vscode.window.activeTextEditor;
+            } else {
+                editor = await vscode.window.showTextDocument(document.uri);
+            }
+            editor.insertSnippet(snippetString, position);
         } else {
-            editor = await vscode.window.showTextDocument(document.uri);
+            let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
+            textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+            let workspaceEdit = new vscode.WorkspaceEdit();
+            workspaceEdit.insert(document.uri, position, textToInsert);
+            await vscode.workspace.applyEdit(workspaceEdit);
         }
-        editor.insertSnippet(snippetString, position);
-
-        // if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
-        //     let textToInsert = CreateProcedure.createProcedureDefinition(procedure, false);
-        //     textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
-        //     let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
-        //     vscode.window.activeTextEditor?.insertSnippet(snippetString, position);
-        // } else {
-        //     let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
-        //     textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
-        //     let workspaceEdit = new vscode.WorkspaceEdit();
-        //     workspaceEdit.insert(document.uri, position, textToInsert);
-        //     await vscode.workspace.applyEdit(workspaceEdit);
-        // }
     }
 }

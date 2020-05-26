@@ -2,6 +2,13 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.9
+
+- Extract Procedure
+  - Now also supports variables which are declared in one line (new in BC16).
+- Create IntegrationEvent/BusinessEvent Publisher
+  - If the procedure starts with "On.." you can choose to create a publisher for an integration or a business event instead. If you create that one, the cursor won't jump to the position, because you can't insert code to that publisher anyway. Furthermore, the Business/Integration Event Publisher is inserted in the correct order in the file (if a structure exists already - see the "Sort Procedures" Command of the AZ AL Dev Tools for that ;) )
+
 ## 0.2.8
 
 - Extract Procedure

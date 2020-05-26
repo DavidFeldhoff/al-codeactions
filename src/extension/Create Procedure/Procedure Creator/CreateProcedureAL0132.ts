@@ -79,4 +79,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         OwnConsole.ownConsole.appendLine('Error: ' + errorMessage);
         throw new Error(errorMessage);
     }
+    getJumpToCreatedProcedure(): boolean {
+        return true;
+    }
 }

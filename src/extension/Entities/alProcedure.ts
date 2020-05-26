@@ -13,13 +13,15 @@ export class ALProcedure {
     private body: string | undefined;
     public ObjectOfProcedure: ALObject;
     public memberAttributes: string[];
-    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], ALObject: ALObject) {
+    private jumpToCreatedPosition: boolean;
+    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], jumpToCreatedPosition: boolean, ALObject: ALObject) {
         this.name = name;
         this.parameters = parameters;
         this.variables = variables;
         this.returnType = returnValue;
         this.isLocal = isLocal;
         this.memberAttributes = memberAttributes;
+        this.jumpToCreatedPosition = jumpToCreatedPosition;
         this.ObjectOfProcedure = ALObject;
     }
     public getMemberAttributes(): string[] {
@@ -49,5 +51,8 @@ export class ALProcedure {
         } else {
             return "Error('Procedure not implemented.');";
         }
+    }
+    public getJumpToCreatedPosition(): boolean {
+        return this.jumpToCreatedPosition;
     }
 }
