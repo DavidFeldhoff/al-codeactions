@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.10
+
+- fixed bug which won't led you create procedures.
+- Procedures are now placed before the global var section if there is no procedure in the file yet.
+
 ## 0.2.9
 
 - Extract Procedure

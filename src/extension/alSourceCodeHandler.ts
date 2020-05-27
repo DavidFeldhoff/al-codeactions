@@ -50,7 +50,8 @@ export class ALSourceCodeHandler {
             AZSymbolKind.EventSubscriberDeclaration,
             AZSymbolKind.EventDeclaration,
             AZSymbolKind.BusinessEventDeclaration,
-            AZSymbolKind.IntegrationEventDeclaration
+            AZSymbolKind.IntegrationEventDeclaration,
+            AZSymbolKind.GlobalVarSection
         ]);
         AZSymbolInformationExt.collectChildNodes(objectSymbol, kinds, false, allMethods);
         allMethods.sort((methodA, methodB) => {
@@ -78,7 +79,7 @@ export class ALSourceCodeHandler {
                 return TextRangeExt.createVSCodeRange(filteredMethods[filteredMethods.length - 1].range).end;
             }
         }
-        return TextRangeExt.createVSCodeRange(objectSymbol.range).end.translate(0, -1);
+        return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(objectSymbol.range)).end.translate(0, -1);
     }
     private getLastMethodOrTrigger(objectTreeNode: ALFullSyntaxTreeNode): vscode.Position | undefined {
         let methodOrTriggers: ALFullSyntaxTreeNode[] = [];
