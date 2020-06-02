@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Services/alCreateHandlerFunctionDefinitionProvider';
-import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/alCreateHandlerFunctionReferenceProvider';
-import { ALCreateProcedureCA } from './extension/Services/alCreateProcedureCA';
-import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
-import { ALExtractToProcedureCA } from './extension/Services/alExtractToProcedureCA';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
+import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Services/alCreateHandlerFunctionDefinitionProvider';
+import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/alCreateHandlerFunctionReferenceProvider';
+import { ALCreateProcedureCodeAction } from './extension/Services/alCreateProcedureCodeAction';
+import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
+import { ALExtractToProcedureCodeAction } from './extension/Services/alExtractToProcedureCodeAction';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -14,17 +14,17 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCA(), {
-			providedCodeActionKinds: ALCreateProcedureCA.providedCodeActionKinds
+		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCodeAction(), {
+			providedCodeActionKinds: ALCreateProcedureCodeAction.providedCodeActionKinds
 		})
 	);
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALExtractToProcedureCA(), {
-			providedCodeActionKinds: ALExtractToProcedureCA.providedCodeActionKinds
+		vscode.languages.registerCodeActionsProvider('al', new ALExtractToProcedureCodeAction(), {
+			providedCodeActionKinds: ALExtractToProcedureCodeAction.providedCodeActionKinds
 		})
 	);
 	context.subscriptions.push(
-		vscode.commands.registerCommand('alcodeactions.renameMethod', () => ALExtractToProcedureCA.renameMethod())
+		vscode.commands.registerCommand(CreateProcedureCommands.renameMethodCommand, () => ALExtractToProcedureCodeAction.renameMethod())
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(CreateProcedureCommands.createProcedureCommand,

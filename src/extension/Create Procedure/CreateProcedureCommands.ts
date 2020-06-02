@@ -21,20 +21,10 @@ import { CreateProcedureAL0499SendNotificationHandler } from './Procedure Creato
 import { CreateProcedureAL0499SessionSettingsHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SessionSettingsHandler';
 import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499StrMenuHandler';
 export class CreateProcedureCommands {
-    // public static createConfirmHandler: string = 'alcodeactions.createConfirmHandler';
-    // public static createFilterPageHandler: string = 'alcodeactions.createFilterPageHandler';
-    // public static createHyperlinkHandler: string = 'alcodeactions.createHyperlinkHandler';
-    // public static createMessageHandler: string = 'alcodeactions.createMessageHandler';
-    // public static createModalPageHandler: string = 'alcodeactions.createModalPageHandler';
-    // public static createPageHandler: string = 'alcodeactions.createPageHandler';
-    // public static createRecallNotificationHandler: string = 'alcodeactions.createRecallNotificationHandler';
-    // public static createReportHandler: string = 'alcodeactions.createReportHandler';
-    // public static requestPageHandlerCommand: string = 'alcodeactions.createRequestPageHandler';
-    // public static createSendNotificationHandler: string = 'alcodeactions.createSendNotificationHandler';
-    // public static createSessionSettingsHandler: string = 'alcodeactions.createSessionSettingsHandler';
-    // public static createStrMenuHandler: string = 'alcodeactions.createStrMenuHandler';
+    
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
     public static createHandlerCommand: string = 'alcodeactions.createHandler';
+    public static renameMethodCommand: string = 'alcodeactions.renameMethod';
 
     static async addHandler(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<any> {
         let supportedHandlers: string[] = [];

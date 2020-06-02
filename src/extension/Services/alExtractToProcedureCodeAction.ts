@@ -8,7 +8,6 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALSourceCodeHandler } from '../alSourceCodeHandler';
 import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { DocumentUtils } from '../documentUtils';
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
@@ -20,7 +19,7 @@ import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
 
-export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
+export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider {
     static async renameMethod(): Promise<any> {
         let editor = vscode.window.activeTextEditor;
         if (editor) {

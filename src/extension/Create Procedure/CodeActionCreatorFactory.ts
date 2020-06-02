@@ -6,7 +6,7 @@ import { CodeActionCreatorAL0118 } from './Code Action Creator/CodeActionCreator
 import { CodeActionCreatorAL0132 } from './Code Action Creator/CodeActionCreatorAL0132';
 import { CodeActionCreatorAL0499 } from './Code Action Creator/CodeActionCreatorAL0499';
 
-export class CreateProcedureFactory {
+export class CodeActionCreatorFactory {
     public static getInstances(document: vscode.TextDocument, range: vscode.Range): ICodeActionCreator[] {
         let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPosition(document, range);
         if (diagnostics.length === 0) {

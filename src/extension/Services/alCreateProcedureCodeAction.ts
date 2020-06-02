@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { CreateProcedureFactory } from '../Create Procedure/CreateProcedureFactory';
+import { CodeActionCreatorFactory } from '../Create Procedure/CodeActionCreatorFactory';
 import { ICodeActionCreator } from '../Create Procedure/Code Action Creator/ICodeActionCreator';
 
-export class ALCreateProcedureCA implements vscode.CodeActionProvider {
+export class ALCreateProcedureCodeAction implements vscode.CodeActionProvider {
 
     public static readonly providedCodeActionKinds = [
         vscode.CodeActionKind.QuickFix
@@ -10,7 +10,7 @@ export class ALCreateProcedureCA implements vscode.CodeActionProvider {
 
 
     public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        let codeActionCreators: ICodeActionCreator[] = CreateProcedureFactory.getInstances(document, range);
+        let codeActionCreators: ICodeActionCreator[] = CodeActionCreatorFactory.getInstances(document, range);
         let codeActions: vscode.CodeAction[] = [];
         for (let i = 0; i < codeActionCreators.length; i++) {
             if (!await codeActionCreators[i].considerLine()) {
