@@ -7,6 +7,7 @@ import { ALExtractToProcedureCA } from './extension/Services/alExtractToProcedur
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
+import { ALDiagnostics } from './extension/Services/alDiagnostics';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -46,6 +47,18 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
 	);
+	//active document changed - get Diagnostics of current file
+	
+	let diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('dfe');
+	vscode.window.onDidChangeActiveTextEditor(editor => {
+		if (!editor) {
+			diagnosticCollection.clear();
+			return;
+		}
+		let diagnostics: vscode.Diagnostic[] = ALDiagnostics.getDiagnosticsOfFile(editor);
+		diagnosticCollection.clear();
+		diagnosticCollection.set(editor.document.uri, diagnostics);
+	});
 }
 
 
