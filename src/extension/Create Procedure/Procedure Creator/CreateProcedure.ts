@@ -9,6 +9,7 @@ import { ReturnTypeAnalyzer } from '../../Extract Procedure/returnTypeAnalyzer';
 import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
 
 export class CreateProcedure {
+    private lineOfBodyStart: number | undefined;
     public static async createProcedure(procedureCreator: ICreateProcedure): Promise<ALProcedure> {
         await procedureCreator.initialize();
         let procedure: ALProcedure = new ALProcedure(
@@ -19,6 +20,7 @@ export class CreateProcedure {
             procedureCreator.isLocal(),
             procedureCreator.getMemberAttributes(),
             procedureCreator.getJumpToCreatedProcedure(),
+            procedureCreator.containsSnippet(),
             await procedureCreator.getObject()
         );
         let body = procedureCreator.getBody();
@@ -28,7 +30,7 @@ export class CreateProcedure {
         return procedure;
     }
 
-    public static createProcedureDefinition(procedure: ALProcedure, withIndent: boolean): string {
+    public createProcedureDefinition(procedure: ALProcedure, withIndent: boolean): string {
         withIndent = true;
         let returnType = procedure.getReturnTypeAsString();
         let returnString = "";
@@ -54,12 +56,13 @@ export class CreateProcedure {
         }
         procedureDefinition += (withIndent ? "\t" : "") + "begin\r\n";
         if (!this.skipBody(procedure)) {
+            this.lineOfBodyStart = procedureDefinition.match(/\r\n/g)?.length as number;
             procedureDefinition += (withIndent ? "\t" : "") + "\t" + procedure.getBody() + "\r\n";
         }
         procedureDefinition += (withIndent ? "\t" : "") + "end;";
         return procedureDefinition;
     }
-    private static skipBody(procedure: ALProcedure): boolean {
+    private skipBody(procedure: ALProcedure): boolean {
         let attributesWithoutBody: string[] = [
             'integrationevent',
             'businessevent'
@@ -99,9 +102,12 @@ export class CreateProcedure {
         return procedureCall;
     }
 
-
-    public static addLineBreaksToProcedureCall(document: vscode.TextDocument, position: vscode.Position, textToInsert: string) {
+    public addLineBreaksToProcedureCall(document: vscode.TextDocument, position: vscode.Position, textToInsert: string) {
+        this.lineOfBodyStart = this.lineOfBodyStart ? this.lineOfBodyStart + 1 : undefined;
         textToInsert = "\r\n" + textToInsert + "\r\n";
         return textToInsert;
+    }
+    public getLineOfBodyStart(): number | undefined {
+        return this.lineOfBodyStart;
     }
 }

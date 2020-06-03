@@ -14,4 +14,8 @@ export class CreateProcedureAL0499MessageHandler extends CreateProcedureAL0499 {
             new ALVariable('Message', this.procedureName, false, 'Text[1024]', true)
         ];
     }
+    containsSnippet(): boolean {
+        return false;
+    }
+    
 }

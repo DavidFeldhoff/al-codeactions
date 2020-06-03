@@ -1,12 +1,13 @@
+import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
 import * as vscode from 'vscode';
-import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Code Actions/alCreateHandlerFunctionDefinitionProvider';
-import { ALCreateHandlerFunctionReferenceProvider } from './extension/Code Actions/alCreateHandlerFunctionReferenceProvider';
-import { ALCreateProcedureCA } from './extension/Code Actions/alCreateProcedureCA';
-import { ALCreateTriggerParameterReferenceProvider } from './extension/Code Actions/alCreateTriggerParameterReferenceProvider';
-import { ALExtractToProcedureCA } from './extension/Code Actions/alExtractToProcedureCA';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
+import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Services/alCreateHandlerFunctionDefinitionProvider';
+import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/alCreateHandlerFunctionReferenceProvider';
+import { ALCreateProcedureCodeAction } from './extension/Services/alCreateProcedureCodeAction';
+import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
+import { ALExtractToProcedureCodeAction } from './extension/Services/alExtractToProcedureCodeAction';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -14,17 +15,17 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCA(), {
-			providedCodeActionKinds: ALCreateProcedureCA.providedCodeActionKinds
+		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCodeAction(), {
+			providedCodeActionKinds: ALCreateProcedureCodeAction.providedCodeActionKinds
 		})
 	);
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALExtractToProcedureCA(), {
-			providedCodeActionKinds: ALExtractToProcedureCA.providedCodeActionKinds
+		vscode.languages.registerCodeActionsProvider('al', new ALExtractToProcedureCodeAction(), {
+			providedCodeActionKinds: ALExtractToProcedureCodeAction.providedCodeActionKinds
 		})
 	);
 	context.subscriptions.push(
-		vscode.commands.registerCommand('alcodeactions.renameMethod', () => ALExtractToProcedureCA.renameMethod())
+		vscode.commands.registerCommand(CreateProcedureCommands.renameMethodCommand, () => ALExtractToProcedureCodeAction.renameMethod())
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
@@ -46,6 +47,12 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
 	);
+
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.fixwithusages', () => ALCreateFixWithUsageCommand.fixWithUsages())
+	);
+	vscode.workspace.onDidChangeTextDocument(e => ALCreateFixWithUsageCommand.onAfterCodeActionExecuted(e));
 }
 
 

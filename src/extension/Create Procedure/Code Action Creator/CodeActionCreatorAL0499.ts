@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { DocumentUtils } from '../../documentUtils';
+import { DocumentUtils } from '../../Utils/documentUtils';
 import { CreateProcedureCommands } from '../CreateProcedureCommands';
 import { ICodeActionCreator } from "./ICodeActionCreator";
 

@@ -4,7 +4,7 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { OwnConsole } from '../console';
-import { DocumentUtils } from '../documentUtils';
+import { DocumentUtils } from '../Utils/documentUtils';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 export class RangeAnalyzer {
     private document: vscode.TextDocument;

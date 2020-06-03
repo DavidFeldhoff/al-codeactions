@@ -14,4 +14,5 @@ export interface ICreateProcedure {
     getBody(): string | undefined;
     getMemberAttributes(): string[];
     getJumpToCreatedProcedure(): boolean;
+    containsSnippet(): boolean;
 }

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { CreateProcedure } from './Procedure Creator/CreateProcedure';
 import { CreateProcedureAL0499RequestPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499RequestPageHandler';
 import { ALProcedure } from '../Entities/alProcedure';
-import { ALSourceCodeHandler } from '../alSourceCodeHandler';
+import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { insidersDownloadDirMetadata } from 'vscode-test/out/util';
@@ -21,20 +21,10 @@ import { CreateProcedureAL0499SendNotificationHandler } from './Procedure Creato
 import { CreateProcedureAL0499SessionSettingsHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SessionSettingsHandler';
 import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499StrMenuHandler';
 export class CreateProcedureCommands {
-    // public static createConfirmHandler: string = 'alcodeactions.createConfirmHandler';
-    // public static createFilterPageHandler: string = 'alcodeactions.createFilterPageHandler';
-    // public static createHyperlinkHandler: string = 'alcodeactions.createHyperlinkHandler';
-    // public static createMessageHandler: string = 'alcodeactions.createMessageHandler';
-    // public static createModalPageHandler: string = 'alcodeactions.createModalPageHandler';
-    // public static createPageHandler: string = 'alcodeactions.createPageHandler';
-    // public static createRecallNotificationHandler: string = 'alcodeactions.createRecallNotificationHandler';
-    // public static createReportHandler: string = 'alcodeactions.createReportHandler';
-    // public static requestPageHandlerCommand: string = 'alcodeactions.createRequestPageHandler';
-    // public static createSendNotificationHandler: string = 'alcodeactions.createSendNotificationHandler';
-    // public static createSessionSettingsHandler: string = 'alcodeactions.createSessionSettingsHandler';
-    // public static createStrMenuHandler: string = 'alcodeactions.createStrMenuHandler';
+
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
     public static createHandlerCommand: string = 'alcodeactions.createHandler';
+    public static renameMethodCommand: string = 'alcodeactions.renameMethod';
 
     static async addHandler(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<any> {
         let supportedHandlers: string[] = [];
@@ -84,23 +74,40 @@ export class CreateProcedureCommands {
         let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
 
-        if (procedure.getJumpToCreatedPosition()) {
-            let textToInsert = CreateProcedure.createProcedureDefinition(procedure, false);
-            textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+        let createProcedure: CreateProcedure = new CreateProcedure();
+        if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
+            let textToInsert = createProcedure.createProcedureDefinition(procedure, false);
+            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
             let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
-            let editor: vscode.TextEditor;
-            if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
-                editor = vscode.window.activeTextEditor;
-            } else {
-                editor = await vscode.window.showTextDocument(document.uri);
-            }
+            let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);
             editor.insertSnippet(snippetString, position);
+
         } else {
-            let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
-            textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+            let textToInsert = createProcedure.createProcedureDefinition(procedure, true);
+            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
             let workspaceEdit = new vscode.WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
             await vscode.workspace.applyEdit(workspaceEdit);
+            if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
+                let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
+                if (lineOfBodyStart) {
+                    let lineToPlaceCursor: number = lineOfBodyStart + position.line;
+                    let positionToPlaceCursor: vscode.Position = new vscode.Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
+                    let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);
+                    editor.selection = new vscode.Selection(positionToPlaceCursor, positionToPlaceCursor);
+                }
+            }
         }
+    }
+
+    private static async getEditor(document: vscode.TextDocument) {
+        let editor: vscode.TextEditor;
+        if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
+            editor = vscode.window.activeTextEditor;
+        }
+        else {
+            editor = await vscode.window.showTextDocument(document.uri);
+        }
+        return editor;
     }
 }

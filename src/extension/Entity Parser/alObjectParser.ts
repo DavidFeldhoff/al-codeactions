@@ -4,7 +4,7 @@ import { ALObject } from '../Entities/alObject';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { DocumentUtils } from '../documentUtils';
+import { DocumentUtils } from '../Utils/documentUtils';
 
 export class ALObjectParser {
     private static objectKinds: string[] = [
