@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
-import { ALVariable } from './Entities/alVariable';
-import { ALVariableParser } from './Entity Parser/alVariableParser';
-import { ALCodeOutlineExtension } from './devToolsExtensionContext';
-import { SyntaxTree } from './AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
-import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
+import { ALVariable } from '../Entities/alVariable';
+import { ALVariableParser } from '../Entity Parser/alVariableParser';
+import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 
 export class ALVariableHandler {
     static async getRecAsALVariable(document: vscode.TextDocument, variableRange: vscode.Range): Promise<ALVariable | undefined> {

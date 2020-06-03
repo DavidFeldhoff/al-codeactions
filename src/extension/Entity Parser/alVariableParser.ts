@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ALVariable } from "../Entities/alVariable";
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { DocumentUtils } from '../documentUtils';
+import { DocumentUtils } from '../Utils/documentUtils';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';

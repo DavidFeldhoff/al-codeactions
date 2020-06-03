@@ -17,4 +17,7 @@ export class CreateProcedureAL0499SessionSettingsHandler extends CreateProcedure
     async getReturnType(): Promise<string | undefined> {
         return 'Boolean';
     }
+    containsSnippet(): boolean {
+        return false;
+    }
 }

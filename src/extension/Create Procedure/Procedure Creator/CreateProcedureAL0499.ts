@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SyntaxTreeExt } from '../../AL Code Outline Ext/syntaxTreeExt';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
-import { DocumentUtils } from '../../documentUtils';
+import { DocumentUtils } from '../../Utils/documentUtils';
 import { ALObject } from '../../Entities/alObject';
 import { ALVariable } from '../../Entities/alVariable';
 import { ALObjectParser } from '../../Entity Parser/alObjectParser';
@@ -51,5 +51,8 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     }
     getJumpToCreatedProcedure(): boolean {
         return true;
+    }
+    containsSnippet(): boolean {
+        throw new Error("Method not implemented.");
     }
 }

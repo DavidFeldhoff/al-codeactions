@@ -14,7 +14,8 @@ export class ALProcedure {
     public ObjectOfProcedure: ALObject;
     public memberAttributes: string[];
     private jumpToCreatedPosition: boolean;
-    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], jumpToCreatedPosition: boolean, ALObject: ALObject) {
+    private containsSnippet: boolean;
+    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], jumpToCreatedPosition: boolean, containsSnippet: boolean, ALObject: ALObject) {
         this.name = name;
         this.parameters = parameters;
         this.variables = variables;
@@ -22,6 +23,7 @@ export class ALProcedure {
         this.isLocal = isLocal;
         this.memberAttributes = memberAttributes;
         this.jumpToCreatedPosition = jumpToCreatedPosition;
+        this.containsSnippet = containsSnippet;
         this.ObjectOfProcedure = ALObject;
     }
     public getMemberAttributes(): string[] {
@@ -49,10 +51,13 @@ export class ALProcedure {
         if (this.body) {
             return this.body;
         } else {
-            return "Error('Procedure not implemented.');";
+            return "Error('Procedure " + this.name + " not implemented.');";
         }
     }
     public getJumpToCreatedPosition(): boolean {
         return this.jumpToCreatedPosition;
+    }
+    public getContainsSnippet(): boolean {
+        return this.containsSnippet;
     }
 }

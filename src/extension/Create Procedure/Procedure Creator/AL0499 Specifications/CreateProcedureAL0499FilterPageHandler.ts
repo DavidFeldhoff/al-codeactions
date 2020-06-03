@@ -17,4 +17,8 @@ export class CreateProcedureAL0499FilterPageHandler extends CreateProcedureAL049
     async getReturnType(): Promise<string | undefined> {
         return 'Boolean';
     }
+    containsSnippet(): boolean {
+        return false;
+    }
+    
 }

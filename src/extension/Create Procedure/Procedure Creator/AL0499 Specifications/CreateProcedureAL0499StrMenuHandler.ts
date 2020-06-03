@@ -16,4 +16,7 @@ export class CreateProcedureAL0499StrMenuHandler extends CreateProcedureAL0499 {
             new ALVariable('Instruction', this.procedureName, false, 'Text[1024]', true)
         ];
     }
+    containsSnippet(): boolean {
+        return false;
+    }
 }

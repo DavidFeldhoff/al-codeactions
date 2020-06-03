@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { SyntaxTree } from './AL Code Outline/syntaxTree';
-import { FullSyntaxTreeNodeKind } from './AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from './AL Code Outline/alFullSyntaxTreeNode';
-import { TextRangeExt } from './AL Code Outline Ext/textRangeExt';
-import { OwnConsole } from './console';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { OwnConsole } from '../console';
 import { DocumentUtils } from './documentUtils';
-import { ALFullSyntaxTreeNodeExt } from './AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 
 export class TypeDetective {
     private document: vscode.TextDocument;

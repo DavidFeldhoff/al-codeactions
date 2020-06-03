@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { DiagnosticAnalzyer } from './diagnosticAnalyzer';
+import { DiagnosticAnalzyer } from '../Utils/diagnosticAnalyzer';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ICodeActionCreator } from './Code Action Creator/ICodeActionCreator';
 import { CodeActionCreatorAL0118 } from './Code Action Creator/CodeActionCreatorAL0118';
 import { CodeActionCreatorAL0132 } from './Code Action Creator/CodeActionCreatorAL0132';
 import { CodeActionCreatorAL0499 } from './Code Action Creator/CodeActionCreatorAL0499';
 
-export class CreateProcedureFactory {
+export class CodeActionCreatorFactory {
     public static getInstances(document: vscode.TextDocument, range: vscode.Range): ICodeActionCreator[] {
-        let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPosition(document, range);
+        let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPositionToCreateProcedure(document, range);
         if (diagnostics.length === 0) {
             return [];
         }

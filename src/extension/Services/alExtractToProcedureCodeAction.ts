@@ -1,3 +1,4 @@
+import { CreateProcedure } from './../Create Procedure/Procedure Creator/CreateProcedure';
 import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
@@ -6,10 +7,8 @@ import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALSourceCodeHandler } from '../alSourceCodeHandler';
-import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { DocumentUtils } from '../documentUtils';
+import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
+import { DocumentUtils } from '../Utils/documentUtils';
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALVariable } from '../Entities/alVariable';
@@ -20,7 +19,7 @@ import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
 
-export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
+export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider {
     static async renameMethod(): Promise<any> {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
@@ -152,7 +151,7 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
             throw new Error('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
-        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], false, alObject);
+        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], false, false, alObject);
         let selectedText: string = document.getText(rangeExpanded).trim();
         if (returnType && returnTypeAnalyzer.getAddVariableToExtractedRange()) {
             let returnVariableName = 'returnValue';
@@ -365,8 +364,9 @@ export class ALExtractToProcedureCA implements vscode.CodeActionProvider {
         fix.edit = new vscode.WorkspaceEdit();
 
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line, procedure);
-        let textToInsert = CreateProcedure.createProcedureDefinition(procedure, true);
-        textToInsert = CreateProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+        let createProcedure: CreateProcedure = new CreateProcedure();
+        let textToInsert = createProcedure.createProcedureDefinition(procedure, true);
+        textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
         fix.edit.insert(document.uri, position, textToInsert);
 
         fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);

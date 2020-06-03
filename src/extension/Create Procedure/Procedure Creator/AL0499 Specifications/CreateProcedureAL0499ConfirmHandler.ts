@@ -19,4 +19,7 @@ export class CreateProcedureAL0499ConfirmHandler extends CreateProcedureAL0499 {
             new ALVariable('Reply', this.procedureName, true, 'Boolean', true)
         ];
     }
+    containsSnippet(): boolean {
+        return false;
+    }
 }
