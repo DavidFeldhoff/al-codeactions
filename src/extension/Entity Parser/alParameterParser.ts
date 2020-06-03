@@ -7,8 +7,8 @@ import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTree
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { TypeDetective } from '../typeDetective';
-import { DocumentUtils } from '../documentUtils';
+import { TypeDetective } from '../Utils/typeDetective';
+import { DocumentUtils } from '../Utils/documentUtils';
 
 export class ALParameterParser {
     public static parseALVariableArrayToParameterDeclarationString(variableArray: ALVariable[]): string {

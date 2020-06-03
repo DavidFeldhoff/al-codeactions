@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DiagnosticAnalzyer } from './diagnosticAnalyzer';
+import { DiagnosticAnalzyer } from '../Utils/diagnosticAnalyzer';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { ICodeActionCreator } from './Code Action Creator/ICodeActionCreator';
 import { CodeActionCreatorAL0118 } from './Code Action Creator/CodeActionCreatorAL0118';

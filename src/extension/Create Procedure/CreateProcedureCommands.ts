@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { CreateProcedure } from './Procedure Creator/CreateProcedure';
 import { CreateProcedureAL0499RequestPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499RequestPageHandler';
 import { ALProcedure } from '../Entities/alProcedure';
-import { ALSourceCodeHandler } from '../alSourceCodeHandler';
+import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { insidersDownloadDirMetadata } from 'vscode-test/out/util';

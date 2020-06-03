@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
+import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
 import { isUndefined } from 'util';
 
 export class DiagnosticAnalzyer {

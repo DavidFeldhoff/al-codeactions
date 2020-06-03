@@ -8,8 +8,8 @@ import { FullSyntaxTreeNodeKind } from "../../AL Code Outline Ext/fullSyntaxTree
 import { ALFullSyntaxTreeNodeExt } from "../../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { ALParameterParser } from "../../Entity Parser/alParameterParser";
 import { TextRangeExt } from "../../AL Code Outline Ext/textRangeExt";
-import { DocumentUtils } from "../../documentUtils";
-import { TypeDetective } from "../../typeDetective";
+import { DocumentUtils } from "../../Utils/documentUtils";
+import { TypeDetective } from "../../Utils/typeDetective";
 import { SyntaxTreeExt } from "../../AL Code Outline Ext/syntaxTreeExt";
 import { ALObjectParser } from "../../Entity Parser/alObjectParser";
 import { OwnConsole } from "../../console";

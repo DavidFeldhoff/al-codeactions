@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ICodeActionCreator } from "./ICodeActionCreator";
 import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { ALSourceCodeHandler } from "../../alSourceCodeHandler";
+import { ALSourceCodeHandler } from "../../Utils/alSourceCodeHandler";
 import { CreateProcedureAL0118 } from '../Procedure Creator/CreateProcedureAL0118';
 import { CreateProcedure } from '../Procedure Creator/CreateProcedure';
 import { ALProcedure } from '../../Entities/alProcedure';

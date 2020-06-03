@@ -5,7 +5,7 @@ import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
-import { DocumentUtils } from "../documentUtils";
+import { DocumentUtils } from "../Utils/documentUtils";
 
 export class ALCreateTriggerParameterReferenceProvider implements vscode.ReferenceProvider {
 

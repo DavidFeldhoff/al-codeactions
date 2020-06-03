@@ -3,7 +3,7 @@ import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { downloadAndUnzipVSCode } from "vscode-test";
 import { FullSyntaxTreeNodeKind } from './fullSyntaxTreeNodeKind';
 import { TextRangeExt } from './textRangeExt';
-import { DocumentUtils } from '../documentUtils';
+import { DocumentUtils } from '../Utils/documentUtils';
 
 export class ALFullSyntaxTreeNodeExt {
     public static collectChildNodes(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean, outList: ALFullSyntaxTreeNode[]) {
