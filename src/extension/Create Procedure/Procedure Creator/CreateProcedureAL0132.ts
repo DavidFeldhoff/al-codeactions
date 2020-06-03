@@ -82,4 +82,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     getJumpToCreatedProcedure(): boolean {
         return true;
     }
+    containsSnippet(): boolean {
+        return false;
+    }
 }

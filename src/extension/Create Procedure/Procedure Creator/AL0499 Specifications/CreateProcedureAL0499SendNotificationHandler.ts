@@ -17,4 +17,7 @@ export class CreateProcedureAL0499SendNotificationHandler extends CreateProcedur
     async getReturnType(): Promise<string | undefined> {
         return 'Boolean';
     }
+    containsSnippet(): boolean {
+        return false;
+    }
 }

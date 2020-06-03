@@ -52,4 +52,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     getJumpToCreatedProcedure(): boolean {
         return true;
     }
+    containsSnippet(): boolean {
+        throw new Error("Method not implemented.");
+    }
 }

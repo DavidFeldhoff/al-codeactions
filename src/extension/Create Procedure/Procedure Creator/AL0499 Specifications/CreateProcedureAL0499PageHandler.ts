@@ -14,4 +14,7 @@ export class CreateProcedureAL0499PageHandler extends CreateProcedureAL0499 {
             new ALVariable('${0:PageToHandle}', this.procedureName, true, 'TestPage ${0:PageToHandle}', false)
         ];
     }
+    containsSnippet(): boolean {
+        return true;
+    }
 }
