@@ -16,6 +16,19 @@ export class DiagnosticAnalzyer {
 
         return diagnostics;
     }
+    getAllDiagnosticsOfExplicitWith(): [vscode.Uri, vscode.Diagnostic[]][] {
+        let allDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics();
+        let filteredDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [];
+        for (let i = 0; i < allDiagnostics.length; i++) {
+            let currentUri: vscode.Uri = allDiagnostics[i][0];
+            let diagnosticsOfUri: vscode.Diagnostic[] = allDiagnostics[i][1];
+            let filteredDiagnosticsOfUri: vscode.Diagnostic[] = diagnosticsOfUri.filter(d => d.code && ['AL0606', 'AL0604'].includes(d.code.toString()));
+            if (filteredDiagnosticsOfUri.length > 0) {
+                filteredDiagnostics.push([currentUri, filteredDiagnosticsOfUri]);
+            }
+        }
+        return filteredDiagnostics;
+    }
     private checkDiagnosticsLanguage(d: vscode.Diagnostic): boolean {
         if (isUndefined(d.source)) {
             return false;

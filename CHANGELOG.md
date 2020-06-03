@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.11
+
+- New Command: Remove all With-Usages (more info in the readme)
+- Improve the position of the cursor if a procedure was created. The cursor is now placed directly in front of the first body line.
+
 ## 0.2.10
 
 - fixed bug which won't led you create procedures.

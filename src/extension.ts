@@ -1,3 +1,4 @@
+import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
 import * as vscode from 'vscode';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
@@ -46,6 +47,12 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
 	);
+
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.fixwithusages', () => ALCreateFixWithUsageCommand.fixWithUsages())
+	);
+	vscode.workspace.onDidChangeTextDocument(e => ALCreateFixWithUsageCommand.onAfterCodeActionExecuted(e));
 }
 
 
