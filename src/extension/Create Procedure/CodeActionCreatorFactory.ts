@@ -8,7 +8,7 @@ import { CodeActionCreatorAL0499 } from './Code Action Creator/CodeActionCreator
 
 export class CodeActionCreatorFactory {
     public static getInstances(document: vscode.TextDocument, range: vscode.Range): ICodeActionCreator[] {
-        let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPosition(document, range);
+        let diagnostics: vscode.Diagnostic[] = new DiagnosticAnalzyer().getValidDiagnosticOfCurrentPositionToCreateProcedure(document, range);
         if (diagnostics.length === 0) {
             return [];
         }

@@ -6,7 +6,7 @@ export class DiagnosticAnalzyer {
     public constructor() {
 
     }
-    public getValidDiagnosticOfCurrentPosition(document: vscode.TextDocument, range: vscode.Range): vscode.Diagnostic[] {
+    public getValidDiagnosticOfCurrentPositionToCreateProcedure(document: vscode.TextDocument, range: vscode.Range): vscode.Diagnostic[] {
         let diagnostics = vscode.languages.getDiagnostics(document.uri).filter(d => {
             let isAL = this.checkDiagnosticsLanguage(d);
             let samePos = this.checkDiagnosticsPosition(d, range);
