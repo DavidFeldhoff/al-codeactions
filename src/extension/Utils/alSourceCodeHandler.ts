@@ -50,8 +50,7 @@ export class ALSourceCodeHandler {
             AZSymbolKind.EventSubscriberDeclaration,
             AZSymbolKind.EventDeclaration,
             AZSymbolKind.BusinessEventDeclaration,
-            AZSymbolKind.IntegrationEventDeclaration,
-            AZSymbolKind.GlobalVarSection
+            AZSymbolKind.IntegrationEventDeclaration
         ]);
         AZSymbolInformationExt.collectChildNodes(objectSymbol, kinds, false, allMethods);
         allMethods.sort((methodA, methodB) => {
