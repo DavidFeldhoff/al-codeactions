@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.13
+
+- Create Procedure Positioning: Align the best practice of the al file structure, so that newly created procedures are now placed behind the global var section if there's no other anchor (like another local/global/test-procedure).
+
 ## 0.2.12
 
 - Disabled the new command "Remove all With-Usages" again. I'm working on a better solution for that.
