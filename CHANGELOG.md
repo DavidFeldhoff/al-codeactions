@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.12
+
+- Disabled the new command "Remove all With-Usages" again. I'm working on a better solution for that.
+
 ## 0.2.11
 
 - New Command: Remove all With-Usages (more info in the readme)
