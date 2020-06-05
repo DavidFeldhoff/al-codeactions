@@ -2,7 +2,7 @@
 	"name": "al-codeactions",
 	"displayName": "AL CodeActions",
 	"description": "Adds codeactions to the AL language",
-	"version": "0.2.11",
+	"version": "0.2.12",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -35,8 +35,7 @@
 	"activationEvents": [
 		"onLanguage:al"
 	],
-	"contributes": {
-	},
+	"contributes": {},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
