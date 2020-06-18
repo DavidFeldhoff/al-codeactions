@@ -16,8 +16,11 @@ export class SyntaxTreeExt {
             FullSyntaxTreeNodeKind.getPageExtensionObject(),
             FullSyntaxTreeNodeKind.getCodeunitObject(),
             FullSyntaxTreeNodeKind.getReportObject(),
-            FullSyntaxTreeNodeKind.getXmlPortObject()
-        ]
+            FullSyntaxTreeNodeKind.getXmlPortObject(),
+            FullSyntaxTreeNodeKind.getEnumType(),
+            FullSyntaxTreeNodeKind.getEnumExtensionType(),
+            FullSyntaxTreeNodeKind.getInterface()
+        ];
         let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, kinds);
         return objectTreeNode;
     }

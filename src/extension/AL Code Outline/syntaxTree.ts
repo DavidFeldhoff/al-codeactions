@@ -21,6 +21,12 @@ export class SyntaxTree {
         }
         return this.instances.get(document) as SyntaxTree;
     }
+    public static clearInstance(document: vscode.TextDocument) {
+        let instance: SyntaxTree | undefined = this.instances.get(document);
+        if (instance) {
+            this.instances.delete(document);
+        }
+    }
     private static async getFullSyntaxTree(document: vscode.TextDocument): Promise<ToolsGetFullSyntaxTreeResponse | undefined> {
         let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         // let newSymbolPath: number[] = [];

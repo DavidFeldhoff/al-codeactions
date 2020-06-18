@@ -49,9 +49,9 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 
-	// context.subscriptions.push(
-	// 	vscode.commands.registerCommand('alcodeactions.fixwithusages', () => ALCreateFixWithUsageCommand.fixWithUsages())
-	// );
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.fixwithusages', () => ALCreateFixWithUsageCommand.fixWithUsages())
+	);
 	// vscode.workspace.onDidChangeTextDocument(e => ALCreateFixWithUsageCommand.onAfterCodeActionExecuted(e));
 }
 

@@ -33,9 +33,18 @@
 	},
 	"main": "./out/extension.js",
 	"activationEvents": [
+		"onCommand:alcodeactions.fixwithusages",
 		"onLanguage:al"
 	],
-	"contributes": {},
+	"contributes": {
+		"commands": [
+			{
+				"category": "AL Code Actions",
+				"command": "alcodeactions.fixwithusages",
+				"title": "Remove all With-Usages"
+			}
+		]
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",

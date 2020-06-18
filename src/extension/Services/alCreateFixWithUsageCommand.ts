@@ -1,50 +1,41 @@
+import { WithDocumentAL0604Fixer } from './../FixWithUsage/WithDocumentAL0604Fixer';
 import { DiagnosticAnalzyer } from './../Utils/diagnosticAnalyzer';
 import * as vscode from 'vscode';
+import { WithDocumentAL0606Fixer } from '../FixWithUsage/WithDocumentAL0606Fixer';
+import { WithDocumentFixer } from '../FixWithUsage/WithDocumentFixer';
 
 export class ALCreateFixWithUsageCommand {
-    public static urisToChange: vscode.Uri[] = [];
     public static async fixWithUsages() {
-        //clear all uris to change
-        this.urisToChange = [];
+        this.fixImplicitWithUsages();
 
-        let allDiagnosticsOfWith: [vscode.Uri, vscode.Diagnostic[]][] = new DiagnosticAnalzyer().getAllDiagnosticsOfExplicitWith();
-        if (allDiagnosticsOfWith.length === 0) {
-            vscode.window.showInformationMessage('No warnings of type AL0606 and AL0604 found.');
+        this.fixExplicitWithUsages();
+    }
+    
+    static async fixImplicitWithUsages() {
+        let allDocumentsWithDiagnosticOfAL0604: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics().filter(tupel => tupel[1].some(diagnostic => diagnostic.code && diagnostic.code === 'AL0604'));
+        if (allDocumentsWithDiagnosticOfAL0604.length === 0) {
+            vscode.window.showInformationMessage('No warnings of type AL0604 found.');
             return;
         }
-        let dirtyFilesExist: boolean = false;
-        for (let i = 0; i < allDiagnosticsOfWith.length; i++) {
-            let currentUri: vscode.Uri = allDiagnosticsOfWith[i][0];
-            let diagnosticsOfUri: vscode.Diagnostic[] = allDiagnosticsOfWith[i][1];
-
-            for (let a = 0; a < diagnosticsOfUri.length; a++) {
-                let currentDoc: vscode.TextDocument | undefined = vscode.workspace.textDocuments.find(td => td.uri === currentUri);
-                if (!currentDoc) {
-                    currentDoc = await vscode.workspace.openTextDocument(currentUri);
-                }
-                let codeActions: vscode.CodeAction[] | undefined = await vscode.commands.executeCommand('vscode.executeCodeActionProvider', currentUri, diagnosticsOfUri[a].range);
-                if (codeActions) {
-                    let codeActionToExecute: vscode.CodeAction | undefined = codeActions.find(c => c.title === "Convert the 'with' statement to fully qualified statements." || c.title === "Qualify with 'Rec' -> All occurrences in this object.");
-                    if (codeActionToExecute && codeActionToExecute.command && codeActionToExecute.command.arguments) {
-                        if (currentDoc.isDirty) {
-                            dirtyFilesExist = true;
-                        } else {
-                            this.urisToChange.push(currentDoc.uri);
-                            vscode.commands.executeCommand(codeActionToExecute.command.command, codeActionToExecute.command.arguments[0]);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        if (dirtyFilesExist) {
-            vscode.window.showWarningMessage('A few files had unsaved changes. These were not updated.');
-        }
+        let withDocumentAL0604Fixer: WithDocumentAL0604Fixer = new WithDocumentAL0604Fixer();
+        ALCreateFixWithUsageCommand.openDocuments(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
+        await withDocumentAL0604Fixer.fixWithUsagesOfAllDocuments();
     }
-    static onAfterCodeActionExecuted(e: vscode.TextDocumentChangeEvent) {
-        if (this.urisToChange.includes(e.document.uri)) {
-            e.document.save();
-            ALCreateFixWithUsageCommand.urisToChange = ALCreateFixWithUsageCommand.urisToChange.filter(uri => uri !== e.document.uri);
+
+    static async fixExplicitWithUsages() {
+        let allDocumentsWithDiagnosticOfAL0606: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics().filter(tupel => tupel[1].some(diagnostic => diagnostic.code && diagnostic.code === 'AL0606'));
+        if (allDocumentsWithDiagnosticOfAL0606.length === 0) {
+            vscode.window.showInformationMessage('No warnings of type AL0606 found.');
+            return;
+        }
+        let withDocumentAL0606Fixer: WithDocumentAL0606Fixer = new WithDocumentAL0606Fixer();
+        ALCreateFixWithUsageCommand.openDocuments(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
+        await withDocumentAL0606Fixer.fixWithUsagesOfAllDocuments();
+    }
+    
+    private static openDocuments(allDocumentsWithSpecifiedDiagnostics: [vscode.Uri, vscode.Diagnostic[]][], withDocumentFixer: WithDocumentFixer) {
+        for (let i = 0; i < allDocumentsWithSpecifiedDiagnostics.length; i++) {
+            withDocumentFixer.addDocument(allDocumentsWithSpecifiedDiagnostics[i][0]);
         }
     }
 }
