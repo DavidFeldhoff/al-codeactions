@@ -8,6 +8,7 @@ import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
 import { ALDiagnostics } from './extension/Services/alDiagnostics';
+import { RefactorPageRun } from './extension/Services/refactorPageRun';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -24,6 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
 			providedCodeActionKinds: ALExtractToProcedureCA.providedCodeActionKinds
 		})
 	);
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider('al', new RefactorPageRun(), {
+			providedCodeActionKinds: ALExtractToProcedureCA.providedCodeActionKinds
+		})
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('alcodeactions.renameMethod', () => ALExtractToProcedureCA.renameMethod())
 	);
@@ -48,16 +55,10 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
 	);
 	//active document changed - get Diagnostics of current file
-	
 	let diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('dfe');
-	vscode.window.onDidChangeActiveTextEditor(editor => {
-		if (!editor) {
-			diagnosticCollection.clear();
-			return;
-		}
-		let diagnostics: vscode.Diagnostic[] = ALDiagnostics.getDiagnosticsOfFile(editor);
-		diagnosticCollection.clear();
-		diagnosticCollection.set(editor.document.uri, diagnostics);
+	vscode.workspace.onDidChangeTextDocument(textDocChangeEvent => {
+		let diagnostics: vscode.Diagnostic[] = ALDiagnostics.getDiagnosticsOfFile(textDocChangeEvent.document);
+		diagnosticCollection.set(textDocChangeEvent.document.uri, diagnostics);
 	});
 }
 
