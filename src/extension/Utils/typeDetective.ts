@@ -226,12 +226,23 @@ export class TypeDetective {
                         let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
                         let procedureDeclarationLine = signatureHelp.signatures[0].label;
                         let parentInvocation: ALFullSyntaxTreeNode | undefined = invocationExpressionTreeNode.parentNode.parentNode;
-                        if (parentInvocation && parentInvocation.childNodes && parentInvocation.childNodes[0].identifier) {
-                            let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(parentInvocation.childNodes[0].identifier) + parentInvocation.childNodes[0].identifier.length);
-                            let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
-                            let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
-                            if (matcher && matcher.groups) {
-                                return matcher.groups['type'].trim();
+                        if (parentInvocation && parentInvocation.childNodes) {
+                            let procedureName: string | undefined;
+                            switch (parentInvocation.childNodes[0].kind) {
+                                case FullSyntaxTreeNodeKind.getMemberAccessExpression():
+                                    procedureName = parentInvocation.childNodes[0].name;
+                                    break;
+                                case FullSyntaxTreeNodeKind.getIdentifierName():
+                                    procedureName = parentInvocation.childNodes[0].identifier;
+                                    break;
+                            }
+                            if(procedureName){
+                                let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
+                                let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
+                                let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
+                                if (matcher && matcher.groups) {
+                                    return matcher.groups['type'].trim();
+                                }
                             }
                         }
                     }
