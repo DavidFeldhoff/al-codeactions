@@ -122,6 +122,12 @@ export class FullSyntaxTreeNodeKind {
     public static getCaseStatement(): string {
         return 'CaseStatement';
     }
+    public static getCaseLine(): string {
+        return 'CaseLine';
+    }
+    public static getCaseElse(): string {
+        return 'CaseElse';
+    }
     public static getWithStatement(): string {
         return 'WithStatement';
     }
@@ -217,5 +223,8 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getObjectId(): string {
         return 'ObjectId';
+    }
+    public static getObjectReference(): string {
+        return 'ObjectReference';
     }
 }

@@ -32,7 +32,8 @@ export class ALObject {
         if (this.name.includes(' ') && !this.name.includes('"')) {
             returnString += ' "' + this.name + '"';
         } else if (!this.name.includes(' ') && this.name.includes('"')) {
-            returnString += ' ' + this.name.replace('^"(.*)"$', '$1');
+            let unquotedName: string = this.name.replace(/^"(.*)"$/, '$1');
+            returnString += ' ' + unquotedName;
         } else {
             returnString += ' ' + this.name;
         }

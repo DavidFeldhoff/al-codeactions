@@ -1,10 +1,10 @@
-import { WithDocumentFixer } from './WithDocumentFixer';
+import * as vscode from 'vscode';
+import { SyntaxTreeExt } from './../AL Code Outline Ext/syntaxTreeExt';
 import { TextRangeExt } from './../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from './../AL Code Outline/alFullSyntaxTreeNode';
-import { SyntaxTreeExt } from './../AL Code Outline Ext/syntaxTreeExt';
 import { SyntaxTree } from './../AL Code Outline/syntaxTree';
-import * as vscode from 'vscode';
 import { WithDocument } from './WithDocument';
+import { WithDocumentFixer } from './WithDocumentFixer';
 
 export class WithDocumentAL0604Fixer implements WithDocumentFixer {
     withDocuments: WithDocument[];
@@ -17,6 +17,7 @@ export class WithDocumentAL0604Fixer implements WithDocumentFixer {
         this.withDocuments.push(new WithDocument(uri));
     }
     async fixWithUsagesOfAllDocuments() {
+        let cancelled: boolean = false;
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Fix implicit with usages',
@@ -24,6 +25,7 @@ export class WithDocumentAL0604Fixer implements WithDocumentFixer {
         }, async (progress, token) => {
             token.onCancellationRequested(() => {
                 vscode.window.showInformationMessage('The operation was canceled. Maybe a few files were already saved, so please check your version control system.');
+                cancelled = true;
             });
             progress.report({
                 increment: 0
@@ -32,6 +34,9 @@ export class WithDocumentAL0604Fixer implements WithDocumentFixer {
             for (let i = 0; i < this.withDocuments.length; i++) {
                 while (this.openedDocuments.length > 50) {
                     this.sleep(100);
+                }
+                if (cancelled) {
+                    return;
                 }
                 this.openedDocuments.push(this.withDocuments[i]);
                 await this.fixImplicitWithUsagesOfDocument(this.withDocuments[i]);

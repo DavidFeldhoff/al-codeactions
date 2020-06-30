@@ -6,11 +6,28 @@ import { WithDocumentFixer } from '../FixWithUsage/WithDocumentFixer';
 
 export class ALCreateFixWithUsageCommand {
     public static async fixWithUsages() {
-        this.fixImplicitWithUsages();
+        let AL0604WarningsAtStart: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics().filter(tupel => tupel[1].some(diagnostic => diagnostic.code && diagnostic.code === 'AL0604'));
+        let AL0606WarningsAtStart: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics().filter(tupel => tupel[1].some(diagnostic => diagnostic.code && diagnostic.code === 'AL0606'));        
 
-        this.fixExplicitWithUsages();
+        await this.fixImplicitWithUsages();
+        await this.fixExplicitWithUsages();
+
+        ALCreateFixWithUsageCommand.createFinishMessage(AL0604WarningsAtStart, AL0606WarningsAtStart);
     }
     
+    private static createFinishMessage(allDocumentsWithDiagnosticOfAL0604: [vscode.Uri, vscode.Diagnostic[]][], allDocumentsWithDiagnosticOfAL0606: [vscode.Uri, vscode.Diagnostic[]][]) {
+        let finishMsg: string = "Finished!";
+        if (allDocumentsWithDiagnosticOfAL0604.length > 0) {
+            finishMsg += " Implicit with fixed: " + allDocumentsWithDiagnosticOfAL0604.length + ".";
+        }
+        if (allDocumentsWithDiagnosticOfAL0606.length > 0) {
+            finishMsg += " Explicit with fixed: " + allDocumentsWithDiagnosticOfAL0606.length + ".";
+        }
+        if (allDocumentsWithDiagnosticOfAL0606.length > 0 || allDocumentsWithDiagnosticOfAL0604.length > 0) {
+            vscode.window.showInformationMessage(finishMsg);
+        }
+    }
+
     static async fixImplicitWithUsages() {
         let allDocumentsWithDiagnosticOfAL0604: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics().filter(tupel => tupel[1].some(diagnostic => diagnostic.code && diagnostic.code === 'AL0604'));
         if (allDocumentsWithDiagnosticOfAL0604.length === 0) {
