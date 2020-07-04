@@ -351,6 +351,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.getReturnTypeAsString(), "Text");
 		assert.equal(alProcedure.parameters.length, 0);
 	});
+	test('getProcedureToCreate_ReturnValueDirectlyUsed2', async () => {
+		let procedureName = 'MissingProcedureWithDirectlyUsedReturnValue2';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), "Text");
+		assert.equal(alProcedure.parameters.length, 0);
+	});
 	test('getProcedureToCreate_MultilineProcedureCall', async () => {
 		let procedureName = 'MultilineProcedureCall';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);

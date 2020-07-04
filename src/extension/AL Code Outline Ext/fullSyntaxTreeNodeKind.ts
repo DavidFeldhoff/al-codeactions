@@ -104,6 +104,12 @@ export class FullSyntaxTreeNodeKind {
     public static getMemberAccessExpression(): string {
         return 'MemberAccessExpression';
     }
+    public static getInListExpression(): string{
+        return 'InListExpression';
+    }
+    public static getBracketedArgumentList(): string{
+        return 'BracketedArgumentList';
+    }
     public static getIdentifierName(): string {
         return 'IdentifierName';
     }
