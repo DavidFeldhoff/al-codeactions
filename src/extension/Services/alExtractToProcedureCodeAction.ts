@@ -47,8 +47,14 @@ export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider
             return;
         }
         let rangeExpanded: vscode.Range = rangeAnalyzer.getExpandedRange();
-        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(document, rangeExpanded);
+        let treeNodeStart: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractStart();
+        let treeNodeEnd: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractEnd();
+
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(document, treeNodeStart, treeNodeEnd);
         await returnTypeAnalyzer.analyze();
+        if (rangeAnalyzer.isValidToExtractOnlyWithReturnType() && !returnTypeAnalyzer.getReturnType()) {
+            return;
+        }
         let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalyzer);
         if (!procedureObject) {
             return;

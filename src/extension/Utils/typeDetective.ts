@@ -6,6 +6,7 @@ import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { OwnConsole } from '../console';
 import { DocumentUtils } from './documentUtils';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { TextEncoder } from 'util';
 
 export class TypeDetective {
     private document: vscode.TextDocument;
@@ -210,22 +211,25 @@ export class TypeDetective {
             }
         }
     }
-    public static async findReturnTypeOfPosition(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
+    public static async findReturnTypeOfInvocationAtPosition(document: vscode.TextDocument, position: vscode.Position): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let invocationExpressionTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
-        while (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getParenthesizedExpression()) {
-            invocationExpressionTreeNode = invocationExpressionTreeNode.parentNode;
+        let invocationExpressionTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
+        return await this.findReturnTypeOfTreeNode(document, invocationExpressionTreeNode);
+    }
+    public static async findReturnTypeOfTreeNode(document: vscode.TextDocument, treeNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
+        while (treeNode.parentNode && treeNode.parentNode.kind === FullSyntaxTreeNodeKind.getParenthesizedExpression()) {
+            treeNode = treeNode.parentNode;
         }
-        if (invocationExpressionTreeNode.parentNode && invocationExpressionTreeNode.parentNode.kind && invocationExpressionTreeNode.parentNode.childNodes) {
-            switch (invocationExpressionTreeNode.parentNode.kind) {
+        if (treeNode.parentNode && treeNode.parentNode.kind && treeNode.parentNode.childNodes) {
+            switch (treeNode.parentNode.kind) {
                 //TODO: Variable, Parameter, Table Field, Rec.TableField, If Statement
                 case FullSyntaxTreeNodeKind.getArgumentList():
-                    let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
-                    let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.span).start, ',');
+                    let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(treeNode.parentNode, treeNode);
+                    let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
                     if (signatureHelp) {
                         let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
                         let procedureDeclarationLine = signatureHelp.signatures[0].label;
-                        let parentInvocation: ALFullSyntaxTreeNode | undefined = invocationExpressionTreeNode.parentNode.parentNode;
+                        let parentInvocation: ALFullSyntaxTreeNode | undefined = treeNode.parentNode.parentNode;
                         if (parentInvocation && parentInvocation.childNodes) {
                             let procedureName: string | undefined;
                             switch (parentInvocation.childNodes[0].kind) {
@@ -236,7 +240,7 @@ export class TypeDetective {
                                     procedureName = parentInvocation.childNodes[0].identifier;
                                     break;
                             }
-                            if(procedureName){
+                            if (procedureName) {
                                 let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
                                 let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
                                 let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
@@ -254,6 +258,7 @@ export class TypeDetective {
                 case FullSyntaxTreeNodeKind.getLogicalAndExpression():
                 case FullSyntaxTreeNodeKind.getLogicalOrExpression():
                 case FullSyntaxTreeNodeKind.getUnaryNotExpression():
+                case FullSyntaxTreeNodeKind.getInListExpression():
                     return 'Boolean';
                 case FullSyntaxTreeNodeKind.getArrayIndexExpression():
                     return 'Integer';
@@ -270,9 +275,9 @@ export class TypeDetective {
                 case FullSyntaxTreeNodeKind.getMultiplyExpression():
                 case FullSyntaxTreeNodeKind.getDivideExpression():
                     //If the parent node is one of these kinds, then it always has to be found the kind of the counterpart
-                    let indexOfInvocationTreeNode: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(invocationExpressionTreeNode.parentNode, invocationExpressionTreeNode);
+                    let indexOfInvocationTreeNode: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(treeNode.parentNode, treeNode);
                     let indexOfOtherTreeNode: number = indexOfInvocationTreeNode[0] === 0 ? 1 : 0;
-                    let otherTreeNode: ALFullSyntaxTreeNode = invocationExpressionTreeNode.parentNode.childNodes[indexOfOtherTreeNode];
+                    let otherTreeNode: ALFullSyntaxTreeNode = treeNode.parentNode.childNodes[indexOfOtherTreeNode];
 
                     let typeDetective2: TypeDetective = new TypeDetective(document, otherTreeNode);
                     await typeDetective2.getTypeOfTreeNode();
