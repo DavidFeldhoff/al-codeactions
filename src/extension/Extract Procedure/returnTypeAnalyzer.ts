@@ -5,32 +5,46 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { TypeDetective } from '../Utils/typeDetective';
 
 export class ReturnTypeAnalyzer {
     private document: vscode.TextDocument;
-    private rangeToExtract: vscode.Range;
+    private treeNodeStart: ALFullSyntaxTreeNode;
+    private treeNodeEnd: ALFullSyntaxTreeNode;
+    private rangeOfTreeNodes: vscode.Range;
     private returnType: string | undefined;
     private addVariableToCallingPosition: boolean;
     private addVariableToExtractedRange: boolean;
-    constructor(document: vscode.TextDocument, rangeToExtract: vscode.Range) {
+    constructor(document: vscode.TextDocument, treeNodeStart: ALFullSyntaxTreeNode, treeNodeEnd: ALFullSyntaxTreeNode) {
         this.document = document;
-        this.rangeToExtract = rangeToExtract;
+        this.treeNodeStart = treeNodeStart;
+        this.treeNodeEnd = treeNodeEnd;
+        let rangeOfTreeNodeStart: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
+        let rangeOfTreeNodeEnd: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
+        this.rangeOfTreeNodes = new vscode.Range(rangeOfTreeNodeStart.start, rangeOfTreeNodeEnd.end);
         this.addVariableToCallingPosition = false;
         this.addVariableToExtractedRange = false;
         this.returnType = undefined;
     }
     public async analyze() {
-        let returnTypeIf: string | undefined = await this.getReturnValueIfStatement(this.document, this.rangeToExtract);
+        let returnTypeIf: string | undefined = await this.getReturnValueIfInsideIfStatement(this.document, this.rangeOfTreeNodes);
         if (returnTypeIf) {
             this.addVariableToExtractedRange = true;
             this.returnType = returnTypeIf;
             return;
         }
-        let returnTypeExit: string | undefined = await this.getReturnTypeExitStatement(this.document, this.rangeToExtract);
+        let returnTypeExit: string | undefined = await this.getReturnTypeIfSelectionContainsExitStatement(this.document, this.rangeOfTreeNodes);
         if (returnTypeExit) {
             this.addVariableToCallingPosition = true;
             this.returnType = returnTypeExit;
             return;
+        }
+        if (this.treeNodeStart === this.treeNodeEnd) {
+            this.returnType = await TypeDetective.findReturnTypeOfTreeNode(this.document, this.treeNodeStart);
+            if (this.returnType) {
+                this.addVariableToExtractedRange = true;
+                return;
+            }
         }
     }
     public getReturnType(): string | undefined {
@@ -42,7 +56,7 @@ export class ReturnTypeAnalyzer {
     public getAddVariableToCallingPosition(): boolean {
         return this.addVariableToCallingPosition;
     }
-    private async getReturnValueIfStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
+    private async getReturnValueIfInsideIfStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let startSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeExpanded.start);
         let endSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeExpanded.end);
@@ -62,7 +76,7 @@ export class ReturnTypeAnalyzer {
             }
         }
     }
-    private async getReturnTypeExitStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
+    private async getReturnTypeIfSelectionContainsExitStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let exitStatementTreeNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getExitStatement());
 

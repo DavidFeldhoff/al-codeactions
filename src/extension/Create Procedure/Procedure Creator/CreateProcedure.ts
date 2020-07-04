@@ -7,6 +7,7 @@ import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTree
 import { ALVariable } from '../../Entities/alVariable';
 import { ReturnTypeAnalyzer } from '../../Extract Procedure/returnTypeAnalyzer';
 import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
+import { DocumentUtils } from '../../Utils/documentUtils';
 
 export class CreateProcedure {
     private lineOfBodyStart: number | undefined;
@@ -91,14 +92,26 @@ export class CreateProcedure {
         procedureCall += ')';
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let ifTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getIfStatement()]);
-        if (ifTreeNode && ifTreeNode.childNodes) {
-            let rangeOfIfExpression: vscode.Range = TextRangeExt.createVSCodeRange(ifTreeNode.childNodes[0].fullSpan);
-            if (rangeOfIfExpression.contains(rangeToExtract)) {
-                return procedureCall;
+        let kindStatements: string[] = [
+            FullSyntaxTreeNodeKind.getIfStatement(),
+            FullSyntaxTreeNodeKind.getForStatement(),
+            FullSyntaxTreeNodeKind.getCaseStatement(),
+            FullSyntaxTreeNodeKind.getExitStatement(),
+            FullSyntaxTreeNodeKind.getWithStatement(),
+            FullSyntaxTreeNodeKind.getWhileStatement(),
+            FullSyntaxTreeNodeKind.getRepeatStatement(),
+            FullSyntaxTreeNodeKind.getForEachStatement(),
+            FullSyntaxTreeNodeKind.getAssignmentStatement(),
+            FullSyntaxTreeNodeKind.getCompoundAssignmentStatement(),
+            FullSyntaxTreeNodeKind.getExpressionStatement()
+        ];
+        let statementNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.end, kindStatements);
+        if (statementNode) {
+            let statementRange: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(statementNode.fullSpan));
+            if (rangeToExtract.contains(statementRange)) { //if one or more statements are extracted then the semicolon would be missing
+                procedureCall += ';';
             }
         }
-        procedureCall += ';';
         return procedureCall;
     }
 
