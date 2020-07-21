@@ -45,6 +45,12 @@ export class ReturnTypeAnalyzer {
                 this.addVariableToExtractedRange = true;
                 return;
             }
+        } else if (this.treeNodeStart.parentNode && this.treeNodeStart.parentNode === this.treeNodeEnd.parentNode){
+            this.returnType = await TypeDetective.findReturnTypeOfTreeNode(this.document, this.treeNodeStart.parentNode);
+            if (this.returnType) {
+                this.addVariableToExtractedRange = true;
+                return;
+            }
         }
     }
     public getReturnType(): string | undefined {
