@@ -312,7 +312,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let textToExtractEnd = 'isCustomerEmpty := "Customer with Quotes".IsEmpty();  //to this line';
         let rangeToExtract: vscode.Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
         let startTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
-        let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
+        let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
         let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
