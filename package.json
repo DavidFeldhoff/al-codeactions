@@ -2,7 +2,7 @@
 	"name": "al-codeactions",
 	"displayName": "AL CodeActions",
 	"description": "Adds codeactions to the AL language",
-	"version": "0.2.13",
+	"version": "0.2.14",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -42,6 +42,18 @@
 				"category": "AL Code Actions",
 				"command": "alcodeactions.fixwithusages",
 				"title": "Remove all With-Usages"
+			}
+		],
+		"configuration": [
+			{
+				"title": "AL Code Actions",
+				"properties": {
+					"alCodeActions.addPragmaToDisableImplicitWith": {
+						"type": "boolean",
+						"default": false,
+						"description": "Adds a pragma which disables the 'implicit with' while fixing the implicit with statements."
+					}
+				}
 			}
 		]
 	},

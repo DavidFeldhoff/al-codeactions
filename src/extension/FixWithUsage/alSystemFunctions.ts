@@ -137,4 +137,19 @@ export class ALSystemFunctions {
         'TableSeparator',
         'TextEncoding'
     ];
+    static getSystemFunctionsOfQuery: string[] = [
+        'Close',
+        'ColumnCaption',
+        'ColumnNo',
+        'GetFilter',
+        'GetFilters',
+        'Open',
+        'Read',
+        'SaveAsCsv',
+        'SaveAsXml',
+        'SecurityFiltering',
+        'SetFilter',
+        'SetRange',
+        'TopNumberOfRows'
+    ];
 }

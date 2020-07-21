@@ -69,14 +69,18 @@ export class WithDocumentAL0604Fixer implements WithDocumentFixer {
                 finished = true;
             }
         } while (!finished);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(withDocument.getDocument());
-        let alFullSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(syntaxTree, firstWarning);
-        if (alFullSyntaxTreeNode) {
-            let objectRange: vscode.Range = TextRangeExt.createVSCodeRange(alFullSyntaxTreeNode.fullSpan);
-            let edit = new vscode.WorkspaceEdit();
-            edit.insert(withDocument.uri, objectRange.start, '#pragma implicitwith disable\r\n');
-            edit.insert(withDocument.uri, objectRange.end, '\r\n#pragma implicitwith disable');
-            await vscode.workspace.applyEdit(edit);
+        let settings = vscode.workspace.getConfiguration('alCodeActions', withDocument.uri);
+        let addPragma = settings.get<boolean>('addPragmaToDisableImplicitWith');
+        if (addPragma) {
+            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(withDocument.getDocument());
+            let alFullSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(syntaxTree, firstWarning);
+            if (alFullSyntaxTreeNode) {
+                let objectRange: vscode.Range = TextRangeExt.createVSCodeRange(alFullSyntaxTreeNode.fullSpan);
+                let edit = new vscode.WorkspaceEdit();
+                edit.insert(withDocument.uri, objectRange.start, '#pragma implicitwith disable\r\n');
+                edit.insert(withDocument.uri, objectRange.end, '\r\n#pragma implicitwith restore');
+                await vscode.workspace.applyEdit(edit);
+            }
         }
         SyntaxTree.clearInstance(withDocument.getDocument());
         await withDocument.getDocument().save();

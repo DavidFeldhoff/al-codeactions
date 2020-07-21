@@ -10,6 +10,7 @@ import { TypeDetective } from './../Utils/typeDetective';
 import { ALSystemFunctions } from './alSystemFunctions';
 import { WithDocument } from './WithDocument';
 import { WithDocumentFixer } from './WithDocumentFixer';
+import * as fs from 'fs';
 
 export class WithDocumentAL0606Fixer implements WithDocumentFixer {
     withDocuments: WithDocument[];
@@ -89,7 +90,7 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
             }
             let explicitWithUsages: vscode.Diagnostic[] = withDocument.getAL0606Warnings();
             if (explicitWithUsages.length >= 100) {
-                let diagnosticWatcher: Promise<boolean> = this.startDiagnosticWatcher(withDocument, withDocument.getAL0604Warnings());
+                let diagnosticWatcher: Promise<boolean> = this.startDiagnosticWatcher(withDocument, withDocument.getAL0606Warnings());
                 await vscode.workspace.applyEdit(editToDeleteWithStatements);
                 finished = await diagnosticWatcher;
             } else {
@@ -265,7 +266,7 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
         }
     }
     private async checkAndFixIdentifierTreeNodeOfWith(identifierNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, locationOfWithObject: vscode.Location, typeOfWithStatement: string, edit: vscode.WorkspaceEdit, nameOfWithStatement: string) {
-        let skipIdentifier: boolean = this.checkIsIdentifierToSkip(identifierNode);
+        let skipIdentifier: boolean = await this.checkIsIdentifierToSkip(document, identifierNode);
         if (!skipIdentifier) {
             let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierNode.fullSpan));
             let destinationOfIdentifier: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, range.start);
@@ -273,7 +274,8 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
                 let referencesToObjectOfWith: boolean = locationOfWithObject.uri.fsPath === destinationOfIdentifier[0].uri.fsPath && locationOfWithObject.range.contains(destinationOfIdentifier[0].range);
                 if (referencesToObjectOfWith) {
                     if (!await this.isPartOfSystemFunctionProcedureCallWhichExpectsFields(document, identifierNode)) {
-                        edit.insert(document.uri, range.start, nameOfWithStatement + '.');
+                        if (!this.isReferencingLocalProcedure(document, destinationOfIdentifier[0].uri, destinationOfIdentifier[0].range))
+                            edit.insert(document.uri, range.start, nameOfWithStatement + '.');
                     }
                 } else if (document.uri.fsPath !== destinationOfIdentifier[0].uri.fsPath) {
                     //check if table or page extension
@@ -290,8 +292,19 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
             }
         }
     }
+    isReferencingLocalProcedure(documentOfWith: vscode.TextDocument, uri: vscode.Uri, range: vscode.Range): boolean {
+        if (documentOfWith.uri.fsPath !== uri.fsPath) {
+            return false;
+        }
+        if (documentOfWith.lineAt(range.start.line).text.toLowerCase().trimLeft().startsWith('local procedure')) {
+            return true;
+        }
+        return false;
+    }
 
     private async isTableOrPageExtensionOfObjectOfWith(destinationOfIdentifier: vscode.Location[], document: vscode.TextDocument, range: vscode.Range, locationOfWithObject: vscode.Location, identifierNode: ALFullSyntaxTreeNode, edit: vscode.WorkspaceEdit, nameOfWithStatement: string): Promise<boolean> {
+        // let fileContent: string = fs.readFileSync(destinationOfIdentifier[0].uri.fsPath, { encoding: 'utf-8', flag: 'r' });
+        // let fileContentBuffer: string | Buffer = fs.readFileSync(destinationOfIdentifier[0].uri.fsPath, { encoding: 'utf-8', flag: 'r' });
         let documentOfIdentifierToTest: vscode.TextDocument = await vscode.workspace.openTextDocument(destinationOfIdentifier[0].uri);
         for (let i = destinationOfIdentifier[0].range.start.line; i >= 0; i--) {
             let line: string = documentOfIdentifierToTest.lineAt(i).text;
@@ -307,12 +320,34 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
         return false;
     }
 
-    checkIsIdentifierToSkip(identifierTreeNode: ALFullSyntaxTreeNode): boolean {
+    async checkIsIdentifierToSkip(document: vscode.TextDocument, identifierTreeNode: ALFullSyntaxTreeNode): Promise<boolean> {
+        let skip: boolean = this.checkMemberAccessAndOptionAccessExpression(document, identifierTreeNode);
+        if (!skip) {
+            skip = await this.checkReferencingVariablesOrLocalProcedures(document, identifierTreeNode);
+        }
+        return skip;
+    }
+    async checkReferencingVariablesOrLocalProcedures(document: vscode.TextDocument, identifierTreeNode: ALFullSyntaxTreeNode): Promise<boolean> {
+        //"Document Type".AsInteger() is for example a MemberAccessExpression, but needs to be handled
+        let typeDetective: TypeDetective = new TypeDetective(document, identifierTreeNode);
+        await typeDetective.analyzeTypeOfTreeNode();
+        let hoverMessageFirstLine: string | undefined = typeDetective.getHoverMessageFirstLine();
+        if (hoverMessageFirstLine) {
+            switch (true) {
+                case hoverMessageFirstLine.trimLeft().startsWith('local procedure'):
+                case hoverMessageFirstLine.trimLeft().startsWith('(local)'):
+                case hoverMessageFirstLine.trimLeft().startsWith('(global)'):
+                case hoverMessageFirstLine.trimLeft().startsWith('(parameter)'):
+                    return true;
+            }
+        }
+        return false;
+    }
+    checkMemberAccessAndOptionAccessExpression(document: vscode.TextDocument, identifierTreeNode: ALFullSyntaxTreeNode): boolean {
         let parentNode: ALFullSyntaxTreeNode | undefined = identifierTreeNode.parentNode;
         if (parentNode && parentNode.kind && parentNode.childNodes) {
             if (parentNode.kind === FullSyntaxTreeNodeKind.getMemberAccessExpression()) {
                 let indexOfIdentifier: number = ALFullSyntaxTreeNodeExt.getPathToTreeNode(parentNode, identifierTreeNode)[0];
-                //"Document Type".AsInteger() is for example a MemberAccessExpression, but needs to be handled
                 if (indexOfIdentifier === 1) {
                     return true;
                 }
@@ -322,7 +357,7 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
                 if (indexOfIdentifier === 1) {
                     return true;
                 } else {
-                    return this.checkIsIdentifierToSkip(parentNode);
+                    return this.checkMemberAccessAndOptionAccessExpression(document, parentNode);
                 }
             }
         }
@@ -440,6 +475,8 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
             systemFunctions = ALSystemFunctions.getSystemFunctionsOfXmlPort;
         } else if (typeTrimmed.startsWith('enum')) {
             systemFunctions = ALSystemFunctions.getSystemFunctionsOfEnum;
+        } else if (typeTrimmed.startsWith('query')) {
+            systemFunctions = ALSystemFunctions.getSystemFunctionsOfQuery;
         } else {
             return false;
         }
@@ -459,7 +496,7 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
             throw new Error('The with statement has to have an identifier.');
         }
         let typeDetective: TypeDetective = new TypeDetective(document, identifierTreeNode);
-        await typeDetective.getTypeOfTreeNode();
+        await typeDetective.analyzeTypeOfTreeNode();
         return typeDetective.getType();
     }
 
@@ -467,7 +504,7 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
         let changed: boolean = false;
         let finished: boolean = false;
         do {
-            let currentDiagnostics = withDocument.getAL0604Warnings();
+            let currentDiagnostics = withDocument.getAL0606Warnings();
             changed = (currentDiagnostics.length !== diagnosticsBeforeApplyEdit.length) ||
                 (currentDiagnostics.length > 0 && diagnosticsBeforeApplyEdit.length > 0 &&
                     currentDiagnostics[0].range.start.compareTo(diagnosticsBeforeApplyEdit[0].range.start) !== 0);

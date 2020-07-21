@@ -17,6 +17,7 @@ export class SyntaxTreeExt {
             FullSyntaxTreeNodeKind.getCodeunitObject(),
             FullSyntaxTreeNodeKind.getReportObject(),
             FullSyntaxTreeNodeKind.getXmlPortObject(),
+            FullSyntaxTreeNodeKind.getQueryObject(),
             FullSyntaxTreeNodeKind.getEnumType(),
             FullSyntaxTreeNodeKind.getEnumExtensionType(),
             FullSyntaxTreeNodeKind.getInterface()

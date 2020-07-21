@@ -16,6 +16,7 @@ export class TypeDetective {
     private name: string | undefined;
     private isVar: boolean | undefined;
     private isTemporary: boolean | undefined;
+    private hoverMessageFirstLine: string | undefined;
     constructor(document: vscode.TextDocument, treeNode: ALFullSyntaxTreeNode) {
         this.document = document;
         this.treeNode = treeNode;
@@ -32,18 +33,21 @@ export class TypeDetective {
     public getIsTemporary(): boolean {
         return this.isTemporary ? this.isTemporary : false;
     }
+    public getHoverMessageFirstLine(): string | undefined {
+        return this.hoverMessageFirstLine;
+    }
 
-    public async getTypeOfTreeNode() {
+    public async analyzeTypeOfTreeNode() {
         switch (this.treeNode.kind) {
             case FullSyntaxTreeNodeKind.getIdentifierName():
-                await this.getTypeOfIdentifierTreeNode(this.treeNode, this.document);
+                await this.analyzeTypeOfIdentifierTreeNode(this.treeNode, this.document);
                 break;
             case FullSyntaxTreeNodeKind.getUnaryPlusExpression():
             case FullSyntaxTreeNodeKind.getUnaryMinusExpression():
             case FullSyntaxTreeNodeKind.getUnaryNotExpression():
                 if (this.treeNode.childNodes) {
                     let typeDetective: TypeDetective = new TypeDetective(this.document, this.treeNode.childNodes[0]);
-                    await typeDetective.getTypeOfTreeNode();
+                    await typeDetective.analyzeTypeOfTreeNode();
                     this.name = typeDetective.getName();
                     this.type = typeDetective.getType();
                 }
@@ -55,7 +59,7 @@ export class TypeDetective {
                 if (this.treeNode.childNodes) {
                     let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
                     let typeDetective = new TypeDetective(this.document, childNode);
-                    await typeDetective.getTypeOfTreeNode();
+                    await typeDetective.analyzeTypeOfTreeNode();
                     this.name = typeDetective.getName();
                     this.type = typeDetective.getType();
                 }
@@ -63,7 +67,7 @@ export class TypeDetective {
             case FullSyntaxTreeNodeKind.getMemberAccessExpression():
                 if (this.treeNode.childNodes) {
                     let identifierTreeNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[1];
-                    await this.getTypeOfIdentifierTreeNode(identifierTreeNode, this.document);
+                    await this.analyzeTypeOfIdentifierTreeNode(identifierTreeNode, this.document);
                 }
                 break;
             case FullSyntaxTreeNodeKind.getParenthesizedExpression():
@@ -71,7 +75,7 @@ export class TypeDetective {
                 if (this.treeNode.childNodes) {
                     let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
                     let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
-                    await typeDetective.getTypeOfTreeNode();
+                    await typeDetective.analyzeTypeOfTreeNode();
                     this.name = typeDetective.getName();
                     this.type = typeDetective.getType();
                 }
@@ -124,7 +128,7 @@ export class TypeDetective {
         }
         return false;
     }
-    private async getTypeOfIdentifierTreeNode(identifierTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument): Promise<boolean> {
+    private async analyzeTypeOfIdentifierTreeNode(identifierTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument): Promise<boolean> {
         if (identifierTreeNode.kind !== FullSyntaxTreeNodeKind.getIdentifierName()) {
             throw new Error('This is not an identifier');
         }
@@ -139,19 +143,19 @@ export class TypeDetective {
                 let hoverMessageLines: string[] = hoverMessage.split('\r\n');
                 let startIndex = hoverMessageLines.indexOf('```al');
                 if (startIndex >= 0) {
-                    let hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
-                    if (hoverMessageFirstLine.includes(':')) {
-                        this.type = hoverMessageFirstLine.substr(hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
+                    this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
+                    if (this.hoverMessageFirstLine.includes(':')) {
+                        this.type = this.hoverMessageFirstLine.substr(this.hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
                         this.type = this.fixHoverMessage(this.type);
 
-                        this.checkIsVar(hoverMessageFirstLine);
-                        await this.checkIsTemporary(hoverMessageFirstLine, document, position);
+                        this.checkIsVar(this.hoverMessageFirstLine);
+                        await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
                         if (this.isTemporary) {
                             this.type += " temporary";
                         }
                         return true;
-                    } else if (hoverMessageFirstLine.startsWith('Enum')) {
-                        this.type = hoverMessageFirstLine;
+                    } else if (this.hoverMessageFirstLine.startsWith('Enum')) {
+                        this.type = this.hoverMessageFirstLine;
                     }
                 }
                 OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:\r\n' + hoverMessage);
@@ -280,7 +284,7 @@ export class TypeDetective {
                     let otherTreeNode: ALFullSyntaxTreeNode = treeNode.parentNode.childNodes[indexOfOtherTreeNode];
 
                     let typeDetective2: TypeDetective = new TypeDetective(document, otherTreeNode);
-                    await typeDetective2.getTypeOfTreeNode();
+                    await typeDetective2.analyzeTypeOfTreeNode();
                     return typeDetective2.getType();
             }
         }

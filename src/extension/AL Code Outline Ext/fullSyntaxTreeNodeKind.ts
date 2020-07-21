@@ -35,6 +35,9 @@ export class FullSyntaxTreeNodeKind {
     public static getXmlPortObject(): string {
         return 'XmlPortObject';
     }
+    public static getQueryObject(): string {
+        return 'QueryObject';
+    }
     public static getEnumType(): string {
         return 'EnumType';
     }
