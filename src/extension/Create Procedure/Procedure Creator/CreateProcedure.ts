@@ -92,20 +92,8 @@ export class CreateProcedure {
         procedureCall += ')';
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let kindStatements: string[] = [
-            FullSyntaxTreeNodeKind.getIfStatement(),
-            FullSyntaxTreeNodeKind.getForStatement(),
-            FullSyntaxTreeNodeKind.getCaseStatement(),
-            FullSyntaxTreeNodeKind.getExitStatement(),
-            FullSyntaxTreeNodeKind.getWithStatement(),
-            FullSyntaxTreeNodeKind.getWhileStatement(),
-            FullSyntaxTreeNodeKind.getRepeatStatement(),
-            FullSyntaxTreeNodeKind.getForEachStatement(),
-            FullSyntaxTreeNodeKind.getAssignmentStatement(),
-            FullSyntaxTreeNodeKind.getCompoundAssignmentStatement(),
-            FullSyntaxTreeNodeKind.getExpressionStatement()
-        ];
-        let statementNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.end, kindStatements);
+        
+        let statementNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.end, FullSyntaxTreeNodeKind.getAllStatementKinds());
         if (statementNode) {
             let statementRange: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(statementNode.fullSpan));
             if (rangeToExtract.contains(statementRange)) { //if one or more statements are extracted then the semicolon would be missing

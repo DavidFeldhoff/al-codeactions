@@ -183,7 +183,10 @@ export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider
     }
     async getVariablesWhichBecomeVarParameters(variablesNeeded: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeSelected: vscode.Range): Promise<ALFullSyntaxTreeNode[]> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let bodyTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeSelected.start, [FullSyntaxTreeNodeKind.getBlock()]);
+        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeSelected.start);
+        if (!methodOrTriggerTreeNode)
+            return variablesNeeded;
+        let bodyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getBlock(), false);
         if (!bodyTreeNode || !bodyTreeNode?.fullSpan) {
             return variablesNeeded;
         }
