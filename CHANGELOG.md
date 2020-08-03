@@ -2,6 +2,17 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.14
+
+- Extract Procedure
+  - Improve Extraction. It's now possible to extract only parts of a statement while the recognition of the return type stays intact.
+  - Small bug fixes.
+- Create Procedure
+  - When used directly in an exit statement the return variable is identified correctly: Exit(MyNewProcedure())
+  - German special characters aren't deleted from the variable name (e.g. Länge)
+- Create Publishers
+  - You can have in front of your publisher function which should be created a prefix, so that ABC_OnDoSomething is valid as well. The prefix is looked up in the AppSourceCop.json
+
 ## 0.2.13
 
 - Create Procedure Positioning: Align the best practice of the al file structure, so that newly created procedures are now placed behind the global var section if there's no other anchor (like another local/global/test-procedure).
