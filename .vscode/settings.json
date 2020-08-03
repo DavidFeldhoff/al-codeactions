@@ -17,5 +17,6 @@
     ],
     "cSpell.ignoreWords": [
         "createprocedures"
-    ]
+    ],
+    "debug.javascript.suggestPrettyPrinting": false
 }

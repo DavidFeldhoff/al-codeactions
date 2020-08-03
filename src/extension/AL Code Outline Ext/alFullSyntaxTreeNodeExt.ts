@@ -47,7 +47,9 @@ export class ALFullSyntaxTreeNodeExt {
         }
     }
 
-    public static reduceLevels(document: vscode.TextDocument, node: ALFullSyntaxTreeNode, lookToLeft: boolean): ALFullSyntaxTreeNode {
+    public static reduceLevels(document: vscode.TextDocument, node: ALFullSyntaxTreeNode, lookToLeft: boolean, maxReduce?: number): ALFullSyntaxTreeNode {
+        if (maxReduce === 0)
+            return node;
         let allowedCharacters: string[] = ['', ';'];
         if (node.parentNode) {
             if (lookToLeft) {
@@ -59,7 +61,7 @@ export class ALFullSyntaxTreeNodeExt {
                         node.fullSpan.start.character);
                     let textBeforeNode = document.getText(rangeBeforeNode);
                     if (allowedCharacters.includes(textBeforeNode.trim())) {
-                        return this.reduceLevels(document, node.parentNode, lookToLeft);
+                        return this.reduceLevels(document, node.parentNode, lookToLeft, maxReduce ? --maxReduce : undefined);
                     }
                 }
             } else {
@@ -71,7 +73,7 @@ export class ALFullSyntaxTreeNodeExt {
                         node.parentNode.fullSpan.end.character);
                     let textAfterNode = document.getText(rangeAfterNode);
                     if (allowedCharacters.includes(textAfterNode.trim())) {
-                        return this.reduceLevels(document, node.parentNode, lookToLeft);
+                        return this.reduceLevels(document, node.parentNode, lookToLeft, maxReduce ? --maxReduce : undefined);
                     }
                 }
             }
@@ -93,8 +95,8 @@ export class ALFullSyntaxTreeNodeExt {
             let properties: ALFullSyntaxTreeNode[] = [];
             ALFullSyntaxTreeNodeExt.collectChildNodes(propertyList, FullSyntaxTreeNodeKind.getProperty(), false, properties);
             if (properties.length > 0) {
-                let propertiesOfSearchedProperty: ALFullSyntaxTreeNode[] = properties.filter(property => 
-                    property.fullSpan && 
+                let propertiesOfSearchedProperty: ALFullSyntaxTreeNode[] = properties.filter(property =>
+                    property.fullSpan &&
                     document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(property.fullSpan))).toLowerCase() === propertyName.trim().toLowerCase());
                 if (propertiesOfSearchedProperty.length > 0) {
                     let propertyOfSearchedProperty: ALFullSyntaxTreeNode = propertiesOfSearchedProperty[0];

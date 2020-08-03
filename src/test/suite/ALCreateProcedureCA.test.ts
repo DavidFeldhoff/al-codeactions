@@ -130,9 +130,11 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.isLocal, true);
 		assert.notEqual(alProcedure.returnType, undefined);
 		assert.equal(alProcedure.getReturnTypeAsString(), 'Text[20]');
-		assert.equal(alProcedure.parameters.length, 1);
+		assert.equal(alProcedure.parameters.length, 2);
 		assert.equal(alProcedure.parameters[0].name, 'myInteger');
 		assert.equal(alProcedure.parameters[0].type, 'Integer');
+		assert.equal(alProcedure.parameters[1].name, 'Laenge');
+		assert.equal(alProcedure.parameters[1].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValue3', async () => {
 		let procedureName = 'MissingProcedureWithReturn3';
@@ -339,6 +341,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 	});
 	test('getProcedureToCreate_ReturnValueDirectlyUsed', async () => {
 		let procedureName = 'MissingProcedureWithDirectlyUsedReturnValue';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.notEqual(alProcedure.returnType, undefined);
+		assert.equal(alProcedure.getReturnTypeAsString(), "Text");
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_ReturnValueDirectlyUsedInMemberExpression', async () => {
+		let procedureName = 'MissingProcedureWithDirectlyUsedReturnValueInMemberExpression';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
 		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
@@ -710,6 +726,19 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.equal(alProcedure.name, procedureName);
 		assert.equal(alProcedure.isLocal, true);
 		assert.equal(alProcedure.returnType, 'Boolean');
+		assert.equal(alProcedure.parameters.length, 0);
+	});
+	test('getProcedureToCreate_InsideExitStatement', async function () {
+		let procedureName = 'MissingProcedureInExitStatement';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, '');
+		diagnostic.code = 'AL0118';
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document,diagnostic));
+		assert.notEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.equal(alProcedure.name, procedureName);
+		assert.equal(alProcedure.isLocal, true);
+		assert.equal(alProcedure.returnType, 'Integer');
 		assert.equal(alProcedure.parameters.length, 0);
 	});
 

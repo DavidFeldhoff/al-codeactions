@@ -54,7 +54,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         let invocationExpressionRange: vscode.Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
         invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
 
-        let returnType: string | undefined = await TypeDetective.findReturnTypeOfPosition(this.document, invocationExpressionRange);
+        let returnType: string | undefined = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
         return returnType;
     }
     async getObject(): Promise<ALObject> {
