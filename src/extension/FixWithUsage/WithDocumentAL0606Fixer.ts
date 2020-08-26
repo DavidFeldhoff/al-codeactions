@@ -15,9 +15,13 @@ import * as fs from 'fs';
 export class WithDocumentAL0606Fixer implements WithDocumentFixer {
     withDocuments: WithDocument[];
     openedDocuments: WithDocument[];
+    noOfDocsFixed: number;
+    noOfUsagesFixed: number;
     constructor() {
         this.withDocuments = [];
         this.openedDocuments = [];
+        this.noOfDocsFixed = 0;
+        this.noOfUsagesFixed = 0;
     }
     addDocument(uri: vscode.Uri) {
         this.withDocuments.push(new WithDocument(uri));
@@ -57,48 +61,49 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
     private async fixExplicitWithUsagesOfDocument(withDocument: WithDocument) {
         let finished: boolean = false;
         await withDocument.openTextDocument();
-        do {
-            let withTreeNodes: ALFullSyntaxTreeNode[] = await this.getWithTreeNodesInDescendingOrder(withDocument);
+        // do {
+        let withTreeNodes: ALFullSyntaxTreeNode[] = await this.getWithTreeNodesInDescendingOrder(withDocument);
 
-            let editToInsertQualifiers: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-            for (let i = 0; i < withTreeNodes.length; i++) {
-                await this.fixWithTreeNode(withTreeNodes[i], withDocument.getDocument(), editToInsertQualifiers);
-            }
-            await vscode.workspace.applyEdit(editToInsertQualifiers);
-            //reload to get new syntaxTree with applied qualifiers.
-            SyntaxTree.clearInstance(withDocument.getDocument());
-            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(withDocument.getDocument());
-            withTreeNodes = await this.getWithTreeNodesInDescendingOrder(withDocument);
+        let editToInsertQualifiers: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
+        for (let i = 0; i < withTreeNodes.length; i++) {
+            await this.fixWithTreeNode(withTreeNodes[i], withDocument.getDocument(), editToInsertQualifiers);
+        }
+        await vscode.workspace.applyEdit(editToInsertQualifiers);
+        //reload to get new syntaxTree with applied qualifiers.
+        SyntaxTree.clearInstance(withDocument.getDocument());
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(withDocument.getDocument());
+        withTreeNodes = await this.getWithTreeNodesInDescendingOrder(withDocument);
 
-            let editToDeleteWithStatements: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-            for (let i = 0; i < withTreeNodes.length; i++) {
-                await this.addWorkspaceEditToDeleteWithStatement(withTreeNodes[i], withDocument.getDocument(), editToDeleteWithStatements);
+        let editToDeleteWithStatements: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
+        for (let i = 0; i < withTreeNodes.length; i++) {
+            await this.addWorkspaceEditToDeleteWithStatement(withTreeNodes[i], withDocument.getDocument(), editToDeleteWithStatements);
 
-                let parentNode = withTreeNodes[i].parentNode;
-                if (parentNode && parentNode.kind) {
-                    let anotherWithStatement: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(TextRangeExt.createVSCodeRange(parentNode.fullSpan).start, [FullSyntaxTreeNodeKind.getWithStatement()]);
-                    if (anotherWithStatement) {
-                        //reload to get new syntax tree with correct intendation
-                        await vscode.workspace.applyEdit(editToDeleteWithStatements);
-                        editToDeleteWithStatements = new vscode.WorkspaceEdit();
-                        SyntaxTree.clearInstance(withDocument.getDocument());
-                        withTreeNodes = await this.getWithTreeNodesInDescendingOrder(withDocument);
-                        i = -1; //start again
-                        continue;
-                    }
+            let parentNode = withTreeNodes[i].parentNode;
+            if (parentNode && parentNode.kind) {
+                let anotherWithStatement: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(TextRangeExt.createVSCodeRange(parentNode.fullSpan).start, [FullSyntaxTreeNodeKind.getWithStatement()]);
+                if (anotherWithStatement) {
+                    //reload to get new syntax tree with correct intendation
+                    await vscode.workspace.applyEdit(editToDeleteWithStatements);
+                    editToDeleteWithStatements = new vscode.WorkspaceEdit();
+                    SyntaxTree.clearInstance(withDocument.getDocument());
+                    withTreeNodes = await this.getWithTreeNodesInDescendingOrder(withDocument);
+                    i = -1; //start again
+                    continue;
                 }
             }
-            let explicitWithUsages: vscode.Diagnostic[] = withDocument.getAL0606Warnings();
-            if (explicitWithUsages.length >= 100) {
-                let diagnosticWatcher: Promise<boolean> = this.startDiagnosticWatcher(withDocument, withDocument.getAL0606Warnings());
-                await vscode.workspace.applyEdit(editToDeleteWithStatements);
-                finished = await diagnosticWatcher;
-            } else {
-                let edited: boolean = await vscode.workspace.applyEdit(editToDeleteWithStatements);
-                finished = true;
-            }
-        } while (!finished);
-
+        }
+        let explicitWithUsages: vscode.Diagnostic[] = withDocument.getAL0606Warnings();
+        // if (explicitWithUsages.length >= 100) {
+        //     let diagnosticWatcher: Promise<boolean> = this.startDiagnosticWatcher(withDocument, withDocument.getAL0606Warnings());
+        //     await vscode.workspace.applyEdit(editToDeleteWithStatements);
+        //     finished = await diagnosticWatcher;
+        // } else {
+        let edited: boolean = await vscode.workspace.applyEdit(editToDeleteWithStatements);
+        //         finished = true;
+        //     }
+        // } while (!finished);
+        this.noOfUsagesFixed += explicitWithUsages.length;
+        this.noOfDocsFixed ++;
         await withDocument.getDocument().save();
         let index = this.openedDocuments.indexOf(withDocument);
         if (index > 0) {
@@ -498,6 +503,12 @@ export class WithDocumentAL0606Fixer implements WithDocumentFixer {
         let typeDetective: TypeDetective = new TypeDetective(document, identifierTreeNode);
         await typeDetective.analyzeTypeOfTreeNode();
         return typeDetective.getType();
+    }
+    getNoOfDocsFixed(): number {
+        return this.noOfDocsFixed;
+    }
+    getNoOfUsagesFixed(): number {
+        return this.noOfUsagesFixed;
     }
 
     async startDiagnosticWatcher(withDocument: WithDocument, diagnosticsBeforeApplyEdit: vscode.Diagnostic[]): Promise<boolean> {

@@ -1,0 +1,2 @@
+(?:#pragma implicitwith disable\n)?(page 5376942 "FAV Proforma Documents"(\n|.)+\n\})(?:(\n)+#pragma implicitwith restore)?
+#pragma implicitwith disable\n$1\n#pragma implicitwith restore

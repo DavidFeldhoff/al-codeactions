@@ -33,15 +33,21 @@
 	},
 	"main": "./out/extension.js",
 	"activationEvents": [
-		"onCommand:alcodeactions.fixwithusages",
+		"onCommand:alcodeactions.fiximplicitwithusages",
+		"onCommand:alcodeactions.fixexplicitwithusages",
 		"onLanguage:al"
 	],
 	"contributes": {
 		"commands": [
 			{
 				"category": "AL Code Actions",
-				"command": "alcodeactions.fixwithusages",
-				"title": "Remove all With-Usages"
+				"command": "alcodeactions.fiximplicitwithusages",
+				"title": "Fix implicit with-usages"
+			},
+			{
+				"category": "AL Code Actions",
+				"command": "alcodeactions.fixexplicitwithusages",
+				"title": "Fix explicit with-usages"
 			}
 		],
 		"configuration": [

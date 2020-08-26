@@ -88,6 +88,7 @@ export class ALCreateFixWithUsageCommand {
             vscode.window.showInformationMessage('No warnings of type AL0604 found.');
             return;
         }
+        allDocumentsWithDiagnosticOfAL0604 = allDocumentsWithDiagnosticOfAL0604.sort((a,b) => b[1].length - a[1].length);
         let withDocumentAL0604Fixer: WithDocumentAL0604Fixer = new WithDocumentAL0604Fixer();
         ALCreateFixWithUsageCommand.openDocuments(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
         await withDocumentAL0604Fixer.fixWithUsagesOfAllDocuments();
