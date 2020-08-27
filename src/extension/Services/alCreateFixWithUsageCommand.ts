@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { WithDocumentAL0606Fixer } from '../FixWithUsage/WithDocumentAL0606Fixer';
 import { WithDocumentFixer } from '../FixWithUsage/WithDocumentFixer';
 import { WithDocumentAL0604Fixer } from './../FixWithUsage/WithDocumentAL0604Fixer';
@@ -67,12 +68,12 @@ export class ALCreateFixWithUsageCommand {
         let finishMsg: string = "Finished!";
         // if (allDocumentsWithDiagnosticOfAL0604.length > 0) {
         //     let diagnosticsFixed: number = 0;
-            // allDocumentsWithDiagnosticOfAL0604.forEach(tuple => diagnosticsFixed += tuple[1].length);
+        // allDocumentsWithDiagnosticOfAL0604.forEach(tuple => diagnosticsFixed += tuple[1].length);
         //     finishMsg += " Implicit with fixed: " + diagnosticsFixed + " in " + allDocumentsWithDiagnosticOfAL0604.length + " files.";
         // }
         // if (allDocumentsWithDiagnosticOfAL0606.length > 0) {
         //     let diagnosticsFixed: number = 0;
-            // allDocumentsWithDiagnosticOfAL0606.forEach(tuple => diagnosticsFixed += tuple[1].length);
+        // allDocumentsWithDiagnosticOfAL0606.forEach(tuple => diagnosticsFixed += tuple[1].length);
         //     finishMsg += " Explicit with fixed: " + diagnosticsFixed + " in " + allDocumentsWithDiagnosticOfAL0606.length + " files.";
         // }
         if (allDocumentsWithDiagnosticOfAL0606.length > 0 || allDocumentsWithDiagnosticOfAL0604.length > 0) {
@@ -87,14 +88,16 @@ export class ALCreateFixWithUsageCommand {
             vscode.window.showInformationMessage('No warnings of type AL0604 found.');
             return;
         }
-        allDocumentsWithDiagnosticOfAL0604 = allDocumentsWithDiagnosticOfAL0604.sort((a,b) => b[1].length - a[1].length);
+        allDocumentsWithDiagnosticOfAL0604 = allDocumentsWithDiagnosticOfAL0604.sort((a, b) => b[1].length - a[1].length);
         let withDocumentAL0604Fixer: WithDocumentAL0604Fixer = new WithDocumentAL0604Fixer();
         ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
         await withDocumentAL0604Fixer.fixWithUsagesOfAllDocuments();
-        let message : string = 'Fixed ' + withDocumentAL0604Fixer.getNoOfUsagesFixed() + ' implicit with usages in ' + withDocumentAL0604Fixer.getNoOfDocsFixed() + ' files.';
+        let message: string = 'Fixed ' + withDocumentAL0604Fixer.getNoOfUsagesFixed() + ' implicit with usages in ' + withDocumentAL0604Fixer.getNoOfDocsFixed() + ' files.';
         vscode.window.showInformationMessage(message);
-        if(withDocumentAL0604Fixer.moreThan100Warnings){
-            vscode.window.showInformationMessage('Please note that there were files with more than 100 warnings, but as only 100 warnings are reported in the problems pane, most probably not all with usages were fixed. Execute the command again after the warnings were recalculated by the AL Extension.');
+        if (withDocumentAL0604Fixer.moreThan100Warnings) {
+            let answer: string | undefined = await vscode.window.showInformationMessage('Please note that there were files with more than 100 warnings, but as only 100 warnings are reported in the problems pane, most probably not all with usages were fixed. Execute the command again after the warnings were recalculated by the AL Extension.', 'Reload Window');
+            if (answer == 'Reload Window')
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
         }
     }
 
@@ -108,6 +111,42 @@ export class ALCreateFixWithUsageCommand {
         let withDocumentAL0606Fixer: WithDocumentAL0606Fixer = new WithDocumentAL0606Fixer();
         ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
         await withDocumentAL0606Fixer.fixWithUsagesOfAllDocuments();
+    }
+
+    static async addPragmaImplicitWithDisable() {
+        let uris: vscode.Uri[] = await vscode.workspace.findFiles('**/*.al');
+        let searchPragmaDisable: RegExp = /^\s*#pragma implicitwith disable.*$/i;
+        let searchPragmaRestore: RegExp = /^\s*#pragma implicitwith restore.*$/i;
+        let searchObjectDeclaration: RegExp = /^((?:page|pageextension|table|tableextension|codeunit) \d+ (\w+|"[^"]+").*|\s+requestpage\s*)$/i;
+        let numberOfAddedPragmas: number = 0;
+        uris.forEach(uri => {
+            let fileContent: string = fs.readFileSync(uri.fsPath, { encoding: 'utf8', flag: 'r' });
+            let fileLines: string[] = fileContent.split('\r\n');
+            let implicitWithDisabled: boolean = false;
+            for (let i = 0; i < fileLines.length; i++) {
+                if (searchPragmaDisable.test(fileLines[i]))
+                    implicitWithDisabled = true;
+                else if (searchPragmaRestore.test(fileLines[i]))
+                    implicitWithDisabled = false;
+                else if (!implicitWithDisabled && (searchObjectDeclaration.test(fileLines[i]))) {
+                    fileLines.splice(0, 0, '#pragma implicitwith disable');
+                    for (let a = fileLines.length - 1; a >= 0; a--)
+                        if (fileLines[a].trim() == '')
+                            fileLines.splice(a, 1);
+                        else
+                            break;
+                    fileLines.push('#pragma implicitwith restore');
+                    break;
+                }
+            }
+            let fileContentNew: string = fileLines.join('\r\n');
+
+            if (fileContentNew != fileContent) {
+                fs.writeFileSync(uri.fsPath, fileContentNew, { encoding: 'utf8', flag: 'w' });
+                numberOfAddedPragmas++;
+            }
+        });
+        vscode.window.showInformationMessage('Added pragmas to ' + numberOfAddedPragmas + ' files.');
     }
 
     private static addDocumentsToFix(allDocumentsWithSpecifiedDiagnostics: [vscode.Uri, vscode.Diagnostic[]][], withDocumentFixer: WithDocumentFixer) {
