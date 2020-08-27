@@ -34,6 +34,7 @@
 	"main": "./out/extension.js",
 	"activationEvents": [
 		"onCommand:alcodeactions.fiximplicitwithusages",
+		"onCommand:alcodeactions.addpragmaimplicitwithdisable",
 		"onLanguage:al"
 	],
 	"contributes": {
