@@ -2,6 +2,12 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.15
+
+- Command added: Fix implicit with-usages
+  - fixes all warnings displayed in the problems pane. If there are more than 100 warnings inside a file, the command has to be executed again at a later time.
+- Command added: Add pragma 'implicit with disable' to all files.
+
 ## 0.2.14
 
 - Extract Procedure

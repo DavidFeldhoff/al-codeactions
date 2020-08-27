@@ -49,10 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 
-	// context.subscriptions.push(
-	// 	vscode.commands.registerCommand('alcodeactions.fixwithusages', () => ALCreateFixWithUsageCommand.fixWithUsages())
-	// );
-	// vscode.workspace.onDidChangeTextDocument(e => ALCreateFixWithUsageCommand.onAfterCodeActionExecuted(e));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.fiximplicitwithusages', () => ALCreateFixWithUsageCommand.fixImplicitWithUsages())
+	);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.addpragmaimplicitwithdisable', () => ALCreateFixWithUsageCommand.addPragmaImplicitWithDisable())
+	);
 }
 
 
