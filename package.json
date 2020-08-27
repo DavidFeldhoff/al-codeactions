@@ -34,7 +34,6 @@
 	"main": "./out/extension.js",
 	"activationEvents": [
 		"onCommand:alcodeactions.fiximplicitwithusages",
-		"onCommand:alcodeactions.fixexplicitwithusages",
 		"onLanguage:al"
 	],
 	"contributes": {
@@ -43,25 +42,9 @@
 				"category": "AL Code Actions",
 				"command": "alcodeactions.fiximplicitwithusages",
 				"title": "Fix implicit with-usages"
-			},
-			{
-				"category": "AL Code Actions",
-				"command": "alcodeactions.fixexplicitwithusages",
-				"title": "Fix explicit with-usages"
 			}
 		],
-		"configuration": [
-			{
-				"title": "AL Code Actions",
-				"properties": {
-					"alCodeActions.addPragmaToDisableImplicitWith": {
-						"type": "boolean",
-						"default": false,
-						"description": "Adds a pragma which disables the 'implicit with' while fixing the implicit with statements."
-					}
-				}
-			}
-		]
+		"configuration": []
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

@@ -90,8 +90,13 @@ export class ALCreateFixWithUsageCommand {
         }
         allDocumentsWithDiagnosticOfAL0604 = allDocumentsWithDiagnosticOfAL0604.sort((a,b) => b[1].length - a[1].length);
         let withDocumentAL0604Fixer: WithDocumentAL0604Fixer = new WithDocumentAL0604Fixer();
-        ALCreateFixWithUsageCommand.openDocuments(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
+        ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
         await withDocumentAL0604Fixer.fixWithUsagesOfAllDocuments();
+        let message : string = 'Fixed ' + withDocumentAL0604Fixer.getNoOfUsagesFixed() + ' implicit with usages in ' + withDocumentAL0604Fixer.getNoOfDocsFixed() + ' files.';
+        vscode.window.showInformationMessage(message);
+        if(withDocumentAL0604Fixer.moreThan100Warnings){
+            vscode.window.showInformationMessage('Please note that there were files with more than 100 warnings, but as only 100 warnings are reported in the problems pane, most probably not all with usages were fixed. Execute the command again after the warnings were recalculated by the AL Extension.');
+        }
     }
 
     static async fixExplicitWithUsages() {
@@ -102,11 +107,11 @@ export class ALCreateFixWithUsageCommand {
             return;
         }
         let withDocumentAL0606Fixer: WithDocumentAL0606Fixer = new WithDocumentAL0606Fixer();
-        ALCreateFixWithUsageCommand.openDocuments(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
+        ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
         await withDocumentAL0606Fixer.fixWithUsagesOfAllDocuments();
     }
 
-    private static openDocuments(allDocumentsWithSpecifiedDiagnostics: [vscode.Uri, vscode.Diagnostic[]][], withDocumentFixer: WithDocumentFixer) {
+    private static addDocumentsToFix(allDocumentsWithSpecifiedDiagnostics: [vscode.Uri, vscode.Diagnostic[]][], withDocumentFixer: WithDocumentFixer) {
         for (let i = 0; i < allDocumentsWithSpecifiedDiagnostics.length; i++) {
             withDocumentFixer.addDocument(allDocumentsWithSpecifiedDiagnostics[i][0]);
         }
