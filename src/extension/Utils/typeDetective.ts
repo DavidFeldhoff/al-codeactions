@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { OwnConsole } from '../console';
 import { DocumentUtils } from './documentUtils';
-import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextEncoder } from 'util';
 
-export class TypeDetective {
+export class TypeDetective {    
     private document: vscode.TextDocument;
     // private range: vscode.Range;
     private treeNode: ALFullSyntaxTreeNode;
@@ -226,32 +225,22 @@ export class TypeDetective {
         }
         if (treeNode.parentNode && treeNode.parentNode.kind && treeNode.parentNode.childNodes) {
             switch (treeNode.parentNode.kind) {
-                //TODO: Variable, Parameter, Table Field, Rec.TableField, If Statement
                 case FullSyntaxTreeNodeKind.getArgumentList():
-                    let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(treeNode.parentNode, treeNode);
-                    let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
-                    if (signatureHelp) {
-                        let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
-                        let procedureDeclarationLine = signatureHelp.signatures[0].label;
-                        let parentInvocation: ALFullSyntaxTreeNode | undefined = treeNode.parentNode.parentNode;
-                        if (parentInvocation && parentInvocation.childNodes) {
-                            let procedureName: string | undefined;
-                            switch (parentInvocation.childNodes[0].kind) {
-                                case FullSyntaxTreeNodeKind.getMemberAccessExpression():
-                                    procedureName = parentInvocation.childNodes[0].name;
-                                    break;
-                                case FullSyntaxTreeNodeKind.getIdentifierName():
-                                    procedureName = parentInvocation.childNodes[0].identifier;
-                                    break;
-                            }
-                            if (procedureName) {
-                                let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
-                                let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
-                                let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
-                                if (matcher && matcher.groups) {
-                                    return matcher.groups['type'].trim();
-                                }
-                            }
+                    let returnType: string | undefined = await this.getReturnTypeIfInArgumentList(treeNode, document, treeNode.parentNode);
+                    if (returnType) {
+                        return returnType;
+                    }
+                    break;
+                case FullSyntaxTreeNodeKind.getExitStatement():
+                    let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+                    let rangeOfExitStatement: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNode.parentNode.fullSpan));
+                    let methodOrTriggerNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfExitStatement.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
+                    if (methodOrTriggerNode) {
+                        let identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
+                        if (identifierNode) {
+                            let typeDetective: TypeDetective = new TypeDetective(document, identifierNode);
+                            await typeDetective.getTypeOfTreeNode();
+                            return typeDetective.getType();
                         }
                     }
                     break;
@@ -289,5 +278,33 @@ export class TypeDetective {
             }
         }
         return undefined;
+    }
+    static async getReturnTypeIfInArgumentList(treeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, parentNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
+        let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(parentNode, treeNode);
+        let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
+        if (signatureHelp) {
+            let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
+            let procedureDeclarationLine = signatureHelp.signatures[0].label;
+            let parentInvocation: ALFullSyntaxTreeNode | undefined = parentNode.parentNode;
+            if (parentInvocation && parentInvocation.childNodes) {
+                let procedureName: string | undefined;
+                switch (parentInvocation.childNodes[0].kind) {
+                    case FullSyntaxTreeNodeKind.getMemberAccessExpression():
+                        procedureName = parentInvocation.childNodes[0].name;
+                        break;
+                    case FullSyntaxTreeNodeKind.getIdentifierName():
+                        procedureName = parentInvocation.childNodes[0].identifier;
+                        break;
+                }
+                if (procedureName) {
+                    let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
+                    let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
+                    let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
+                    if (matcher && matcher.groups) {
+                        return matcher.groups['type'].trim();
+                    }
+                }
+            }
+        }
     }
 }

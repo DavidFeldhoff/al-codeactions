@@ -107,10 +107,10 @@ export class FullSyntaxTreeNodeKind {
     public static getMemberAccessExpression(): string {
         return 'MemberAccessExpression';
     }
-    public static getInListExpression(): string{
+    public static getInListExpression(): string {
         return 'InListExpression';
     }
-    public static getBracketedArgumentList(): string{
+    public static getBracketedArgumentList(): string {
         return 'BracketedArgumentList';
     }
     public static getIdentifierName(): string {
@@ -235,5 +235,20 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getObjectReference(): string {
         return 'ObjectReference';
+    }
+    public static getAllStatementKinds(): string[] {
+        return [
+            FullSyntaxTreeNodeKind.getIfStatement(),
+            FullSyntaxTreeNodeKind.getForStatement(),
+            FullSyntaxTreeNodeKind.getCaseStatement(),
+            FullSyntaxTreeNodeKind.getExitStatement(),
+            FullSyntaxTreeNodeKind.getWithStatement(),
+            FullSyntaxTreeNodeKind.getWhileStatement(),
+            FullSyntaxTreeNodeKind.getRepeatStatement(),
+            FullSyntaxTreeNodeKind.getForEachStatement(),
+            FullSyntaxTreeNodeKind.getAssignmentStatement(),
+            FullSyntaxTreeNodeKind.getCompoundAssignmentStatement(),
+            FullSyntaxTreeNodeKind.getExpressionStatement()
+        ];
     }
 }

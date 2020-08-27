@@ -8,6 +8,7 @@ import { ALProcedure } from '../../Entities/alProcedure';
 import { CreateProcedureCommands } from '../CreateProcedureCommands';
 import { CreateProcedureAL0118IntegrationEvent } from '../Procedure Creator/CreateProcedureAL0118IntegrationEvent';
 import { CreateProcedureAL0118BusinessEvent } from '../Procedure Creator/CreateProcedureAL0118BusinessEvent';
+import { WorkspaceUtils } from '../../Utils/workspaceUtils';
 
 export class CodeActionCreatorAL0118 implements ICodeActionCreator {
     syntaxTree: SyntaxTree | undefined;
@@ -31,8 +32,11 @@ export class CodeActionCreatorAL0118 implements ICodeActionCreator {
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
         let codeActionProcedure: vscode.CodeAction = await this.createCodeAction(procedure, 'Create Procedure ' + procedure.name, this.document, this.diagnostic);
         codeActionProcedure.isPreferred = true;
-        
-        if (procedure.name.match(/^On[A-Z].*$/)) {
+
+        let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
+        let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
+
+        if (procedure.name.match(regexPattern)) {
             codeActionProcedure.isPreferred = false;
 
             let createProcedureAL0118IntegrationEvent: CreateProcedureAL0118IntegrationEvent = new CreateProcedureAL0118IntegrationEvent(this.document, this.diagnostic);
