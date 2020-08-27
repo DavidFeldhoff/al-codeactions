@@ -239,7 +239,7 @@ export class TypeDetective {
                         let identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
                         if (identifierNode) {
                             let typeDetective: TypeDetective = new TypeDetective(document, identifierNode);
-                            await typeDetective.getTypeOfTreeNode();
+                            await typeDetective.analyzeTypeOfTreeNode();
                             return typeDetective.getType();
                         }
                     }
