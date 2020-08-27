@@ -51,7 +51,7 @@ export class ALParameterParser {
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, TextRangeExt.createVSCodeRange(argumentListTreeNode.fullSpan).start);
         for (let i = 0; i < argumentListTreeNode.childNodes.length; i++) {
             let typeDetective: TypeDetective = new TypeDetective(document, argumentListTreeNode.childNodes[i]);
-            await typeDetective.getTypeOfTreeNode();
+            await typeDetective.analyzeTypeOfTreeNode();
             let type: string = typeDetective.getType();
             let name: string = typeDetective.getName();
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();

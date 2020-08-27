@@ -1,0 +1,2 @@
+^(?:#pragma implicitwith disable\n)?(\b(?:page|pageextension|table|tableextension|codeunit)\b \d+ (?:\n(?!\})|.)+\n\})(?:(?:\n(?!#))+#pragma implicitwith restore)?
+#pragma implicitwith disable\n$1\n#pragma implicitwith restore

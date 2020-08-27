@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
 import { isUndefined } from 'util';
 
-export class DiagnosticAnalzyer {
+export class DiagnosticAnalyzer {
     public constructor() {
 
     }
