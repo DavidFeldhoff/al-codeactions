@@ -32,11 +32,11 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			testcodeunitDocument = document;
 		});
-		fileName = path.resolve(ALTestProject.dir, 'table.al');
+		fileName = path.resolve(ALTestProject.dir, 'MyTable.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			tableDocument = document;
 		});
-		fileName = path.resolve(ALTestProject.dir, 'page.al');
+		fileName = path.resolve(ALTestProject.dir, 'MyPage.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			pageDocument = document;
 		});
