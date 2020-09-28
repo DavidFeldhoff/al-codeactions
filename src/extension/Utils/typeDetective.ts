@@ -7,7 +7,7 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { OwnConsole } from '../console';
 import { DocumentUtils } from './documentUtils';
 
-export class TypeDetective {    
+export class TypeDetective {
     private document: vscode.TextDocument;
     // private range: vscode.Range;
     private treeNode: ALFullSyntaxTreeNode;
@@ -73,6 +73,9 @@ export class TypeDetective {
             case FullSyntaxTreeNodeKind.getOptionAccessExpression():
                 if (this.treeNode.childNodes) {
                     let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
+                    // Enum::MyEnum::Value
+                    if (this.treeNode.parentNode?.kind == FullSyntaxTreeNodeKind.getOptionAccessExpression() && this.treeNode.childNodes[0].identifier && this.treeNode.childNodes[0].identifier.toLowerCase() == 'enum')
+                        childNode = this.treeNode.childNodes[1];
                     let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
                     await typeDetective.analyzeTypeOfTreeNode();
                     this.name = typeDetective.getName();

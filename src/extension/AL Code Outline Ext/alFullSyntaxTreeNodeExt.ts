@@ -1,9 +1,10 @@
-import * as vscode from 'vscode';
+import { commands, Location, Range, TextDocument, workspace } from 'vscode';
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
-import { downloadAndUnzipVSCode } from "vscode-test";
-import { FullSyntaxTreeNodeKind } from './fullSyntaxTreeNodeKind';
-import { TextRangeExt } from './textRangeExt';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { DocumentUtils } from '../Utils/documentUtils';
+import { FullSyntaxTreeNodeKind } from './fullSyntaxTreeNodeKind';
+import { SyntaxTreeExt } from './syntaxTreeExt';
+import { TextRangeExt } from './textRangeExt';
 
 export class ALFullSyntaxTreeNodeExt {
     public static collectChildNodes(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean, outList: ALFullSyntaxTreeNode[]) {
@@ -27,6 +28,17 @@ export class ALFullSyntaxTreeNodeExt {
             return outList[0];
         }
     }
+    public static getIdentifierValue(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode, removeQuotes: boolean): string | undefined {
+        let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
+        if (!identifierTreeNode)
+            return undefined;
+
+        let objectNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
+        if (removeQuotes)
+            return objectNameWithQuotes.replace(/^"(.*)"$/, '$1');
+        else
+            return objectNameWithQuotes;
+    }
 
     public static getPathToTreeNode(mainNode: ALFullSyntaxTreeNode, childNode: ALFullSyntaxTreeNode): number[] {
         let path: number[] = [];
@@ -47,14 +59,14 @@ export class ALFullSyntaxTreeNodeExt {
         }
     }
 
-    public static reduceLevels(document: vscode.TextDocument, node: ALFullSyntaxTreeNode, lookToLeft: boolean, maxReduce?: number): ALFullSyntaxTreeNode {
+    public static reduceLevels(document: TextDocument, node: ALFullSyntaxTreeNode, lookToLeft: boolean, maxReduce?: number): ALFullSyntaxTreeNode {
         if (maxReduce === 0)
             return node;
         let allowedCharacters: string[] = ['', ';'];
         if (node.parentNode) {
             if (lookToLeft) {
                 if (node.fullSpan && node.fullSpan.start && node.parentNode.fullSpan && node.parentNode.fullSpan.start) {
-                    let rangeBeforeNode = new vscode.Range(
+                    let rangeBeforeNode = new Range(
                         node.parentNode.fullSpan.start.line,
                         node.parentNode.fullSpan.start.character,
                         node.fullSpan.start.line,
@@ -66,7 +78,7 @@ export class ALFullSyntaxTreeNodeExt {
                 }
             } else {
                 if (node.fullSpan && node.fullSpan.end && node.parentNode.fullSpan && node.parentNode.fullSpan.end) {
-                    let rangeAfterNode = new vscode.Range(
+                    let rangeAfterNode = new Range(
                         node.fullSpan.end.line,
                         node.fullSpan.end.character,
                         node.parentNode.fullSpan.end.line,
@@ -87,7 +99,7 @@ export class ALFullSyntaxTreeNodeExt {
         });
         return node;
     }
-    public static getValueOfPropertyName(document: vscode.TextDocument, mainNode: ALFullSyntaxTreeNode, propertyName: string): ALFullSyntaxTreeNode | undefined {
+    public static getValueOfPropertyName(document: TextDocument, mainNode: ALFullSyntaxTreeNode, propertyName: string): ALFullSyntaxTreeNode | undefined {
         let propertyLists: ALFullSyntaxTreeNode[] = [];
         ALFullSyntaxTreeNodeExt.collectChildNodes(mainNode, FullSyntaxTreeNodeKind.getPropertyList(), false, propertyLists);
         if (propertyLists.length === 1) {
@@ -96,8 +108,8 @@ export class ALFullSyntaxTreeNodeExt {
             ALFullSyntaxTreeNodeExt.collectChildNodes(propertyList, FullSyntaxTreeNodeKind.getProperty(), false, properties);
             if (properties.length > 0) {
                 let propertiesOfSearchedProperty: ALFullSyntaxTreeNode[] = properties.filter(property =>
-                    property.fullSpan &&
-                    document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(property.fullSpan))).toLowerCase() === propertyName.trim().toLowerCase());
+                    property.fullSpan && property.childNodes &&
+                    document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(property.childNodes[0].fullSpan))).toLowerCase() === propertyName.trim().toLowerCase());
                 if (propertiesOfSearchedProperty.length > 0) {
                     let propertyOfSearchedProperty: ALFullSyntaxTreeNode = propertiesOfSearchedProperty[0];
                     if (propertyOfSearchedProperty.childNodes && propertyOfSearchedProperty.childNodes.length === 2) {
@@ -107,5 +119,55 @@ export class ALFullSyntaxTreeNodeExt {
             }
         }
         return undefined;
+    }
+    public static async getBaseTableLocation(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): Promise<Location | undefined> {
+        let validKinds: FullSyntaxTreeNodeKind[] = [FullSyntaxTreeNodeKind.getPageObject(), FullSyntaxTreeNodeKind.getRequestPage(), FullSyntaxTreeNodeKind.getPageExtensionObject(), FullSyntaxTreeNodeKind.getTableExtensionObject(), FullSyntaxTreeNodeKind.getCodeunitObject()];
+        if (!objectTreeNode.kind || !validKinds.includes(objectTreeNode.kind))
+            return undefined;
+        if (objectTreeNode.kind == FullSyntaxTreeNodeKind.getTableExtensionObject())
+            return await this.getExtendedObjectLocation(document, objectTreeNode);
+        //preprocess pageExtension
+        if (objectTreeNode.kind == FullSyntaxTreeNodeKind.getPageExtensionObject()) {
+            let extendedObjectLocation = await this.getExtendedObjectLocation(document, objectTreeNode);
+            if (!extendedObjectLocation)
+                return undefined;
+            let extendedObjectDoc: TextDocument = await workspace.openTextDocument(extendedObjectLocation.uri);
+            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(extendedObjectDoc);
+            objectTreeNode = SyntaxTreeExt.getObjectTreeNode(syntaxTree, extendedObjectLocation.range.start) as ALFullSyntaxTreeNode;
+            document = extendedObjectDoc;
+            if (!objectTreeNode.kind)
+                return undefined;
+        }
+        let propertyTreeNode: ALFullSyntaxTreeNode | undefined
+        if ([FullSyntaxTreeNodeKind.getPageObject(), FullSyntaxTreeNodeKind.getRequestPage()].includes(objectTreeNode.kind))
+            propertyTreeNode = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, objectTreeNode, 'SourceTable');
+        if ([FullSyntaxTreeNodeKind.getCodeunitObject()].includes(objectTreeNode.kind))
+            propertyTreeNode = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, objectTreeNode, 'TableNo');
+        if (propertyTreeNode) {
+            let rangeOfPropertyValueTreeNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(propertyTreeNode.fullSpan));
+            let locations: Location[] | undefined = await commands.executeCommand('vscode.executeDefinitionProvider', document.uri, rangeOfPropertyValueTreeNode.start);
+            if (locations) {
+                return locations[0];
+            }
+        }
+    }
+    static async getExtendedObjectLocation(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): Promise<Location | undefined> {
+        if (!objectTreeNode.kind || ![FullSyntaxTreeNodeKind.getTableExtensionObject(), FullSyntaxTreeNodeKind.getPageExtensionObject()].includes(objectTreeNode.kind))
+            return undefined;
+        let objectReference: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getObjectReference(), false);
+        if (!objectReference)
+            return undefined;
+        let objectReferenceRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(objectReference.fullSpan));
+        let locations: Location[] | undefined = await commands.executeCommand('vscode.executeDefinitionProvider', document.uri, objectReferenceRange.start);
+        if (locations && locations.length > 0)
+            return locations[0];
+    }
+    static async getExtendedObject(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): Promise<ALFullSyntaxTreeNode | undefined> {
+        let location: Location | undefined = await this.getExtendedObjectLocation(document, objectTreeNode);
+        if (!location)
+            return undefined;
+        let extendedObjectDoc: TextDocument = await workspace.openTextDocument(location.uri);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(extendedObjectDoc);
+        return SyntaxTreeExt.getObjectTreeNode(syntaxTree, location.range.start) as ALFullSyntaxTreeNode;
     }
 }

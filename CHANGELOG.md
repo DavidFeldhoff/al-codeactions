@@ -2,6 +2,13 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.16
+
+- New functionality: References to Built in functions
+  - Add a definition provider which shows all functions which get triggered on onInsert/onModify/onValidate and so on.
+- Create Procedure
+  - Detect "Enum::MyEnum::Value" as "MyEnum"-parameter
+
 ## 0.2.15
 
 - Command added: Fix implicit with-usages

@@ -8,6 +8,7 @@ import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/a
 import { ALCreateProcedureCodeAction } from './extension/Services/alCreateProcedureCodeAction';
 import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
 import { ALExtractToProcedureCodeAction } from './extension/Services/alExtractToProcedureCodeAction';
+import { ALCreateDefinitionProviderOnInsert } from './extension/Services/alCreateDefinitionProviderOnInsert';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -43,6 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	context.subscriptions.push(
 		vscode.languages.registerDefinitionProvider('al', new ALCreateHandlerFunctionDefinitionProvider())
+	);
+	context.subscriptions.push(
+		vscode.languages.registerDefinitionProvider('al', new ALCreateDefinitionProviderOnInsert())
 	);
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())

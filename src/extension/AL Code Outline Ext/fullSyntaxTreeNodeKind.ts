@@ -9,7 +9,10 @@ export class FullSyntaxTreeNodeKind {
         return 'PageAction';
     }
     public static getField(): string {
-        return 'Field'; //Tablefield
+        return 'Field'; //Tablefield or Pagefield
+    }
+    public static getFieldModification(): string {
+        return 'FieldModification';
     }
     public static getTableObject(): string {
         return 'TableObject';
