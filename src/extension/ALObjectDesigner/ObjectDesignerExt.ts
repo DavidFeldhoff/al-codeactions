@@ -2,6 +2,8 @@ import { TextDocument, Uri, workspace } from 'vscode';
 import * as ALObjectDesigner from './api';
 export class ObjectDesignerExt {
     static async getTableExtensions(tableName: string): Promise<TextDocument[]> {
+        if (!ALObjectDesigner.ALObjectDesigner.isInstalled())
+            return [];
         let api: ALObjectDesigner.ALObjectDesignerAPI = await ALObjectDesigner.ALObjectDesigner.getApi();
         if (!api.ALPanel.objectList)
             return [];

@@ -167,6 +167,8 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
             return ALFullSyntaxTreeNodeExt.getIdentifierValue(document, tableTreeNode, true);
     }
     async getEventSubscriberNodes(tableNameToSearch: string): Promise<Location[]> {
+        if (!ALObjectDesigner.ALObjectDesigner.isInstalled())
+            return [];
         let api: ALObjectDesigner.ALObjectDesignerAPI = await ALObjectDesigner.ALObjectDesigner.getApi();
         let eventList: ALObjectDesigner.CollectorItem[] | undefined = api.ALPanel.eventList;
         if (!eventList)

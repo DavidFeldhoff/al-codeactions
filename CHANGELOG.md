@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.17
+
+- References to Built in functions
+  - Make dependency to AL Object Designer to a soft dependency. So if this extension isn't installed, then the eventsubscriptions and tableextension triggers aren't found.
+
 ## 0.2.16
 
 - New functionality: References to Built in functions
