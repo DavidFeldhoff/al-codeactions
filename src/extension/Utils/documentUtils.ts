@@ -240,4 +240,12 @@ export class DocumentUtils {
         }
         return regExpMatch[1];
     }
+
+    static async executeRename(location: vscode.Location): Promise<any> {
+        let editor = vscode.window.activeTextEditor;
+        if (editor) {
+            editor.selection = new vscode.Selection(location.range.start, location.range.start);
+        }
+        vscode.commands.executeCommand('editor.action.rename');
+    }
 }
