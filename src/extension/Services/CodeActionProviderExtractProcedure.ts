@@ -1,4 +1,3 @@
-import { CreateProcedure } from './../Create Procedure/Procedure Creator/CreateProcedure';
 import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
@@ -7,70 +6,68 @@ import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
-import { DocumentUtils } from '../Utils/documentUtils';
+import { ICodeActionProvider } from './ICodeActionProvider';
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALVariable } from '../Entities/alVariable';
+import { Command } from '../Entities/Command';
 import { ALObjectParser } from '../Entity Parser/alObjectParser';
 import { ALParameterParser } from '../Entity Parser/alParameterParser';
 import { ALVariableParser } from '../Entity Parser/alVariableParser';
 import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
+import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
+import { DocumentUtils } from '../Utils/documentUtils';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 
-export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider {
-    static async renameMethod(): Promise<any> {
-        let editor = vscode.window.activeTextEditor;
-        if (editor) {
-            let newProcedureCharacterPos: number = editor.document.lineAt(editor.selection.start.line).text.indexOf(RenameMgt.newProcedureName + '(');
-            let posOfProcedureCall = new vscode.Position(editor.selection.start.line, newProcedureCharacterPos);
-
-            editor.selection = new vscode.Selection(posOfProcedureCall, posOfProcedureCall);
-        }
-        vscode.commands.executeCommand('editor.action.rename');
+export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
+    document: vscode.TextDocument;
+    range: vscode.Range;
+    constructor(document: vscode.TextDocument, range: vscode.Range) {
+        this.document = document;
+        this.range = range;
     }
-
-    public static readonly providedCodeActionKinds = [
-        vscode.CodeActionKind.RefactorExtract
-    ];
-
-
-    public async provideCodeActions(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.CodeAction[] | undefined> {
-        if (range.start.compareTo(range.end) === 0) { //performance
-            return;
+    async considerLine(): Promise<boolean> {
+        if (this.range.start.compareTo(this.range.end) === 0) { //performance
+            return false;
         }
-
-        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(document, range);
+        if (this.document.lineAt(this.range.start).firstNonWhitespaceCharacterIndex <= 4 ||
+            this.document.lineAt(this.range.end).firstNonWhitespaceCharacterIndex <= 4)
+            return false;
+        return true;
+    }
+    async createCodeActions(): Promise<vscode.CodeAction[]> {
+        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(this.document, this.range);
         await rangeAnalyzer.analyze();
         if (!rangeAnalyzer.isValidToExtract()) {
-            return;
+            return [];
         }
         let rangeExpanded: vscode.Range = rangeAnalyzer.getExpandedRange();
         let treeNodeStart: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractStart();
         let treeNodeEnd: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractEnd();
 
-        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(document, treeNodeStart, treeNodeEnd);
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(this.document, treeNodeStart, treeNodeEnd);
         await returnTypeAnalyzer.analyze();
         if (rangeAnalyzer.isValidToExtractOnlyWithReturnType() && !returnTypeAnalyzer.getReturnType()) {
-            return;
+            return [];
         }
-        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(document, rangeExpanded, returnTypeAnalyzer);
+        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(rangeExpanded, returnTypeAnalyzer);
         if (!procedureObject) {
-            return;
+            return [];
         }
-        let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
+        let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(this.document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
         let codeActionToCreateProcedure: vscode.CodeAction | undefined;
-        codeActionToCreateProcedure = await this.createCodeAction(document, procedureCallingText, procedureObject, rangeExpanded);
-        if (isUndefined(codeActionToCreateProcedure)) {
-            return;
+        codeActionToCreateProcedure = await this.createCodeAction(this.document, procedureCallingText, procedureObject, rangeExpanded);
+        if (!codeActionToCreateProcedure) {
+            return [];
         } else {
             return [codeActionToCreateProcedure];
         }
     }
-    public async provideProcedureObjectForCodeAction(document: vscode.TextDocument, rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+    public async provideProcedureObjectForCodeAction(rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
         if (!procedureOrTriggerTreeNode) {
             return;
@@ -79,11 +76,11 @@ export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider
         let parameterTreeNodes: ALFullSyntaxTreeNode[] = this.getParametersOfTreeNode(procedureOrTriggerTreeNode);
         let returnVariableTreeNode: ALFullSyntaxTreeNode | undefined = this.getReturnVariableOfTreeNode(procedureOrTriggerTreeNode);
 
-        let variablesNeeded: ALFullSyntaxTreeNode[] = await this.getALVariablesNeededInNewProcedure(localVariableTreeNodes, document, rangeExpanded);
-        let parametersNeeded: ALFullSyntaxTreeNode[] = await this.getParametersNeededInNewProcedure(parameterTreeNodes, document, rangeExpanded);
-        let returnVariableNeeded: ALFullSyntaxTreeNode | undefined = await this.getReturnVariableNeeded(returnVariableTreeNode, document, rangeExpanded);
+        let variablesNeeded: ALFullSyntaxTreeNode[] = await this.getALVariablesNeededInNewProcedure(localVariableTreeNodes, this.document, rangeExpanded);
+        let parametersNeeded: ALFullSyntaxTreeNode[] = await this.getParametersNeededInNewProcedure(parameterTreeNodes, this.document, rangeExpanded);
+        let returnVariableNeeded: ALFullSyntaxTreeNode | undefined = await this.getReturnVariableNeeded(returnVariableTreeNode, this.document, rangeExpanded);
 
-        let variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[] = await this.getVariablesWhichBecomeVarParameters(variablesNeeded, document, rangeExpanded);
+        let variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[] = await this.getVariablesWhichBecomeVarParameters(variablesNeeded, this.document, rangeExpanded);
         let variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[] = this.getVariablesWhichBecomeNormalParameters();
         let variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[] = this.getVariablesWhichStayLocalVariables(variablesNeeded, variableTreeNodesWhichBecomeVarParameters, variableTreeNodesWhichBecomeNormalParameters);
 
@@ -92,10 +89,10 @@ export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider
 
         let returnVariableTreeNodeWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined = this.getReturnVariableWhichBecomesVarParameter(returnVariableNeeded);
         //Codeunit onRun Trigger implicitly has a Rec Variable which is declared nowhere
-        let typeOfRecWhichBecomesVarParameter: string | undefined = await this.getSourceTableTypeOfCodeunitOnRunTrigger(document, rangeExpanded);
+        let typeOfRecWhichBecomesVarParameter: string | undefined = await this.getSourceTableTypeOfCodeunitOnRunTrigger(this.document, rangeExpanded);
 
         let procedureToCreate: ALProcedure | undefined;
-        procedureToCreate = await this.createProcedureObject(document, rangeExpanded,
+        procedureToCreate = await this.createProcedureObject(this.document, rangeExpanded,
             variableTreeNodesWhichBecomeVarParameters,
             variableTreeNodesWhichBecomeNormalParameters,
             variableTreeNodesWhichStayLocalVariables,
@@ -380,7 +377,8 @@ export class ALExtractToProcedureCodeAction implements vscode.CodeActionProvider
 
         fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
         fix.command = {
-            command: 'alcodeactions.renameMethod',
+            command: Command.renameCommand,
+            arguments: [new vscode.Location(document.uri, rangeExpanded.start)],
             title: 'Extract Method'
         };
         return fix;

@@ -2,7 +2,7 @@
 	"name": "al-codeactions",
 	"displayName": "AL CodeActions",
 	"description": "Adds codeactions to the AL language",
-	"version": "0.2.16",
+	"version": "0.2.18",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -34,7 +34,6 @@
 	"main": "./out/extension.js",
 	"activationEvents": [
 		"onCommand:alcodeactions.fiximplicitwithusages",
-		"onCommand:alcodeactions.addpragmaimplicitwithdisable",
 		"onLanguage:al"
 	],
 	"contributes": {
@@ -43,11 +42,6 @@
 				"category": "AL Code Actions",
 				"command": "alcodeactions.fiximplicitwithusages",
 				"title": "Fix implicit with-usages"
-			},
-			{
-				"category": "AL Code Actions",
-				"command": "alcodeactions.addpragmaimplicitwithdisable",
-				"title": "Add Pragma 'implicit with disable' to all files"
 			}
 		],
 		"configuration": []

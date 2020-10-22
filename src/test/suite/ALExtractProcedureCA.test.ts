@@ -3,7 +3,7 @@ import * as path from 'path';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { ALExtractToProcedureCodeAction } from '../../extension/Services/alExtractToProcedureCodeAction';
+import { CodeActionProviderExtractProcedure } from '../../extension/Services/CodeActionProviderExtractProcedure';
 import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
 import { ALLanguageExtension } from '../alExtension';
@@ -41,20 +41,20 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'integer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'result');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 2);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'integer');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'start');
-        assert.equal(alProcedure.variables[1].type.toLowerCase(), 'integer');
-        assert.equal(alProcedure.variables[1].name.toLowerCase(), 'addend');
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'integer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'result');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 2);
+        assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'integer');
+        assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'start');
+        assert.strictEqual(alProcedure.variables[1].type.toLowerCase(), 'integer');
+        assert.strictEqual(alProcedure.variables[1].name.toLowerCase(), 'addend');
     });
     test('Before_ProcedureWithOneParameterByValue', async () => {
         let procedureName = 'testProcedureWithOneParameterByValue';
@@ -65,22 +65,22 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
-        // assert.equal(alProcedure.parameters.length, 0);
-        // assert.equal(alProcedure.variables.length, 1);
-        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.parameters.length, 0);
+        // assert.strictEqual(alProcedure.variables.length, 1);
+        // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithTwoParametersByValue', async () => {
         let procedureName = 'testProcedureWithTwoParametersByValue';
@@ -91,22 +91,22 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
-        // assert.equal(alProcedure.parameters.length, 0);
-        // assert.equal(alProcedure.variables.length, 1);
-        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.parameters.length, 0);
+        // assert.strictEqual(alProcedure.variables.length, 1);
+        // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithMultilineParametersByValue', async () => {
         let procedureName = 'testProcedureWithMultilineParametersByValue';
@@ -117,22 +117,22 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
-        // assert.equal(alProcedure.parameters.length, 0);
-        // assert.equal(alProcedure.variables.length, 1);
-        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.parameters.length, 0);
+        // assert.strictEqual(alProcedure.variables.length, 1);
+        // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithOneParameterByReference', async () => {
         let procedureName = 'testProcedureWithOneParameterByReference';
@@ -143,16 +143,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('Before_ProcedureWithTwoParametersByReference', async () => {
         let procedureName = 'testProcedureWithTwoParametersByReference';
@@ -163,16 +163,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('Before_ProcedureWithMultilineParametersByReference', async () => {
         let procedureName = 'testProcedureWithMultilineParametersByReference';
@@ -183,16 +183,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
 
     test('Before_ProcedureWithCodeunitAsParameter', async () => {
@@ -204,16 +204,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'codeunit codeunittoextract');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'codeunittoextract');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'codeunit codeunittoextract');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'codeunittoextract');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
 
     test('Before_ProcedureWithPageAsParameter', async () => {
@@ -225,16 +225,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'page mypage');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'mypage');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'page mypage');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'mypage');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
 
     test('Before_ProcedureWithAssignmentBefore', async () => {
@@ -246,19 +246,19 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
         //current solution because everything is handed over as var
-        assert.equal(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
         //planned solution if not everything is handed over as var
-        // assert.equal(alProcedure.parameters[0].isVar, false);
-        assert.equal(alProcedure.variables.length, 0);
+        // assert.strictEqual(alProcedure.parameters[0].isVar, false);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('Before_ProcedureWithProcedureCallBefore', async () => {
         let procedureName = 'testProcedureWithProcedureCallBefore';
@@ -269,16 +269,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('Before_ProcedureWithNotUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithNotUsedFilteringBefore';
@@ -289,22 +289,22 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
-        // assert.equal(alProcedure.parameters.length, 0);
-        // assert.equal(alProcedure.variables.length, 1);
-        // assert.equal(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.equal(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.parameters.length, 0);
+        // assert.strictEqual(alProcedure.variables.length, 1);
+        // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
+        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithUsedFilteringBefore';
@@ -315,18 +315,18 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), '"customer with quotes"');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 1);
-        assert.equal(alProcedure.variables[0].type.toLowerCase(), 'boolean');
-        assert.equal(alProcedure.variables[0].name.toLowerCase(), 'iscustomerempty');
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), '"customer with quotes"');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 1);
+        assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'boolean');
+        assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'iscustomerempty');
     });
     test('Before_ProcedureWithUsedValueAfterwards', async () => {
         let procedureName = 'testProcedureWithUsedValueAfterwards';
@@ -337,16 +337,16 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('ProcedureWithUsedReturnValue', async () => {
         let procedureName = 'testProcedureWithUsedReturnValue';
@@ -357,19 +357,19 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, undefined);
-        assert.equal(alProcedure.parameters.length, 2);
-        assert.equal(alProcedure.parameters[0].type.toLowerCase(), 'record customer temporary');
-        assert.equal(alProcedure.parameters[0].name.toLowerCase(), 'customer');
-        assert.equal(alProcedure.parameters[0].isVar, true);
-        assert.equal(alProcedure.parameters[1].type.toLowerCase(), 'code[20]');
-        assert.equal(alProcedure.parameters[1].name.toLowerCase(), 'myreturnvalue');
-        assert.equal(alProcedure.parameters[1].isVar, true);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.parameters.length, 2);
+        assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer temporary');
+        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.parameters[1].type.toLowerCase(), 'code[20]');
+        assert.strictEqual(alProcedure.parameters[1].name.toLowerCase(), 'myreturnvalue');
+        assert.strictEqual(alProcedure.parameters[1].isVar, true);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('PartiallyExtractInListExpression', async () => {
         let procedureName = 'OnRun';
@@ -380,15 +380,15 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getInListExpression()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, 'Boolean');
-        assert.equal(alProcedure.returnVariableName,'returnValue');
-        assert.equal(alProcedure.getBody(),'returnValue := 1 in [2, 3];')
-        assert.equal(alProcedure.parameters.length, 0);
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, 'Boolean');
+        assert.strictEqual(alProcedure.returnVariableName,'returnValue');
+        assert.strictEqual(alProcedure.getBody(),'returnValue := 1 in [2, 3];')
+        assert.strictEqual(alProcedure.parameters.length, 0);
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
     test('PartiallyExtractAssignmentStatement', async () => {
         let procedureName = 'OnRun';
@@ -399,18 +399,18 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getParenthesizedExpression()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new ALExtractToProcedureCodeAction().provideProcedureObjectForCodeAction(codeunitToExtractDocument, rangeToExtract, returnTypeAnalyzer);
-        assert.notEqual(alProcedure, undefined, 'Procedure should be extracted');
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.equal(alProcedure.isLocal, true);
-        assert.equal(alProcedure.returnType, 'Integer');
-        assert.equal(alProcedure.returnVariableName,'returnValue');
-        assert.equal(alProcedure.getBody(),'returnValue := (addend - 1);')
-        assert.equal(alProcedure.parameters.length, 1);
-        assert.equal(alProcedure.parameters[0].isVar,true);
-        assert.equal(alProcedure.parameters[0].name,'addend');
-        assert.equal(alProcedure.parameters[0].type,'Integer');
-        assert.equal(alProcedure.variables.length, 0);
+        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.returnType, 'Integer');
+        assert.strictEqual(alProcedure.returnVariableName,'returnValue');
+        assert.strictEqual(alProcedure.getBody(),'returnValue := (addend - 1);')
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].isVar,true);
+        assert.strictEqual(alProcedure.parameters[0].name,'addend');
+        assert.strictEqual(alProcedure.parameters[0].type,'Integer');
+        assert.strictEqual(alProcedure.variables.length, 0);
     });
 
 

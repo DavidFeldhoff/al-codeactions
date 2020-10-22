@@ -24,7 +24,6 @@ export class CreateProcedureCommands {
 
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
     public static createHandlerCommand: string = 'alcodeactions.createHandler';
-    public static renameMethodCommand: string = 'alcodeactions.renameMethod';
 
     static async addHandler(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<any> {
         let supportedHandlers: string[] = [];

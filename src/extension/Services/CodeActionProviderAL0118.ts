@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
-import { ICodeActionCreator } from "./ICodeActionCreator";
-import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { ALSourceCodeHandler } from "../../Utils/alSourceCodeHandler";
-import { CreateProcedureAL0118 } from '../Procedure Creator/CreateProcedureAL0118';
-import { CreateProcedure } from '../Procedure Creator/CreateProcedure';
-import { ALProcedure } from '../../Entities/alProcedure';
-import { CreateProcedureCommands } from '../CreateProcedureCommands';
-import { CreateProcedureAL0118IntegrationEvent } from '../Procedure Creator/CreateProcedureAL0118IntegrationEvent';
-import { CreateProcedureAL0118BusinessEvent } from '../Procedure Creator/CreateProcedureAL0118BusinessEvent';
-import { WorkspaceUtils } from '../../Utils/workspaceUtils';
+import { ICodeActionProvider } from "./ICodeActionProvider";
+import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { ALSourceCodeHandler } from "../Utils/alSourceCodeHandler";
+import { CreateProcedureAL0118 } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
+import { ALProcedure } from '../Entities/alProcedure';
+import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureCommands';
+import { CreateProcedureAL0118IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118IntegrationEvent';
+import { CreateProcedureAL0118BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118BusinessEvent';
+import { WorkspaceUtils } from '../Utils/workspaceUtils';
 
-export class CodeActionCreatorAL0118 implements ICodeActionCreator {
+export class CodeActionProviderAL0118 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
     document: vscode.TextDocument;
     diagnostic: vscode.Diagnostic;

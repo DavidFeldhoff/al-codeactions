@@ -1,4 +1,10 @@
 export class FullSyntaxTreeNodeKind {
+    public static getLabelDataType(): string {
+        return 'LabelDataType';
+    }
+    public static getLabel(): string {
+        return 'Label';
+    }
     public static getXmlPortSchema(): string {
         return 'XmlPortSchema'; //inside a schema are textelements, fieldelements, ..
     }

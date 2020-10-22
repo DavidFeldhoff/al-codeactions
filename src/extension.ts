@@ -1,14 +1,15 @@
-import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
 import * as vscode from 'vscode';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
-import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Services/alCreateHandlerFunctionDefinitionProvider';
-import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/alCreateHandlerFunctionReferenceProvider';
-import { ALCreateProcedureCodeAction } from './extension/Services/alCreateProcedureCodeAction';
-import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
-import { ALExtractToProcedureCodeAction } from './extension/Services/alExtractToProcedureCodeAction';
-import { ALCreateDefinitionProviderOnInsert } from './extension/Services/alCreateDefinitionProviderOnInsert';
+import { Command } from './extension/Entities/Command';
+import { ALCodeActionProvider } from './extension/Services/alCodeActionProvider';
+import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
+import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
+import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
+import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
+import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
+import { DocumentUtils } from './extension/Utils/documentUtils';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -16,17 +17,12 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALCreateProcedureCodeAction(), {
-			providedCodeActionKinds: ALCreateProcedureCodeAction.providedCodeActionKinds
-		})
-	);
+		vscode.languages.registerCodeActionsProvider('al', new ALCodeActionProvider(),
+			{ providedCodeActionKinds: [vscode.CodeActionKind.QuickFix, vscode.CodeActionKind.RefactorExtract] })
+	)
+
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALExtractToProcedureCodeAction(), {
-			providedCodeActionKinds: ALExtractToProcedureCodeAction.providedCodeActionKinds
-		})
-	);
-	context.subscriptions.push(
-		vscode.commands.registerCommand(CreateProcedureCommands.renameMethodCommand, () => ALExtractToProcedureCodeAction.renameMethod())
+		vscode.commands.registerCommand(Command.renameCommand, (location: vscode.Location) => DocumentUtils.executeRename(location))
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
@@ -40,24 +36,21 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ALCreateHandlerFunctionReferenceProvider())
+		vscode.languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new ALCreateHandlerFunctionDefinitionProvider())
+		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new ALCreateDefinitionProviderOnInsert())
+		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderOnInsert())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
+		vscode.languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
 	);
 
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('alcodeactions.fiximplicitwithusages', () => ALCreateFixWithUsageCommand.fixImplicitWithUsages())
-	);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('alcodeactions.addpragmaimplicitwithdisable', () => ALCreateFixWithUsageCommand.addPragmaImplicitWithDisable())
 	);
 }
 

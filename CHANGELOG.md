@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.18
+
+- New functionality: Extract to label
+- Made functionality obsolete: 'Add pragmas' as this one is possible with the feature flag NoImplicitWith in the app.json. https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-deprecating-with-statements-overview#al0604---use-of-implicit-with
+
 ## 0.2.17
 
 - References to Built in functions
