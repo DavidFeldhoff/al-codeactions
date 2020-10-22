@@ -5,11 +5,11 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ICodeActionCreator } from "../Create Procedure/Code Action Creator/ICodeActionCreator";
+import { ICodeActionProvider } from "./ICodeActionProvider";
 import { Command } from '../Entities/Command';
 import { DocumentUtils } from '../Utils/documentUtils';
 
-export class CodeActionProviderExtractLabel implements ICodeActionCreator {
+export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     range: vscode.Range;
     document: vscode.TextDocument;
     stringLiteralTreeNode: ALFullSyntaxTreeNode | undefined;

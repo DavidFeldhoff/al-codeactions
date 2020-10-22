@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { ICreateProcedure } from '../Procedure Creator/ICreateProcedure';
 
-export interface ICodeActionCreator {
+export interface ICodeActionProvider {
     considerLine(): Promise<boolean>;
     createCodeActions(): Promise<vscode.CodeAction[]>;
 }

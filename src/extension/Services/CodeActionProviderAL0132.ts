@@ -1,15 +1,14 @@
 import * as vscode from 'vscode';
-import { ICodeActionCreator } from "./ICodeActionCreator";
-import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { ALSourceCodeHandler } from "../../Utils/alSourceCodeHandler";
-import { ICreateProcedure } from '../Procedure Creator/ICreateProcedure';
-import { ALObject } from '../../Entities/alObject';
-import { CreateProcedureAL0132 } from '../Procedure Creator/CreateProcedureAL0132';
-import { CreateProcedure } from '../Procedure Creator/CreateProcedure';
-import { ALProcedure } from '../../Entities/alProcedure';
-import { CreateProcedureCommands } from '../CreateProcedureCommands';
+import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { ALObject } from '../Entities/alObject';
+import { ALProcedure } from '../Entities/alProcedure';
+import { ALSourceCodeHandler } from "../Utils/alSourceCodeHandler";
+import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureCommands';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
+import { CreateProcedureAL0132 } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132';
+import { ICodeActionProvider } from "./ICodeActionProvider";
 
-export class CodeActionCreatorAL0132 implements ICodeActionCreator {
+export class CodeActionProviderAL0132 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
     document: vscode.TextDocument;
     diagnostic: vscode.Diagnostic;

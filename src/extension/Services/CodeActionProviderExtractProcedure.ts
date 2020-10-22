@@ -6,7 +6,7 @@ import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ICodeActionCreator } from '../Create Procedure/Code Action Creator/ICodeActionCreator';
+import { ICodeActionProvider } from './ICodeActionProvider';
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALVariable } from '../Entities/alVariable';
@@ -19,9 +19,9 @@ import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { DocumentUtils } from '../Utils/documentUtils';
-import { CreateProcedure } from './../Create Procedure/Procedure Creator/CreateProcedure';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 
-export class CodeActionProviderExtractProcedure implements ICodeActionCreator {
+export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     document: vscode.TextDocument;
     range: vscode.Range;
     constructor(document: vscode.TextDocument, range: vscode.Range) {

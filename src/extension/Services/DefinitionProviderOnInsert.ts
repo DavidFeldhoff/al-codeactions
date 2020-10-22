@@ -2,7 +2,7 @@ import { CancellationToken, DefinitionProvider, Location, Position, Range, TextD
 import { BuiltInFieldFunctionDefinition } from '../DefinitionsOnInsert/BuiltInFieldFunctionDefinition';
 import { BuiltInFunctionDefinitionInterface } from '../DefinitionsOnInsert/BuiltInFunctionDefinitionInterface';
 import { BuiltInTableDefinitionReference } from '../DefinitionsOnInsert/BuiltInTableFunctionDefinition';
-export class ALCreateDefinitionProviderOnInsert implements DefinitionProvider {
+export class DefinitionProviderOnInsert implements DefinitionProvider {
 
     async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location[]> {
         let wordRange: Range | undefined = document.getWordRangeAtPosition(position);

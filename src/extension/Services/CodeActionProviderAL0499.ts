@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
-import { DocumentUtils } from '../../Utils/documentUtils';
-import { CreateProcedureCommands } from '../CreateProcedureCommands';
-import { ICodeActionCreator } from "./ICodeActionCreator";
+import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { DocumentUtils } from '../Utils/documentUtils';
+import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureCommands';
+import { ICodeActionProvider } from "./ICodeActionProvider";
 
-export class CodeActionCreatorAL0499 implements ICodeActionCreator {
+export class CodeActionProviderAL0499 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
     document: vscode.TextDocument;
     diagnostic: vscode.Diagnostic;

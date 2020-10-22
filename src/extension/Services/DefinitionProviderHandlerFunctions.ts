@@ -5,7 +5,7 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 
-export class ALCreateHandlerFunctionDefinitionProvider implements vscode.DefinitionProvider {
+export class DefinitionProviderHandlerFunctions implements vscode.DefinitionProvider {
 
     async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location | vscode.Location[] | vscode.LocationLink[] | undefined> {
         let locations: vscode.Location[] = [];

@@ -4,11 +4,11 @@ import { CreateProcedureCommands } from './extension/Create Procedure/CreateProc
 import { ALProcedure } from './extension/Entities/alProcedure';
 import { Command } from './extension/Entities/Command';
 import { ALCodeActionProvider } from './extension/Services/alCodeActionProvider';
-import { ALCreateDefinitionProviderOnInsert } from './extension/Services/alCreateDefinitionProviderOnInsert';
+import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
 import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
-import { ALCreateHandlerFunctionDefinitionProvider } from './extension/Services/alCreateHandlerFunctionDefinitionProvider';
-import { ALCreateHandlerFunctionReferenceProvider } from './extension/Services/alCreateHandlerFunctionReferenceProvider';
-import { ALCreateTriggerParameterReferenceProvider } from './extension/Services/alCreateTriggerParameterReferenceProvider';
+import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
+import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
+import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -36,16 +36,16 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ALCreateHandlerFunctionReferenceProvider())
+		vscode.languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new ALCreateHandlerFunctionDefinitionProvider())
+		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new ALCreateDefinitionProviderOnInsert())
+		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderOnInsert())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ALCreateTriggerParameterReferenceProvider())
+		vscode.languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
 	);
 
 
