@@ -34,7 +34,6 @@
 	"main": "./out/extension.js",
 	"activationEvents": [
 		"onCommand:alcodeactions.fiximplicitwithusages",
-		"onCommand:alcodeactions.addpragmaimplicitwithdisable",
 		"onLanguage:al"
 	],
 	"contributes": {
@@ -43,11 +42,6 @@
 				"category": "AL Code Actions",
 				"command": "alcodeactions.fiximplicitwithusages",
 				"title": "Fix implicit with-usages"
-			},
-			{
-				"category": "AL Code Actions",
-				"command": "alcodeactions.addpragmaimplicitwithdisable",
-				"title": "Add Pragma 'implicit with disable' to all files"
 			}
 		],
 		"configuration": []

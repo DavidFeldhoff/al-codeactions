@@ -52,9 +52,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('alcodeactions.fiximplicitwithusages', () => ALCreateFixWithUsageCommand.fixImplicitWithUsages())
 	);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('alcodeactions.addpragmaimplicitwithdisable', () => ALCreateFixWithUsageCommand.addPragmaImplicitWithDisable())
-	);
 }
 
 
