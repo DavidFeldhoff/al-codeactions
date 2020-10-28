@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.19
+
+- Extract to label: Small bugfix if there was no local variable-section yet
+
 ## 0.2.18
 
 - New functionality: Extract to label

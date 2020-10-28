@@ -28,7 +28,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
         if (!this.stringLiteralTreeNode || !this.syntaxTree || !methodOrTriggerTreeNode)
             return [];
-        let blockTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getBlock()]);
+        let blockTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getBlock(), false);
         if (!blockTreeNode)
             return [];
 
