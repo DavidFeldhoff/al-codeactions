@@ -43,8 +43,9 @@ export class ALSourceCodeHandler {
             AZSymbolKind.SessionSettingsHandlerDeclaration,
             AZSymbolKind.StrMenuHandlerDeclaration
         ];
-        let kinds: AZSymbolKind[] = testKinds.concat([
-            AZSymbolKind.TriggerDeclaration,
+        let kinds: AZSymbolKind[] = [AZSymbolKind.TriggerDeclaration];
+        kinds = kinds.concat(testKinds);
+        kinds = kinds.concat([
             AZSymbolKind.MethodDeclaration,
             AZSymbolKind.LocalMethodDeclaration,
             AZSymbolKind.EventSubscriberDeclaration,
