@@ -375,6 +375,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
         fix.edit.insert(document.uri, position, textToInsert);
 
+        this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);
+
         fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
         fix.command = {
             command: Command.renameCommand,
@@ -382,6 +384,71 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             title: 'Extract Method'
         };
         return fix;
+    }
+    private async removeLocalVariables(edit: vscode.WorkspaceEdit, document: vscode.TextDocument, start: vscode.Position, variables: ALVariable[]) {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(start, [FullSyntaxTreeNodeKind.getTriggerDeclaration(), FullSyntaxTreeNodeKind.getMethodDeclaration()]);
+        if (!methodOrTriggerTreeNode)
+            return;
+        let varSection: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
+        if (!varSection)
+            return;
+
+        let allVariableDeclarations: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, allVariableDeclarations);
+        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclarationName(), true, allVariableDeclarations);
+        if (allVariableDeclarations.length == variables.length) {
+            edit.delete(document.uri, TextRangeExt.createVSCodeRange(varSection.fullSpan));
+            return;
+        }
+
+        let variableRangesOfNormalDeclarations: { name: string, range: vscode.Range }[] = [];
+        let variableDeclarations: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, variableDeclarations);
+        for (const variableDeclaration of variableDeclarations) {
+            let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclaration, false) as string;
+            let range: vscode.Range = TextRangeExt.createVSCodeRange(variableDeclaration.fullSpan);
+            variableRangesOfNormalDeclarations.push({ name: varName, range: range });
+        }
+        for (const variableRangeOfNormalDeclaration of variableRangesOfNormalDeclarations) {
+            if (variables.some(variable => variable.name.toLowerCase() == variableRangeOfNormalDeclaration.name.toLowerCase()))
+                edit.delete(document.uri, variableRangeOfNormalDeclaration.range);
+        }
+
+        let variableListDeclarations: ALFullSyntaxTreeNode[] = [];
+        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableListDeclaration(), false, variableListDeclarations);
+        for (const variableListDeclaration of variableListDeclarations) {
+            let variableRangesOfDeclarationNames: { name: string, range: vscode.Range }[] = [];
+            let variableDeclarationNames: ALFullSyntaxTreeNode[] = [];
+            ALFullSyntaxTreeNodeExt.collectChildNodes(variableListDeclaration, FullSyntaxTreeNodeKind.getVariableDeclarationName(), false, variableDeclarationNames);
+            let deleteWholeListDeclaration: boolean = true;
+            for (let i = 0; i < variableDeclarationNames.length; i++) {
+                let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclarationNames[i], false) as string;
+                if (!variables.some(variable => variable.name.toLowerCase() == varName.toLowerCase()))
+                    deleteWholeListDeclaration = false;
+
+                let rangeToRemove: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[i].fullSpan));
+                variableRangesOfDeclarationNames.push({ name: varName, range: rangeToRemove })
+            }
+            if (deleteWholeListDeclaration) {
+                edit.delete(document.uri, TextRangeExt.createVSCodeRange(variableListDeclaration.fullSpan));
+            } else {
+                let previousOneDeleted: boolean = false;
+                for (let i = variableRangesOfDeclarationNames.length - 1; i >= 0; i--) {
+                    if (variables.some(variable => variable.name.toLowerCase() == variableRangesOfDeclarationNames[i].name.toLowerCase())) {
+                        if (i != 0)
+                            edit.delete(document.uri, new vscode.Range(variableRangesOfDeclarationNames[i - 1].range.end, variableRangesOfDeclarationNames[i].range.end));
+                        else if (i == 0 && previousOneDeleted) {
+                            edit.delete(document.uri, variableRangesOfDeclarationNames[i].range);
+                        } else if (i == 0 && !previousOneDeleted) {
+                            edit.delete(document.uri, new vscode.Range(variableRangesOfDeclarationNames[i].range.start, variableRangesOfDeclarationNames[i + 1].range.start));
+                        }
+                        previousOneDeleted = true;
+                    } else
+                        previousOneDeleted = false;
+                }
+            }
+        }
     }
     private fixIndentation(document: vscode.TextDocument, rangeExpanded: vscode.Range, selectedText: string) {
         let firstNonWhiteSpaceCharacter = document.lineAt(rangeExpanded.start.line).firstNonWhitespaceCharacterIndex;
