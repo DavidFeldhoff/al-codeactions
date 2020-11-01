@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.20
+
+- Create procedure: Small bugfix in test-codeunits if there's a OnRun trigger then the created proceure was inserted before the Test-Methods
+- New functionality: Refactor to Validate
+
 ## 0.2.19
 
 - Extract to label: Small bugfix if there was no local variable-section yet
