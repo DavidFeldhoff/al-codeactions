@@ -73,13 +73,19 @@ export class TypeDetective {
             case FullSyntaxTreeNodeKind.getOptionAccessExpression():
                 if (this.treeNode.childNodes) {
                     let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
-                    // Enum::MyEnum::Value
-                    if (this.treeNode.parentNode?.kind == FullSyntaxTreeNodeKind.getOptionAccessExpression() && this.treeNode.childNodes[0].identifier && this.treeNode.childNodes[0].identifier.toLowerCase() == 'enum')
-                        childNode = this.treeNode.childNodes[1];
-                    let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
-                    await typeDetective.analyzeTypeOfTreeNode();
-                    this.name = typeDetective.getName();
-                    this.type = typeDetective.getType();
+                    if (childNode.kind == FullSyntaxTreeNodeKind.getIdentifierName() && childNode.identifier && this.getValidOptionAccessIdentifiers().includes(childNode.identifier.toLowerCase())) {
+                        // Database::Item
+                        this.name = this.OptionAccessToType(childNode.identifier) + 'Id';
+                        this.type = 'Integer';
+                    } else {
+                        // Enum::MyEnum::Value
+                        if (this.treeNode.parentNode?.kind == FullSyntaxTreeNodeKind.getOptionAccessExpression() && this.treeNode.childNodes[0].identifier && this.treeNode.childNodes[0].identifier.toLowerCase() == 'enum')
+                            childNode = this.treeNode.childNodes[1];
+                        let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
+                        await typeDetective.analyzeTypeOfTreeNode();
+                        this.name = typeDetective.getName();
+                        this.type = typeDetective.getType();
+                    }
                 }
                 break;
             case FullSyntaxTreeNodeKind.getAddExpression():
@@ -309,5 +315,26 @@ export class TypeDetective {
                 }
             }
         }
+    }
+    private OptionAccessToType(optionAccess: string): string {
+        switch (optionAccess.toLowerCase()) {
+            case 'database': return 'Table';
+            case 'page': return 'Page';
+            case 'codeunit': return 'Codeunit';
+            case 'report': return 'Report';
+            case 'query': return 'Query';
+            case 'xmlport': return 'Xmlport';
+            default: throw new Error('Expected a valid OptionAccessIdentifier.');
+        }
+    }
+    private getValidOptionAccessIdentifiers(): string[] {
+        return [
+            'database',
+            'page',
+            'codeunit',
+            'report',
+            'query',
+            'xmlport'
+        ]
     }
 }

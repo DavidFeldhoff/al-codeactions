@@ -81,29 +81,6 @@ export class ALSourceCodeHandler {
         }
         return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(objectSymbol.range)).end.translate(0, -1);
     }
-    private getLastMethodOrTrigger(objectTreeNode: ALFullSyntaxTreeNode): vscode.Position | undefined {
-        let methodOrTriggers: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getMethodDeclaration(), false, methodOrTriggers);
-        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, methodOrTriggers);
-        let lastPosition: vscode.Position | undefined;
-        for (let i = 0; i < methodOrTriggers.length; i++) {
-            let rangeOfMethodOrTrigger: vscode.Range = TextRangeExt.createVSCodeRange(methodOrTriggers[i].fullSpan);
-            if (!lastPosition) {
-                lastPosition = rangeOfMethodOrTrigger.end;
-            } else if (rangeOfMethodOrTrigger.end.compareTo(lastPosition) > 0) {
-                lastPosition = rangeOfMethodOrTrigger.end;
-            }
-        }
-        return lastPosition;
-    }
-    private async getObjectTreeNode(currentLineNo: number | undefined): Promise<ALFullSyntaxTreeNode> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        if (currentLineNo) {
-            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(currentLineNo, 0)) as ALFullSyntaxTreeNode;
-        } else {
-            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(0, 0)) as ALFullSyntaxTreeNode;
-        }
-    }
 
     public async isInvocationExpression(range: vscode.Range): Promise<boolean> {
         let textLine = this.document.lineAt(range.end.line).text;
