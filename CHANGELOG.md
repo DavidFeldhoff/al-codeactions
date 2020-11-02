@@ -7,6 +7,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 - Create procedure: 
   - Small bugfix in test-codeunits if there's a OnRun trigger then the created proceure was inserted before the Test-Methods
   - Parameters like Database::Item or Page::"Customer Card" are now recognized as ObjectID parameter instead as Variant
+  - Add procedures to Interface
 - Extract procedure: remove local variables afterwards
 - New functionality: Refactor to Validate
 

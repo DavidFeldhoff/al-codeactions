@@ -1,19 +1,14 @@
 import * as vscode from 'vscode';
-import { isUndefined } from 'util';
-import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
-import { DocumentUtils } from './documentUtils';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { ALProcedure } from '../Entities/alProcedure';
-import { AZSymbolInformation } from '../AL Code Outline/AZSymbolInformation';
-import { AZDocumentSymbolsLibrary } from '../AL Code Outline/azALDocumentSymbolsService';
 import { AZSymbolInformationExt } from '../AL Code Outline Ext/azSymbolInformationExt';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { AZDocumentSymbolsLibrary } from '../AL Code Outline/azALDocumentSymbolsService';
+import { AZSymbolInformation } from '../AL Code Outline/AZSymbolInformation';
 import { AZSymbolKind } from '../AL Code Outline/azSymbolKind';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALProcedure } from '../Entities/alProcedure';
+import { DocumentUtils } from './documentUtils';
 
 export class ALSourceCodeHandler {
 

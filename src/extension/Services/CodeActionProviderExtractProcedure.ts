@@ -370,9 +370,11 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         fix.edit = new vscode.WorkspaceEdit();
 
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line, procedure);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
+        let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
-        let textToInsert = createProcedure.createProcedureDefinition(procedure, true);
-        textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+        let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
+        textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
         fix.edit.insert(document.uri, position, textToInsert);
 
         this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);

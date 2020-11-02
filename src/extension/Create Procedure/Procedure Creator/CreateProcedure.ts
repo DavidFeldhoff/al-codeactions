@@ -31,7 +31,7 @@ export class CreateProcedure {
         return procedure;
     }
 
-    public createProcedureDefinition(procedure: ALProcedure, withIndent: boolean): string {
+    public createProcedureDefinition(procedure: ALProcedure, withIndent: boolean, declarationOnly: boolean): string {
         withIndent = true;
         let returnType = procedure.getReturnTypeAsString();
         let returnString = "";
@@ -48,7 +48,12 @@ export class CreateProcedure {
         memberAttributes.forEach(memberAttribute =>
             procedureDefinition += (withIndent ? "\t" : "") + "[" + memberAttribute + "]\r\n"
         );
-        procedureDefinition += (withIndent ? "\t" : "") + localString + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString + "\r\n";
+        procedureDefinition += (withIndent ? "\t" : "") + localString + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
+        if (declarationOnly) {
+            this.lineOfBodyStart = 0 as number;
+            return procedureDefinition + ';';
+        }
+        procedureDefinition += "\r\n";
         if (procedure.variables && procedure.variables.length > 0) {
             procedureDefinition += (withIndent ? "\t" : "") + "var\r\n";
             procedure.variables.forEach(variable =>
@@ -92,7 +97,7 @@ export class CreateProcedure {
         procedureCall += ')';
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        
+
         let statementNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.end, FullSyntaxTreeNodeKind.getAllStatementKinds());
         if (statementNode) {
             let statementRange: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(statementNode.fullSpan));
@@ -103,9 +108,12 @@ export class CreateProcedure {
         return procedureCall;
     }
 
-    public addLineBreaksToProcedureCall(document: vscode.TextDocument, position: vscode.Position, textToInsert: string) {
-        this.lineOfBodyStart = this.lineOfBodyStart ? this.lineOfBodyStart + 1 : undefined;
-        textToInsert = "\r\n" + textToInsert + "\r\n";
+    public addLineBreaksToProcedureCall(document: vscode.TextDocument, position: vscode.Position, textToInsert: string, isInterface: boolean) {
+        if (!isInterface) {
+            this.lineOfBodyStart = this.lineOfBodyStart ? this.lineOfBodyStart + 1 : undefined;
+            textToInsert = "\r\n" + textToInsert;
+        }
+        textToInsert += "\r\n";
         return textToInsert;
     }
     public getLineOfBodyStart(): number | undefined {
