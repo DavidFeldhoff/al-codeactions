@@ -55,9 +55,11 @@
 
 ![demo](images/RefactorValidate.gif)
 
-### References to Built in functions
+### References to Built in functions*
 
 ![demo](images/DefinitionsOfBuiltInFunctions.gif)
+
+*References to Extension and Events requires AL Object Designer
 
 ## About me
 
