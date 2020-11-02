@@ -14,6 +14,9 @@ export class FullSyntaxTreeNodeKind {
     public static getPageAction(): string {
         return 'PageAction';
     }
+    public static getPagePart(): string {
+        return 'PagePart';
+    }
     public static getField(): string {
         return 'Field'; //Tablefield or Pagefield
     }

@@ -20,6 +20,7 @@ import { CreateProcedureAL0499ReportHandler } from './Procedure Creator/AL0499 S
 import { CreateProcedureAL0499SendNotificationHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SendNotificationHandler';
 import { CreateProcedureAL0499SessionSettingsHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SessionSettingsHandler';
 import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499StrMenuHandler';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 export class CreateProcedureCommands {
 
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
@@ -72,24 +73,24 @@ export class CreateProcedureCommands {
     public static async addProcedureToSourceCode(document: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedure: ALProcedure) {
         let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
-
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
-            let textToInsert = createProcedure.createProcedureDefinition(procedure, false);
-            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+            let textToInsert = createProcedure.createProcedureDefinition(procedure, false, isInterface);
+            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
             let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
             let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);
             editor.insertSnippet(snippetString, position);
-
         } else {
-            let textToInsert = createProcedure.createProcedureDefinition(procedure, true);
-            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert);
+            let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
+            textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
             let workspaceEdit = new vscode.WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
             await vscode.workspace.applyEdit(workspaceEdit);
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
-                if (lineOfBodyStart) {
+                if (lineOfBodyStart !== undefined) {
                     let lineToPlaceCursor: number = lineOfBodyStart + position.line;
                     let positionToPlaceCursor: vscode.Position = new vscode.Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
                     let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);

@@ -38,7 +38,8 @@ export class AZDocumentSymbolsLibrary {
             AZSymbolKind.PageExtensionObject,
             AZSymbolKind.PageCustomizationObject,
             AZSymbolKind.ReportObject,
-            AZSymbolKind.CodeunitObject
+            AZSymbolKind.CodeunitObject,
+            AZSymbolKind.Interface
         ];
         let alObjects: AZSymbolInformation[] = [];
         AZSymbolInformationExt.collectChildNodes(this.rootSymbol, alObjectKinds, false, alObjects);

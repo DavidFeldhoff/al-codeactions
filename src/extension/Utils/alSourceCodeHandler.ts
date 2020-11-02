@@ -1,19 +1,14 @@
 import * as vscode from 'vscode';
-import { isUndefined } from 'util';
-import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
-import { DocumentUtils } from './documentUtils';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { ALProcedure } from '../Entities/alProcedure';
-import { AZSymbolInformation } from '../AL Code Outline/AZSymbolInformation';
-import { AZDocumentSymbolsLibrary } from '../AL Code Outline/azALDocumentSymbolsService';
 import { AZSymbolInformationExt } from '../AL Code Outline Ext/azSymbolInformationExt';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { AZDocumentSymbolsLibrary } from '../AL Code Outline/azALDocumentSymbolsService';
+import { AZSymbolInformation } from '../AL Code Outline/AZSymbolInformation';
 import { AZSymbolKind } from '../AL Code Outline/azSymbolKind';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALProcedure } from '../Entities/alProcedure';
+import { DocumentUtils } from './documentUtils';
 
 export class ALSourceCodeHandler {
 
@@ -43,8 +38,9 @@ export class ALSourceCodeHandler {
             AZSymbolKind.SessionSettingsHandlerDeclaration,
             AZSymbolKind.StrMenuHandlerDeclaration
         ];
-        let kinds: AZSymbolKind[] = testKinds.concat([
-            AZSymbolKind.TriggerDeclaration,
+        let kinds: AZSymbolKind[] = [AZSymbolKind.TriggerDeclaration];
+        kinds = kinds.concat(testKinds);
+        kinds = kinds.concat([
             AZSymbolKind.MethodDeclaration,
             AZSymbolKind.LocalMethodDeclaration,
             AZSymbolKind.EventSubscriberDeclaration,
@@ -79,29 +75,6 @@ export class ALSourceCodeHandler {
             }
         }
         return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(objectSymbol.range)).end.translate(0, -1);
-    }
-    private getLastMethodOrTrigger(objectTreeNode: ALFullSyntaxTreeNode): vscode.Position | undefined {
-        let methodOrTriggers: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getMethodDeclaration(), false, methodOrTriggers);
-        ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, methodOrTriggers);
-        let lastPosition: vscode.Position | undefined;
-        for (let i = 0; i < methodOrTriggers.length; i++) {
-            let rangeOfMethodOrTrigger: vscode.Range = TextRangeExt.createVSCodeRange(methodOrTriggers[i].fullSpan);
-            if (!lastPosition) {
-                lastPosition = rangeOfMethodOrTrigger.end;
-            } else if (rangeOfMethodOrTrigger.end.compareTo(lastPosition) > 0) {
-                lastPosition = rangeOfMethodOrTrigger.end;
-            }
-        }
-        return lastPosition;
-    }
-    private async getObjectTreeNode(currentLineNo: number | undefined): Promise<ALFullSyntaxTreeNode> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        if (currentLineNo) {
-            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(currentLineNo, 0)) as ALFullSyntaxTreeNode;
-        } else {
-            return SyntaxTreeExt.getObjectTreeNode(syntaxTree, new vscode.Position(0, 0)) as ALFullSyntaxTreeNode;
-        }
     }
 
     public async isInvocationExpression(range: vscode.Range): Promise<boolean> {

@@ -2,6 +2,16 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.20
+
+- Create procedure: 
+  - Small bugfix in test-codeunits if there's a OnRun trigger then the created proceure was inserted before the Test-Methods
+  - Parameters like Database::Item or Page::"Customer Card" are now recognized as ObjectID parameter instead as Variant
+  - Add procedures to Interface
+  - Add procedures to subpages (Currpage.Lines.Page.NewMethod)
+- Extract procedure: remove local variables afterwards
+- New functionality: Refactor to Validate
+
 ## 0.2.19
 
 - Extract to label: Small bugfix if there was no local variable-section yet
