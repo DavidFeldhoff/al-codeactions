@@ -3,9 +3,9 @@ import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
 import { Command } from './extension/Entities/Command';
-import { ALCodeActionProvider } from './extension/Services/alCodeActionProvider';
+import { CodeActionProvider_General } from './extension/Services/CodeActionProvider_General';
 import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
-import { ALCreateFixWithUsageCommand } from './extension/Services/alCreateFixWithUsageCommand';
+import { CommandFixWithUsage } from './extension/Services/CommandFixWithUsage';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new ALCodeActionProvider(),
+		vscode.languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
 			{ providedCodeActionKinds: [vscode.CodeActionKind.QuickFix, vscode.CodeActionKind.RefactorExtract] })
 	)
 
@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('alcodeactions.fiximplicitwithusages', () => ALCreateFixWithUsageCommand.fixImplicitWithUsages())
+		vscode.commands.registerCommand('alcodeactions.fiximplicitwithusages', () => CommandFixWithUsage.fixImplicitWithUsages())
 	);
 }
 

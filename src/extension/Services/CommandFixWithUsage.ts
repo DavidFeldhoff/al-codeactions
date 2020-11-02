@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { WithDocumentAL0606Fixer } from '../FixWithUsage/WithDocumentAL0606Fixer';
 import { WithDocumentFixer } from '../FixWithUsage/WithDocumentFixer';
-import { WithDocumentAL0604Fixer } from './../FixWithUsage/WithDocumentAL0604Fixer';
+import { WithDocumentAL0604Fixer } from '../FixWithUsage/WithDocumentAL0604Fixer';
 
-export class ALCreateFixWithUsageCommand {
+export class CommandFixWithUsage {
     public static async fixWithUsages() {
         let alExtension: vscode.Extension<any> | undefined = vscode.extensions.getExtension('ms-dynamics-smb.al');
         let supported: boolean = false;
@@ -19,7 +19,7 @@ export class ALCreateFixWithUsageCommand {
             vscode.window.showErrorMessage('You have to have at least version 6.0.297106 of the AL Language extension installed to use this command.');
             return;
         }
-        let settingsToDeactivate: string = ALCreateFixWithUsageCommand.getSettingsToDeactivate();
+        let settingsToDeactivate: string = CommandFixWithUsage.getSettingsToDeactivate();
         if (settingsToDeactivate !== '') {
             vscode.window.showWarningMessage('Please deactivate the following settings as they may break the batch run: ' + settingsToDeactivate);
             return;
@@ -38,7 +38,7 @@ export class ALCreateFixWithUsageCommand {
                 await this.fixExplicitWithUsages();
             }
 
-            ALCreateFixWithUsageCommand.createFinishMessage(AL0604WarningsAtStart, AL0606WarningsAtStart);
+            CommandFixWithUsage.createFinishMessage(AL0604WarningsAtStart, AL0606WarningsAtStart);
         }
     }
 
@@ -90,7 +90,7 @@ export class ALCreateFixWithUsageCommand {
         }
         allDocumentsWithDiagnosticOfAL0604 = allDocumentsWithDiagnosticOfAL0604.sort((a, b) => b[1].length - a[1].length);
         let withDocumentAL0604Fixer: WithDocumentAL0604Fixer = new WithDocumentAL0604Fixer();
-        ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
+        CommandFixWithUsage.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0604, withDocumentAL0604Fixer);
         await withDocumentAL0604Fixer.fixWithUsagesOfAllDocuments();
         let message: string = 'Fixed ' + withDocumentAL0604Fixer.getNoOfUsagesFixed() + ' implicit with usages in ' + withDocumentAL0604Fixer.getNoOfDocsFixed() + ' files.';
         vscode.window.showInformationMessage(message);
@@ -109,7 +109,7 @@ export class ALCreateFixWithUsageCommand {
             return;
         }
         let withDocumentAL0606Fixer: WithDocumentAL0606Fixer = new WithDocumentAL0606Fixer();
-        ALCreateFixWithUsageCommand.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
+        CommandFixWithUsage.addDocumentsToFix(allDocumentsWithDiagnosticOfAL0606, withDocumentAL0606Fixer);
         await withDocumentAL0606Fixer.fixWithUsagesOfAllDocuments();
     }
 

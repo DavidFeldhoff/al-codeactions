@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ICodeActionProvider } from './ICodeActionProvider';
-import { CodeActionProviderCreateProcedureFactory } from './CodeActionCreatorFactory';
+import { CodeActionProviderCreateProcedureFactory } from './CodeActionProviderCreateProcedureFactory';
 import { CodeActionProviderExtractProcedure } from './CodeActionProviderExtractProcedure';
 import { CodeActionProviderExtractLabel } from './CodeActionProviderExtractLabel';
 import { CodeActionProviderRefactorToValidate } from './CodeActionProviderRefactorToValidate';
 
-export class ALCodeActionProvider implements vscode.CodeActionProvider {
+export class CodeActionProvider_General implements vscode.CodeActionProvider {
     async provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): Promise<vscode.CodeAction[] | undefined> {
         let myCodeActionProviders: ICodeActionProvider[] = [];
         myCodeActionProviders = CodeActionProviderCreateProcedureFactory.getInstances(document, range);
