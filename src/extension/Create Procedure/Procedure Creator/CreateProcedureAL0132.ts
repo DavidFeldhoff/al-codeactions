@@ -61,20 +61,28 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         if (this.objectOfNewProcedure) {
             return this.objectOfNewProcedure;
         }
-        let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
-        let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
-        if (locations && locations.length > 0) {
-            let positionOfVariableDeclaration: vscode.Position = locations[0].range.start;
-            locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+        let locations: vscode.Location[] | undefined;
+        let checkPagePart: { isPagePart: boolean, PagePartSourceRange: vscode.Range } | undefined = await this.isPagePartCall(this.document, this.diagnostic.range.start);
+        if (checkPagePart && checkPagePart.isPagePart) {
+            locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, checkPagePart.PagePartSourceRange.start);
+        } else {
+            let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
+            locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
             if (locations && locations.length > 0) {
-                let otherDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
-                let otherDocSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDoc);
-                let otherObjectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(otherDocSyntaxTree, locations[0].range.start);
-                if (otherObjectTreeNode) {
-                    return ALObjectParser.parseObjectTreeNodeToALObject(otherDoc, otherObjectTreeNode);
-                }
+                let positionOfVariableDeclaration: vscode.Position = locations[0].range.start;
+                locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
             }
         }
+        if (locations && locations.length > 0) {
+            let otherDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+            let otherDocSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDoc);
+            let otherObjectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(otherDocSyntaxTree, locations[0].range.start);
+            if (otherObjectTreeNode) {
+                this.objectOfNewProcedure = ALObjectParser.parseObjectTreeNodeToALObject(otherDoc, otherObjectTreeNode);
+                return this.objectOfNewProcedure;
+            }
+        }
+
         let errorMessage = 'Unable to find calling object';
         OwnConsole.ownConsole.appendLine('Error: ' + errorMessage);
         throw new Error(errorMessage);
@@ -84,5 +92,37 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     }
     containsSnippet(): boolean {
         return false;
+    }
+
+    
+    private async isPagePartCall(document: vscode.TextDocument, positionOfMissingProcedure: vscode.Position): Promise<{ isPagePart: boolean, PagePartSourceRange: vscode.Range } | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        //Level 1: [0] MemberAccessExpression, [1] Identifier: MissingProcedure, 
+        //Level 2: [0] MemberAccessExpression, [1] Identifier: Page,
+        //Level 3: [0] Identifier: CurrPage, [1] Identifier: Name of PagePart,
+        let level1: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(positionOfMissingProcedure, [FullSyntaxTreeNodeKind.getMemberAccessExpression()])
+        if (level1 && level1.childNodes && level1.childNodes[0].kind == FullSyntaxTreeNodeKind.getMemberAccessExpression()) {
+            let level2 = level1.childNodes[0];
+            if (level2 && level2.childNodes) {
+                if (level2.childNodes[0].kind == FullSyntaxTreeNodeKind.getMemberAccessExpression() &&
+                    document.getText(TextRangeExt.createVSCodeRange(level2.childNodes[1].fullSpan)).toLowerCase() == 'page') {
+                    let level3 = level2.childNodes[0];
+                    if (level3.childNodes && level3.childNodes[0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                        document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(level3.childNodes[0].fullSpan))).toLowerCase() == 'currpage') {
+                        let pagePartName: string = document.getText(TextRangeExt.createVSCodeRange(level3.childNodes[1].fullSpan)).toLowerCase();
+                        let pageParts: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getPagePart());
+                        let pagePart: ALFullSyntaxTreeNode | undefined = pageParts.find(pagePart =>
+                            pagePart.childNodes &&
+                            pagePart.childNodes[0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                            document.getText(TextRangeExt.createVSCodeRange(pagePart.childNodes[0].fullSpan)).toLowerCase() == pagePartName);
+                        if (pagePart && pagePart.childNodes && pagePart.childNodes.length >= 2) {
+                            let rangeOfObjectReference: vscode.Range = TextRangeExt.createVSCodeRange(pagePart.childNodes[1].fullSpan);
+                            return { isPagePart: true, PagePartSourceRange: rangeOfObjectReference };
+                        }
+                    }
+                }
+            }
+        }
+        return undefined;
     }
 }

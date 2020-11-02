@@ -18,6 +18,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 	let testcodeunitDocument: vscode.TextDocument;
 	let tableDocument: vscode.TextDocument;
 	let pageDocument: vscode.TextDocument;
+	let mainPageDocument: vscode.TextDocument;
 	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
 		this.timeout(0);
@@ -39,6 +40,10 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		fileName = path.resolve(ALTestProject.dir, 'MyPage.al');
 		await vscode.workspace.openTextDocument(fileName).then(document => {
 			pageDocument = document;
+		});
+		fileName = path.resolve(ALTestProject.dir, 'MainPage.al');
+		await vscode.workspace.openTextDocument(fileName).then(document => {
+			mainPageDocument = document;
 		});
 
 		vscode.window.showInformationMessage('Start all tests of ALCodeActionProvider.');
@@ -303,6 +308,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 		assert.strictEqual(alProcedure.ObjectOfProcedure.name, '"FirstCodeunit"');
+	});
+	test('getProcedureToCreate_PagePart', async () => {
+		let procedureName = 'DoSomething';
+		let rangeOfProcedureName = getRangeOfProcedureName(mainPageDocument, procedureName);
+		let diagnostic = new vscode.Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = SupportedDiagnosticCodes.AL0132.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0132(mainPageDocument,diagnostic));
+		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.strictEqual(alProcedure.name, procedureName);
+		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.returnType, undefined);
+		assert.strictEqual(alProcedure.parameters.length, 0);
+		assert.strictEqual(alProcedure.ObjectOfProcedure.name, 'MySalesSubpage');
 	});
 
 	test('getProcedureToCreate_ProcedureWithProcedureCallInside1', async () => {
