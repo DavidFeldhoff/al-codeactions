@@ -197,6 +197,9 @@ export class FullSyntaxTreeNodeKind {
     public static getOptionAccessExpression(): string {
         return 'OptionAccessExpression';
     }
+    public static getOptionAccessAttributeArgument() {
+        return 'OptionAccessAttributeArgument';
+    }
     public static getArrayIndexExpression(): string {
         return 'ArrayIndexExpression';
     }
