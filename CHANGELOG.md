@@ -2,10 +2,15 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.21
+
+- New functionality: Definition Provider to event subscribers. This one is deactivated if AL Studio is installed as well as this extension provides the same functionality.
+- Extract procedure: Bug fixed if local variables were moved to the new procedure then the renaming failed.
+
 ## 0.2.20
 
-- Create procedure: 
-  - Small bugfix in test-codeunits if there's a OnRun trigger then the created proceure was inserted before the Test-Methods
+- Create procedure:  
+  - Small bugfix in test-codeunits if there's a OnRun trigger then the created procedure was inserted before the Test-Methods
   - Parameters like Database::Item or Page::"Customer Card" are now recognized as ObjectID parameter instead as Variant
   - Add procedures to Interface
   - Add procedures to subpages (Currpage.Lines.Page.NewMethod)
