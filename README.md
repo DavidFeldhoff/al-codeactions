@@ -2,7 +2,7 @@
 
 You can support me here:
 
-[![https://www.buymeacoffee.com/davidfeldhoff](images\buymeacoffeeSmall.png)](https://www.buymeacoffee.com/davidfeldhoff)
+[![https://www.buymeacoffee.com/davidfeldhoff](./images/buymeacoffeeSmall.png)](https://www.buymeacoffee.com/davidfeldhoff)
 
 ## Features
 
