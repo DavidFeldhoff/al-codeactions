@@ -377,12 +377,16 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
         fix.edit.insert(document.uri, position, textToInsert);
 
-        this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);
-
+        await this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);
+        let linesDeleted: number = 0;
+        fix.edit.entries().filter(
+            entry => entry[1].filter(
+                textEdit => textEdit.newText == '' && textEdit.range.start.character == 0 && textEdit.range.end.character == 0).forEach(
+                    deleteEdit => linesDeleted += deleteEdit.range.end.line - deleteEdit.range.start.line));
         fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
         fix.command = {
             command: Command.renameCommand,
-            arguments: [new vscode.Location(document.uri, rangeExpanded.start)],
+            arguments: [new vscode.Location(document.uri, rangeExpanded.start.translate(linesDeleted * -1, undefined))],
             title: 'Extract Method'
         };
         return fix;

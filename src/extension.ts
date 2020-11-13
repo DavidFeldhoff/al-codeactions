@@ -10,6 +10,8 @@ import { DefinitionProviderHandlerFunctions } from './extension/Services/Definit
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
+import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
+import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -47,6 +49,11 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
 	);
+	if (!ALStudioExtension.isAvailable()) {
+		context.subscriptions.push(
+			vscode.languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
+		);
+	}
 
 
 	context.subscriptions.push(
