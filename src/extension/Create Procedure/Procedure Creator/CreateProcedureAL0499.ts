@@ -7,6 +7,7 @@ import { ALObject } from '../../Entities/alObject';
 import { ALVariable } from '../../Entities/alVariable';
 import { ALObjectParser } from '../../Entity Parser/alObjectParser';
 import { ICreateProcedure } from './ICreateProcedure';
+import { AccessModifier } from '../../Entities/accessModifier';
 
 export class CreateProcedureAL0499 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
@@ -30,8 +31,8 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     getBody(): string | undefined {
         return undefined;
     }
-    isLocal(): boolean {
-        return false;
+    getAccessModifier(): AccessModifier{
+        return AccessModifier.public
     }
     async getVariables(): Promise<ALVariable[]> {
         return [];

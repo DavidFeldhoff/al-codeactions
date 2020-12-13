@@ -2,6 +2,7 @@ import { isUndefined } from "util";
 import { ALVariable } from './alVariable';
 import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { ALObject } from "./alObject";
+import { AccessModifier } from "./accessModifier";
 
 export class ALProcedure {
     public name: string;
@@ -9,18 +10,18 @@ export class ALProcedure {
     public variables: ALVariable[];
     public returnVariableName?: string;
     public returnType?: string;
-    public isLocal: boolean;
+    public accessModifier: AccessModifier;
     private body: string | undefined;
     public ObjectOfProcedure: ALObject;
     public memberAttributes: string[];
     private jumpToCreatedPosition: boolean;
     private containsSnippet: boolean;
-    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, isLocal: boolean, memberAttributes: string[], jumpToCreatedPosition: boolean, containsSnippet: boolean, ALObject: ALObject) {
+    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, accessModifier: AccessModifier, memberAttributes: string[], jumpToCreatedPosition: boolean, containsSnippet: boolean, ALObject: ALObject) {
         this.name = name;
         this.parameters = parameters;
         this.variables = variables;
         this.returnType = returnValue;
-        this.isLocal = isLocal;
+        this.accessModifier = accessModifier;
         this.memberAttributes = memberAttributes;
         this.jumpToCreatedPosition = jumpToCreatedPosition;
         this.containsSnippet = containsSnippet;

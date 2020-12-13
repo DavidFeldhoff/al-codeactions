@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { ICreateProcedure } from "./ICreateProcedure";
-import { ALProcedure } from "../../Entities/alProcedure";
+import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
-import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { ALProcedure } from "../../Entities/alProcedure";
 import { ALVariable } from '../../Entities/alVariable';
 import { ReturnTypeAnalyzer } from '../../Extract Procedure/returnTypeAnalyzer';
-import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
 import { DocumentUtils } from '../../Utils/documentUtils';
+import { ICreateProcedure } from "./ICreateProcedure";
 
 export class CreateProcedure {
     private lineOfBodyStart: number | undefined;
@@ -18,7 +18,7 @@ export class CreateProcedure {
             await procedureCreator.getParameters(),
             await procedureCreator.getVariables(),
             await procedureCreator.getReturnType(),
-            procedureCreator.isLocal(),
+            procedureCreator.getAccessModifier(),
             procedureCreator.getMemberAttributes(),
             procedureCreator.getJumpToCreatedProcedure(),
             procedureCreator.containsSnippet(),
@@ -38,17 +38,13 @@ export class CreateProcedure {
         if (returnType !== "") {
             returnString = procedure.getReturnVariableName() + ": " + returnType;
         }
-        let localString = "";
-        if (procedure.isLocal) {
-            localString = "local ";
-        }
 
         let memberAttributes: string[] = procedure.getMemberAttributes();
         let procedureDefinition = "";
         memberAttributes.forEach(memberAttribute =>
             procedureDefinition += (withIndent ? "\t" : "") + "[" + memberAttribute + "]\r\n"
         );
-        procedureDefinition += (withIndent ? "\t" : "") + localString + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
+        procedureDefinition += (withIndent ? "\t" : "") + procedure.accessModifier.toString() + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
         if (declarationOnly) {
             this.lineOfBodyStart = 0 as number;
             return procedureDefinition + ';';

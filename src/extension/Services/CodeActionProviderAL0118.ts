@@ -31,13 +31,11 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         let createprocedureAL0118: CreateProcedureAL0118 = new CreateProcedureAL0118(this.document, this.diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
         let codeActionProcedure: vscode.CodeAction = await this.createCodeAction(procedure, 'Create Procedure ' + procedure.name, this.document, this.diagnostic);
-        codeActionProcedure.isPreferred = true;
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
         let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
 
         if (procedure.name.match(regexPattern)) {
-            codeActionProcedure.isPreferred = false;
 
             let createProcedureAL0118IntegrationEvent: CreateProcedureAL0118IntegrationEvent = new CreateProcedureAL0118IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118IntegrationEvent);
@@ -49,7 +47,8 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
             let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118BusinessEvent);
             let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction(businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
             codeActions.push(codeActionBusinessEvent);
-        }
+        } else
+            codeActionProcedure.isPreferred = true;
 
         codeActions.push(codeActionProcedure);
         return codeActions;
