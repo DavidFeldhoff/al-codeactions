@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -7,7 +8,7 @@ import { ToolsGetFullSyntaxTreeRequest } from './toolsGetFullSyntaxTreeRequest';
 import { ToolsGetFullSyntaxTreeResponse } from './toolsGetFullSyntaxTreeResponse';
 
 export class SyntaxTree {
-    private static instances: Map<vscode.TextDocument, SyntaxTree | undefined> = new Map();
+    private static instances: Map<string, SyntaxTree | undefined> = new Map();
     private fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined;
     private documentContentOfCreation: string;
     private constructor(fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined, currentDocumentContent: string) {
@@ -15,22 +16,27 @@ export class SyntaxTree {
         this.documentContentOfCreation = currentDocumentContent;
     }
     public static async getInstance(document: vscode.TextDocument): Promise<SyntaxTree> {
-        let instance: SyntaxTree | undefined = this.instances.get(document);
-        if (!instance || instance.isOutdated(document.getText())) {
-            this.instances.set(document, new SyntaxTree(await this.getFullSyntaxTree(document), document.getText()));
+        return this.getInstance2(document.uri.fsPath, document.getText())
+    }
+    public static async getInstance2(fsPath: string, fileContent?: string): Promise<SyntaxTree> {
+        let instance: SyntaxTree | undefined = this.instances.get(fsPath);
+        if (!fileContent)
+            fileContent = readFileSync(fsPath, { encoding: 'utf8' })
+        if (!instance || instance.isOutdated(fileContent)) {
+            this.instances.set(fsPath, new SyntaxTree(await this.getFullSyntaxTree(fsPath, fileContent), fileContent));
         }
-        return this.instances.get(document) as SyntaxTree;
+        return this.instances.get(fsPath) as SyntaxTree;
     }
     public static clearInstance(document: vscode.TextDocument) {
-        let instance: SyntaxTree | undefined = this.instances.get(document);
+        let instance: SyntaxTree | undefined = this.instances.get(document.uri.fsPath);
         if (instance) {
-            this.instances.delete(document);
+            this.instances.delete(document.uri.fsPath);
         }
     }
-    private static async getFullSyntaxTree(document: vscode.TextDocument): Promise<ToolsGetFullSyntaxTreeResponse | undefined> {
+    private static async getFullSyntaxTree(fsPath: string, fileContent: string): Promise<ToolsGetFullSyntaxTreeResponse | undefined> {
         let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         // let newSymbolPath: number[] = [];
-        let toolsGetFullSyntaxTreeRequest = new ToolsGetFullSyntaxTreeRequest(document.getText(), document.uri.fsPath);
+        let toolsGetFullSyntaxTreeRequest = new ToolsGetFullSyntaxTreeRequest(fileContent, fsPath);
         let fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined = await azalDevTools.toolsLangServerClient.getFullSyntaxTree(toolsGetFullSyntaxTreeRequest, true);
         return fullSyntaxTreeResponse;
     }

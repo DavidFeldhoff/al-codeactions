@@ -1,8 +1,7 @@
-import * as vscode from 'vscode';
 import { AZSymbolInformation } from "../AL Code Outline/AZSymbolInformation";
 import { AZSymbolKind } from '../AL Code Outline/azSymbolKind';
+import { AccessModifier } from "../Entities/accessModifier";
 import { ALProcedure } from '../Entities/alProcedure';
-import { ALFullSyntaxTreeNodeExt } from './alFullSyntaxTreeNodeExt';
 
 export class AZSymbolInformationExt {
     public static collectChildNodes(azSymbolInformation: AZSymbolInformation, kindsOfSymbolInformation: AZSymbolKind[], searchAllLevels: boolean, outList: AZSymbolInformation[]) {
@@ -19,7 +18,7 @@ export class AZSymbolInformationExt {
     }
     static getSymbolKindOfALProcedure(procedureToInsert: ALProcedure): AZSymbolKind {
         if (procedureToInsert.getMemberAttributes().length === 0) {
-            if (procedureToInsert.isLocal) {
+            if (procedureToInsert.accessModifier == AccessModifier.local) {
                 return AZSymbolKind.LocalMethodDeclaration;
             } else {
                 return AZSymbolKind.MethodDeclaration;

@@ -6,7 +6,8 @@ import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ICodeActionProvider } from './ICodeActionProvider';
+import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
+import { AccessModifier } from '../Entities/accessModifier';
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALVariable } from '../Entities/alVariable';
@@ -19,7 +20,7 @@ import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { DocumentUtils } from '../Utils/documentUtils';
-import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
+import { ICodeActionProvider } from './ICodeActionProvider';
 
 export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     document: vscode.TextDocument;
@@ -154,7 +155,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             throw new Error('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
-        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, true, [], false, false, alObject);
+        procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, AccessModifier.local, [], false, false, alObject);
         let selectedText: string = document.getText(rangeExpanded).trim();
         if (returnType && returnTypeAnalyzer.getAddVariableToExtractedRange()) {
             let returnVariableName = 'returnValue';

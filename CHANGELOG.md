@@ -2,6 +2,15 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.22
+
+- Extract procedure:
+  - fixed if one-liner[#97](https://github.com/DavidFeldhoff/al-codeactions/issues/97)
+  - Create Event Publishers in other documents than the current one. [#99](https://github.com/DavidFeldhoff/al-codeactions/issues/99)
+- New functionality: Fix Cop Warnings
+  - Remove assigned, but unused variables (safe and unsafe mode)
+  - Remove unused variables
+
 ## 0.2.21
 
 - New functionality: Definition Provider to event subscribers. This one is deactivated if AL Studio is installed as well as this extension provides the same functionality.

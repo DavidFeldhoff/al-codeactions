@@ -12,6 +12,7 @@ import { DocumentUtils } from '../../Utils/documentUtils';
 import { TypeDetective } from '../../Utils/typeDetective';
 import { ALParameterParser } from '../../Entity Parser/alParameterParser';
 import { ALFullSyntaxTreeNodeExt } from '../../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { AccessModifier } from '../../Entities/accessModifier';
 
 export class CreateProcedureAL0118 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
@@ -33,8 +34,8 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
     getBody(): string | undefined {
         return undefined;
     }
-    isLocal(): boolean {
-        return true;
+    getAccessModifier(): AccessModifier {
+        return AccessModifier.local;
     }
     async getVariables(): Promise<ALVariable[]> {
         return [];

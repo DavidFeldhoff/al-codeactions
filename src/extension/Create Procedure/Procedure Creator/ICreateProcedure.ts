@@ -1,12 +1,11 @@
-import * as vscode from 'vscode';
-import { ALProcedure } from '../../Entities/alProcedure';
-import { ALVariable } from '../../Entities/alVariable';
+import { AccessModifier } from '../../Entities/accessModifier';
 import { ALObject } from '../../Entities/alObject';
+import { ALVariable } from '../../Entities/alVariable';
 
 export interface ICreateProcedure {
     initialize(): Promise<void>;
     getProcedureName(): string;
-    isLocal(): boolean;
+    getAccessModifier(): AccessModifier;
     getObject(): Promise<ALObject>;
     getParameters(): Promise<ALVariable[]>;
     getReturnType(): Promise<string | undefined>;

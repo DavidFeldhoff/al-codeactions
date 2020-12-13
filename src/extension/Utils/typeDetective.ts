@@ -257,6 +257,10 @@ export class TypeDetective {
                 case FullSyntaxTreeNodeKind.getUnaryPlusExpression():
                     return 'Decimal';
                 case FullSyntaxTreeNodeKind.getIfStatement():
+                    if (treeNode.parentNode.childNodes[0] == treeNode)
+                        return 'Boolean';
+                    else
+                        return undefined;
                 case FullSyntaxTreeNodeKind.getLogicalAndExpression():
                 case FullSyntaxTreeNodeKind.getLogicalOrExpression():
                 case FullSyntaxTreeNodeKind.getUnaryNotExpression():

@@ -48,7 +48,7 @@ export class ReturnTypeAnalyzer {
         } else if (this.treeNodeStart.kind && this.treeNodeEnd.kind &&
             !FullSyntaxTreeNodeKind.getAllStatementKinds().includes(this.treeNodeStart.kind) &&
             !FullSyntaxTreeNodeKind.getAllStatementKinds().includes(this.treeNodeEnd.kind)) {
-                
+
             if (this.treeNodeStart.parentNode && this.treeNodeStart.parentNode === this.treeNodeEnd.parentNode) {
                 this.returnType = await TypeDetective.findReturnTypeOfTreeNode(this.document, this.treeNodeStart.parentNode);
                 if (this.returnType) {
@@ -82,7 +82,8 @@ export class ReturnTypeAnalyzer {
         if (startSyntaxTreeNode.parentNode && endSyntaxTreeNode.parentNode) {
             if (startSyntaxTreeNode.parentNode === endSyntaxTreeNode.parentNode &&
                 startSyntaxTreeNode.parentNode.kind &&
-                startSyntaxTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getIfStatement()) {
+                startSyntaxTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getIfStatement() &&
+                startSyntaxTreeNode.parentNode.childNodes && startSyntaxTreeNode.parentNode.childNodes[0] == startSyntaxTreeNode) {
                 return 'Boolean';
             }
         }

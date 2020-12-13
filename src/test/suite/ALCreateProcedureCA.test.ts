@@ -3,13 +3,14 @@ import * as path from 'path';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
+import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
+import { CreateProcedureAL0118 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0118';
+import { CreateProcedureAL0132 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0132';
+import { SupportedDiagnosticCodes } from '../../extension/Create Procedure/supportedDiagnosticCodes';
+import { AccessModifier } from '../../extension/Entities/accessModifier';
+import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
-import { CreateProcedureAL0118 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0118';
-import { SupportedDiagnosticCodes } from '../../extension/Create Procedure/supportedDiagnosticCodes';
-import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
-import { ALProcedure } from '../../extension/Entities/alProcedure';
-import { CreateProcedureAL0132 } from '../../extension/Create Procedure/Procedure Creator/CreateProcedureAL0132';
 
 // import * as myExtension from '../extension';
 
@@ -58,7 +59,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	}).timeout(3000); //First time opening something can take a little bit longer
@@ -71,7 +72,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 	});
@@ -84,7 +85,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
@@ -101,7 +102,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'MyEnum');
@@ -116,7 +117,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'MyEnum');
@@ -131,7 +132,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -147,7 +148,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 2);
@@ -165,7 +166,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -181,7 +182,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -198,7 +199,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -214,7 +215,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -230,7 +231,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -246,7 +247,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'PassNos');
@@ -262,7 +263,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
@@ -280,7 +281,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text[20]");
 		assert.strictEqual(alProcedure.parameters.length, 2);
@@ -299,7 +300,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text[20]");
 		assert.strictEqual(alProcedure.parameters.length, 2);
@@ -318,7 +319,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
 		assert.strictEqual(alProcedure.ObjectOfProcedure.name, 'MySalesSubpage');
@@ -333,7 +334,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedure');
@@ -348,7 +349,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedureWithTwoParams');
@@ -365,7 +366,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedure');
@@ -382,7 +383,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text");
 		assert.strictEqual(alProcedure.parameters.length, 0);
@@ -396,7 +397,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text");
 		assert.strictEqual(alProcedure.parameters.length, 0);
@@ -410,7 +411,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
@@ -429,7 +430,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'LineDisplay');
@@ -444,7 +445,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');
@@ -462,7 +463,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 4);
 		assert.strictEqual(alProcedure.parameters[0].name, 'No');
@@ -483,7 +484,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'MyField');
@@ -499,7 +500,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'No1');
@@ -516,7 +517,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'No1');
@@ -533,7 +534,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'SalesOrderTestPage');
@@ -548,7 +549,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'TableId');
@@ -564,7 +565,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 4);
 		assert.strictEqual(alProcedure.parameters[0].name, 'arg1');
@@ -585,7 +586,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -598,7 +599,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -611,7 +612,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -624,7 +625,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -637,7 +638,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -650,7 +651,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -663,7 +664,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -676,7 +677,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -689,7 +690,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -702,7 +703,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -715,7 +716,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -728,7 +729,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -741,7 +742,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Decimal');
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'myDecimal1');
@@ -757,7 +758,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
 		assert.strictEqual(alProcedure.parameters[0].name, 'TempMyTable');
@@ -773,7 +774,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Boolean');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -786,7 +787,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, false);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -800,7 +801,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -814,7 +815,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -829,7 +830,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
 	});
@@ -842,7 +843,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Boolean");
 		assert.strictEqual(alProcedure.parameters.length, 1);
@@ -858,7 +859,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Integer");
 		assert.strictEqual(alProcedure.parameters.length, 2);
@@ -876,7 +877,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');
@@ -893,7 +894,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
 		alProcedure = alProcedure as ALProcedure;
 		assert.strictEqual(alProcedure.name, procedureName);
-		assert.strictEqual(alProcedure.isLocal, true);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
 		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');

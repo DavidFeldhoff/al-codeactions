@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
+import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
 import { Command } from './extension/Entities/Command';
 import { CodeActionProvider_General } from './extension/Services/CodeActionProvider_General';
-import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
+import { FixCop } from './extension/Services/CommandFixCop';
 import { CommandFixWithUsage } from './extension/Services/CommandFixWithUsage';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
+import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
+import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
-import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
-import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
 
 export function activate(context: vscode.ExtensionContext) {
 	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
@@ -36,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
 			(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) =>
 				CreateProcedureCommands.addHandler(document, diagnostic))
 	);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('alcodeactions.fixCop', () => new FixCop().resolve())
+	)
 
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())

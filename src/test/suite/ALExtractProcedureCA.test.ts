@@ -3,18 +3,20 @@ import * as path from 'path';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { CodeActionProviderExtractProcedure } from '../../extension/Services/CodeActionProviderExtractProcedure';
-import { ALProcedure } from '../../extension/Entities/alProcedure';
-import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
-import { ALLanguageExtension } from '../alExtension';
-import { ALTestProject } from './ALTestProject';
+import { FullSyntaxTreeNodeKind } from '../../extension/AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { ALFullSyntaxTreeNode } from '../../extension/AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../extension/AL Code Outline/syntaxTree';
-import { FullSyntaxTreeNodeKind } from '../../extension/AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { AccessModifier } from '../../extension/Entities/accessModifier';
+import { ALProcedure } from '../../extension/Entities/alProcedure';
+import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
+import { CodeActionProviderExtractProcedure } from '../../extension/Services/CodeActionProviderExtractProcedure';
+import { ALLanguageExtension } from '../alExtension';
+import { ALTestProject } from './ALTestProject';
 
 
 suite('ALExtractProcedureCA Test Suite', function () {
     let codeunitToExtractDocument: vscode.TextDocument;
+    let codeunit1Document: vscode.TextDocument;
     let syntaxTree: SyntaxTree;
     let tableDocument: vscode.TextDocument;
     this.timeout(0);
@@ -29,6 +31,11 @@ suite('ALExtractProcedureCA Test Suite', function () {
         });
         syntaxTree = await SyntaxTree.getInstance(codeunitToExtractDocument);
 
+        fileName = path.resolve(ALTestProject.dir, 'codeunit1.al');
+        await vscode.workspace.openTextDocument(fileName).then(document => {
+            codeunit1Document = document;
+        });
+
         vscode.window.showInformationMessage('Start all tests of ALExtractProcedure.');
     });
 
@@ -41,10 +48,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'integer');
@@ -65,10 +72,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
@@ -91,10 +98,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
@@ -117,10 +124,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
@@ -143,10 +150,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -163,10 +170,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -183,10 +190,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -204,10 +211,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'codeunit codeunittoextract');
@@ -225,10 +232,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'page mypage');
@@ -246,10 +253,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -269,10 +276,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -289,10 +296,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getExpressionStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
@@ -315,10 +322,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -337,10 +344,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
@@ -357,10 +364,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 2);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer temporary');
@@ -380,13 +387,13 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getInListExpression()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, 'Boolean');
-        assert.strictEqual(alProcedure.returnVariableName,'returnValue');
-        assert.strictEqual(alProcedure.getBody(),'returnValue := 1 in [2, 3];')
+        assert.strictEqual(alProcedure.returnVariableName, 'returnValue');
+        assert.strictEqual(alProcedure.getBody(), 'returnValue := 1 in [2, 3];')
         assert.strictEqual(alProcedure.parameters.length, 0);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -399,17 +406,39 @@ suite('ALExtractProcedureCA Test Suite', function () {
         let endTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getParenthesizedExpression()]) as ALFullSyntaxTreeNode;
         let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
         await returnTypeAnalyzer.analyze();
-        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument,rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
         assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
         alProcedure = alProcedure as ALProcedure;
-        assert.strictEqual(alProcedure.isLocal, true);
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
         assert.strictEqual(alProcedure.returnType, 'Integer');
-        assert.strictEqual(alProcedure.returnVariableName,'returnValue');
-        assert.strictEqual(alProcedure.getBody(),'returnValue := (addend - 1);')
+        assert.strictEqual(alProcedure.returnVariableName, 'returnValue');
+        assert.strictEqual(alProcedure.getBody(), 'returnValue := (addend - 1);')
         assert.strictEqual(alProcedure.parameters.length, 1);
-        assert.strictEqual(alProcedure.parameters[0].isVar,true);
-        assert.strictEqual(alProcedure.parameters[0].name,'addend');
-        assert.strictEqual(alProcedure.parameters[0].type,'Integer');
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.parameters[0].name, 'addend');
+        assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
+        assert.strictEqual(alProcedure.variables.length, 0);
+    });
+    test('ExtractIfOneliner', async () => {
+        let procedureName = 'myProcedure';
+        let textToExtractStart = 'intParam := 6';
+        let textToExtractEnd = 'intParam := 6';
+        let rangeToExtract: vscode.Range = getRange(codeunit1Document, procedureName, textToExtractStart, textToExtractEnd);
+        let syntaxTreeCodeunit1Doc: SyntaxTree = await SyntaxTree.getInstance(codeunit1Document);
+        let startTreeNode: ALFullSyntaxTreeNode = syntaxTreeCodeunit1Doc.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
+        let endTreeNode: ALFullSyntaxTreeNode = syntaxTreeCodeunit1Doc.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunit1Document, startTreeNode, endTreeNode);
+        await returnTypeAnalyzer.analyze();
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunit1Document, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
+        alProcedure = alProcedure as ALProcedure;
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.getBody(), 'intParam := 6;')
+        assert.strictEqual(alProcedure.parameters.length, 1);
+        assert.strictEqual(alProcedure.parameters[0].isVar, true);
+        assert.strictEqual(alProcedure.parameters[0].name, 'intParam');
+        assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
         assert.strictEqual(alProcedure.variables.length, 0);
     });
 

@@ -7,6 +7,9 @@ import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureComm
 import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 import { CreateProcedureAL0132 } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132';
 import { ICodeActionProvider } from "./ICodeActionProvider";
+import { WorkspaceUtils } from '../Utils/workspaceUtils';
+import { CreateProcedureAL0132IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132IntegrationEvent';
+import { CreateProcedureAL0132BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132BusinessEvent';
 
 export class CodeActionProviderAL0132 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -33,9 +36,30 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         if (!this.createProcedureAL0132) {
             throw new Error('considerLine has to be called first.');
         }
+        let codeActions: vscode.CodeAction[] = [];
         let procedure: ALProcedure = await CreateProcedure.createProcedure(this.createProcedureAL0132);
-        let codeAction: vscode.CodeAction | undefined = await this.createCodeAction(this.document, this.diagnostic, procedure);
-        return codeAction ? [codeAction] : [];
+        if (!this.isValidDocument(procedure))
+            return []
+        let codeActionProcedure: vscode.CodeAction = await this.createCodeAction('Create procedure ' + procedure.name, this.diagnostic, procedure);
+        codeActionProcedure.isPreferred = true;
+
+        let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
+        let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
+        if (procedure.name.match(regexPattern)) {
+            let createProcedureAL0132IntegrationEvent: CreateProcedureAL0132IntegrationEvent = new CreateProcedureAL0132IntegrationEvent(this.document, this.diagnostic);
+            let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132IntegrationEvent);
+            let codeActionIntegrationEvent: vscode.CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, this.diagnostic, integrationEvent);
+            codeActionIntegrationEvent.isPreferred = true;
+            codeActions.push(codeActionIntegrationEvent);
+
+            let createProcedureAL0132BusinessEvent: CreateProcedureAL0132BusinessEvent = new CreateProcedureAL0132BusinessEvent(this.document, this.diagnostic);
+            let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132BusinessEvent);
+            let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction('Create BusinessEvent Publisher ' + businessEvent.name, this.diagnostic, businessEvent);//businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
+            codeActions.push(codeActionBusinessEvent);
+        } else
+            codeActionProcedure.isPreferred = true
+        codeActions.push(codeActionProcedure)
+        return codeActions;
     }
 
 
@@ -47,19 +71,19 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
                 return true;
         }
     }
-    private async createCodeAction(currentDocument: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction | undefined> {
-        if (!procedureToCreate.ObjectOfProcedure.documentUri.fsPath.endsWith('dal')) {
-            let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri);
-            let codeActionToCreateProcedure: vscode.CodeAction | undefined = this.createFixToCreateProcedure(procedureToCreate, otherDocument, diagnostic);
-            codeActionToCreateProcedure.isPreferred = true;
-            return codeActionToCreateProcedure;
-        }
-
-        return undefined;
+    private isValidDocument(procedureToCreate: ALProcedure): boolean {
+        if (procedureToCreate.ObjectOfProcedure.documentUri.fsPath.endsWith('dal'))
+            return false
+        return true
+    }
+    private async createCodeAction(msg: string, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction> {
+        let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri);
+        let codeActionToCreateProcedure: vscode.CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, diagnostic);
+        return codeActionToCreateProcedure;
     }
 
-    private createFixToCreateProcedure(procedure: ALProcedure, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
-        const codeAction = new vscode.CodeAction(`Create procedure ${procedure.name}`, vscode.CodeActionKind.QuickFix);
+    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
+        const codeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
         codeAction.command = {
             command: CreateProcedureCommands.createProcedureCommand,
             title: 'Create Procedure',

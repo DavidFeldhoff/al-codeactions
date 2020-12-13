@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { isUndefined } from 'util';
 
 export class DocumentUtils {
+
     static isPositionInProcedurecall(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
         let inText: boolean;
@@ -179,12 +180,15 @@ export class DocumentUtils {
         return;
     }
     public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
+        return this.trimRange2(document.getText().split('\r\n'), currentRange)
+    }
+    public static trimRange2(fileLines: string[], currentRange: vscode.Range) {
         let newStart: vscode.Position = currentRange.start;
         let newEnd: vscode.Position = currentRange.end;
         let searchClosingTag: boolean = false;
         for (let i = currentRange.start.line; i <= currentRange.end.line; i++) {
             let startPositionToSearch = i === currentRange.start.line ? currentRange.start.character : 0;
-            let textRestOfLine = document.lineAt(i).text.substring(startPositionToSearch);
+            let textRestOfLine = fileLines[i].substring(startPositionToSearch);
             if (searchClosingTag) {
                 if (!textRestOfLine.includes('*/')) { continue; } else {
                     textRestOfLine = textRestOfLine.substring(textRestOfLine.indexOf('*/') + 2);
@@ -199,15 +203,15 @@ export class DocumentUtils {
                     i--;
                     continue;
                 }
-                newStart = new vscode.Position(i, document.lineAt(i).text.lastIndexOf(textRestOfLine.trimLeft()));
+                newStart = new vscode.Position(i, fileLines[i].lastIndexOf(textRestOfLine.trimLeft()));
                 break;
             }
         }
         let searchForOpeningTag: Boolean = false;
         for (let i = currentRange.end.line; i >= newStart.line; i--) {
-            let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : document.lineAt(i).text.length;
+            let endPositionToSearch = i === currentRange.end.line ? currentRange.end.character : fileLines[i].length;
             let startPositionToSearch = i === newStart.line ? newStart.character : 0;
-            let textFrom0ToEndPos = document.lineAt(i).text.substring(startPositionToSearch, endPositionToSearch);
+            let textFrom0ToEndPos = fileLines[i].substring(startPositionToSearch, endPositionToSearch);
             if (searchForOpeningTag) {
                 if (!textFrom0ToEndPos.includes('/*')) { continue; } else {
                     textFrom0ToEndPos = textFrom0ToEndPos.substring(0, textFrom0ToEndPos.indexOf('/*')).trimLeft();
@@ -227,7 +231,7 @@ export class DocumentUtils {
             }
         }
         let newRange: vscode.Range = new vscode.Range(newStart, newEnd);
-        if (document.getText(newRange).startsWith('//') || document.getText(newRange).startsWith('/*')) {
+        if (fileLines[newRange.start.line].substr(newRange.start.character).startsWith('//') || fileLines[newRange.start.line].substr(newRange.start.character).startsWith('/*')) {
 
         }
         return newRange;
