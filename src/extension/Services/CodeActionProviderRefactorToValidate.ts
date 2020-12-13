@@ -13,6 +13,7 @@ export class CodeActionProviderRefactorToValidate implements ICodeActionProvider
         this.document = document;
         this.range = range;
     }
+    
     async considerLine(): Promise<boolean> {
         if (this.range.start.compareTo(this.range.end) == 0) {
             let word1: string = this.document.getText(new Range(this.range.start.translate(0, 0), this.range.start.translate(0, 2)));

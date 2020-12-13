@@ -262,6 +262,6 @@ export class RangeAnalyzer {
             consoleTextEnd += ALFullSyntaxTreeNodeExt.getNodeByPath(blockNode, currentPath).kind;
         });
         consoleText += "  =>  " + consoleTextStart + ' vs. ' + consoleTextEnd;
-        OwnConsole.ownConsole.appendLine(consoleText);
+        // OwnConsole.ownConsole.appendLine(consoleText);
     }
 }

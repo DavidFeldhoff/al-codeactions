@@ -1,4 +1,10 @@
 export class FullSyntaxTreeNodeKind {
+    public static getPageGroup(): string {
+        return 'PageGroup';
+    }
+    public static getPageLabel(): string {
+        return 'PageLabel';
+    }
     public static getLabelDataType(): string {
         return 'LabelDataType';
     }
