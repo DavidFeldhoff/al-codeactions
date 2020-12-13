@@ -1,6 +1,6 @@
 import { existsSync, FSWatcher, readdirSync, readFileSync, unlinkSync, watch, writeFileSync } from "fs";
 import { join, resolve } from "path";
-import { ProgressLocation, Terminal, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
+import { Extension, extensions, ProgressLocation, Terminal, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
 import { AlcExeUtils } from "../Utils/AlcExeUtils";
 
 export class MyTerminal {
@@ -69,7 +69,7 @@ export class MyTerminal {
 
         let folders: { pathToMyExtFolder: string; pathToALLangExtFolder: string; } | undefined = this.getPathsToExtensionFolders();
         if (!folders)
-            return
+            throw new Error('Extension folders not found. Command aborted.')
 
         let pathToALLangExtBinFolder: string = join(folders.pathToALLangExtFolder, 'bin');
         let psScriptPath: string = join(folders.pathToMyExtFolder, 'Compile-Solution.ps1');
@@ -84,7 +84,7 @@ export class MyTerminal {
         let pathToAlcExe: string = AlcExeUtils.getPathToAlcExe(useLegacyRuntime);
 
         let compileCommandString: string = AlcExeUtils.createCompileCommand(pathToAlcExe, workspaceFolder, packageCachePath, assemblyProbingPaths, cops, copPaths, suppressWarnings, warnings, errorLogTempFile);
-        
+
         let psScript: string[] = this.createPowershellScriptContent(preScript, pathToALLangExtBinFolder, compileCommandString, errorLogTempFile, errorLogFile);
         writeFileSync(psScriptPath, psScript.join('\r\n'), { encoding: 'utf8' });
         writeFileSync(errorLogFile, '');
@@ -143,7 +143,12 @@ export class MyTerminal {
         let myExtFolderName: string | undefined = extFolders.find(entry => entry.startsWith('davidfeldhoff.al-codeactions'))
         if (!myExtFolderName)
             return
-        let alLangExtFolderName: string | undefined = extFolders.find(entry => entry.startsWith('ms-dynamics-smb.al'))
+
+        let alExtension: Extension<any> | undefined = extensions.getExtension('ms-dynamics-smb.al')
+        if (!alExtension)
+            throw new Error('Extension ms-dynamics-smb.al not found.')
+        let alFolderName: string = 'ms-dynamics-smb.al-' + alExtension.packageJSON.version
+        let alLangExtFolderName: string | undefined = extFolders.find(entry => entry == alFolderName)
         if (!alLangExtFolderName)
             return
 
