@@ -33,17 +33,11 @@
 	},
 	"main": "./out/extension.js",
 	"activationEvents": [
-		"onCommand:alcodeactions.fiximplicitwithusages",
 		"onCommand:alcodeactions.fixCop",
 		"onLanguage:al"
 	],
 	"contributes": {
 		"commands": [
-			{
-				"category": "AL Code Actions",
-				"command": "alcodeactions.fiximplicitwithusages",
-				"title": "Fix implicit with-usages"
-			},
 			{
 				"category": "AL Code Actions",
 				"command": "alcodeactions.fixCop",
