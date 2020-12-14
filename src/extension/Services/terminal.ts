@@ -6,7 +6,7 @@ import { AlcExeUtils } from "../Utils/AlcExeUtils";
 export class MyTerminal {
     private static myTerminal: MyTerminal | undefined;
     private terminal: Terminal;
-    private fsWatcher: FSWatcher | undefined;
+    private static fsWatcher: FSWatcher | undefined;
     private compiled: boolean;
     private constructor() {
         this.terminal = window.createTerminal('alcodeactions');
@@ -50,15 +50,17 @@ export class MyTerminal {
         this.terminal.show(true);
         this.terminal.sendText(psScriptPath)
 
-        this.fsWatcher = watch(errorLogFile, (event: string, filename: string) => {
+        if (MyTerminal.fsWatcher)
+            MyTerminal.fsWatcher.close();
+        MyTerminal.fsWatcher = watch(errorLogFile, (event: string, filename: string) => {
             let errorLogContent: string = readFileSync(errorLogFile, { encoding: 'utf8' });
             if (errorLogContent.trim().length == 0)
                 return
             this.compiled = true
             let json: ErrorLog.Log = JSON.parse(errorLogContent)
             callback(json.issues)
-            if (this.fsWatcher) {
-                this.fsWatcher.close();
+            if (MyTerminal.fsWatcher) {
+                MyTerminal.fsWatcher.close();
             }
             // unlinkSync(psScriptPath)
             // unlinkSync(errorLogFile);
