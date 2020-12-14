@@ -25,8 +25,11 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         this.removeAll = false
     }
     public async resolve() {
-        this.removeAll = await this.askRemoveAll()
-        this.compileAndRemove()
+        let result = await this.askRemoveAll()
+        if (result.abort)
+            return
+        else
+            this.compileAndRemove()
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
         let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
@@ -156,13 +159,16 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         return { removed: false, fileLines }
     }
 
-    private async askRemoveAll(): Promise<boolean> {
+    private async askRemoveAll(): Promise<{ abort: boolean, removeAll: boolean }> {
         let options: string[] = [
             'Safe mode: No removal of assignments with functions on the right side',
             'Unsafe mode: Remove assignments with functions on the right side as well. Please check manually afterwards if no business logic has changed.'
         ]
         let chosenOption: string | undefined = await window.showQuickPick(options, { placeHolder: 'What can I remove for you?' })
-        return chosenOption == options[1]
+        if (chosenOption)
+            return { abort: false, removeAll: chosenOption == options[1] }
+        else
+            return { abort: true, removeAll: false }
     }
     private compileAndRemove(preScript?: string[]) {
         let keepWarnings: string[] = ['AA0206']
