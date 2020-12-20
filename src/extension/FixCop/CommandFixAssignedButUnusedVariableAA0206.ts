@@ -28,8 +28,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         let result = await this.askRemoveAll()
         if (result.abort)
             return
-        else
+        else {
+            this.removeAll = result.removeAll
             this.compileAndRemove()
+        }
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
         let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
@@ -87,7 +89,7 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         this.assignmentsRemovedInTotal += assignmentsRemoved
         let clearedMax: boolean = assignmentsRemoved == 0
         if (!clearedMax) {
-            let preScript: string[] = ['', 'Write-Host "Removed ' + assignmentsRemoved + ' assignment(s). Compile again to check if there remain some warnings." -ForegroundColor Green']
+            let preScript: string[] = [MyTerminal.createPSStatusLine('Removed ' + assignmentsRemoved + ' assignment(s).', 'Start again to check if there remain some warnings.')]
             this.compileAndRemove(preScript)
         } else {
             this.printFinishMessage(skippedLines);
