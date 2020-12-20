@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.24
+
+- Improve "Fix Cop Warnings"-Command
+
 ## 0.2.23
 
 - Remove command: Fix implicit with usage as [Andrzej](https://marketplace.visualstudio.com/items?itemName=andrzejzwierzchowski.al-code-outline) has a better implementation of that command.
