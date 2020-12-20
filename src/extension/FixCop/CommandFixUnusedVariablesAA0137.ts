@@ -44,7 +44,6 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                     progress.report({ increment: 0 })
 
                     let fileCounter: number = 0
-                    let kindsNotFixed: string[] = []
                     for (const analyzedOutputLinesMappedToFileEntry of analyzedOutputLinesMappedToFile) {
                         let filePath: string = analyzedOutputLinesMappedToFileEntry[0]
                         let analyzedOutputLinesOfFile: { range: Range; variableName: string }[] = analyzedOutputLinesMappedToFileEntry[1]
@@ -88,7 +87,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
 
         let clearedMax: boolean = variablesRemoved == 0
         if (!clearedMax) {
-            this.resolve(['', 'Write-Host "Removed ' + variablesRemoved + ' variable(s). Compile again to check if there remain some warnings." -ForegroundColor Green'])
+            this.resolve([MyTerminal.createPSStatusLine("Removed ' + variablesRemoved + ' variable(s)", "Start again to check if there remain some warnings.")])
         } else {
             OwnConsole.ownConsole.clear();
             OwnConsole.ownConsole.show();
