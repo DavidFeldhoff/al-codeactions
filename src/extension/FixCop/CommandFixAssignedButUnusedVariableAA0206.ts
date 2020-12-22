@@ -34,19 +34,20 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         }
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
-        let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
-        let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = new AnalyzerAA0206(errorLogIssues).sortDescending().analyzedLines;
-
-        let positionsMissingParenthesis: Position[] = []
-        for (const analyzedLine of analyzedLinesMissingParenthesis)
-            positionsMissingParenthesis.push(analyzedLine.range.end)
-        let skippedLines: { reason: number, issue: ErrorLog.Issue }[] = []
         let assignmentsRemoved: number = 0
+        let skippedLines: { reason: number, issue: ErrorLog.Issue }[] = []
         await window.withProgress({
             location: ProgressLocation.Notification,
             title: 'Check documents',
             cancellable: true
         }, async (progress, token) => {
+            let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
+            let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = new AnalyzerAA0206(errorLogIssues).sortDescending().analyzedLines;
+
+            let positionsMissingParenthesis: Position[] = []
+            for (const analyzedLine of analyzedLinesMissingParenthesis)
+                positionsMissingParenthesis.push(analyzedLine.range.end)
+
             for (const analyzedLine of analyzedLinesAssignedButUnusedVariables) {
                 let fileContent: string = readFileSync(analyzedLine.filePath, { encoding: 'utf8' })
                 let fileLines: string[] = fileContent.split('\r\n');
