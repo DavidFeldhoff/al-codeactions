@@ -197,8 +197,9 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             let rangeRightNode: Range = TextRangeExt.createVSCodeRange(rightNode.fullSpan)
             if (positionsMissingParenthesis.some(positionParenthesisMissing => rangeRightNode.contains(positionParenthesisMissing)))
                 return false
-        }
-        return true
+            return true;
+        } else
+            return false
     }
     private isOneLiner(assignmentStatementOrEvaluateExpression: ALFullSyntaxTreeNode): boolean {
         return this.getOneLiner(assignmentStatementOrEvaluateExpression) != undefined;
