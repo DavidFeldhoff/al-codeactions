@@ -87,7 +87,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
 
         let clearedMax: boolean = variablesRemoved == 0
         if (!clearedMax) {
-            this.resolve([MyTerminal.createPSStatusLine("Removed ' + variablesRemoved + ' variable(s)", "Start again to check if there remain some warnings.")])
+            this.resolve([MyTerminal.createPSStatusLine("Removed " + variablesRemoved + " variable(s)", "Start again to check if there remain some warnings.")])
         } else {
             OwnConsole.ownConsole.clear();
             OwnConsole.ownConsole.show();
