@@ -467,7 +467,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         for (let i = 0; i < 8; i++) {
             whiteSpacesInProcedure += ' ';
         }
-        selectedText = selectedText.replace(new RegExp('\r\n' + whiteSpacesSelectedText, 'g'), '\r\n' + whiteSpacesInProcedure);
+        let splitBy: string = DocumentUtils.getEolByTextDocument(document);
+        selectedText = selectedText.replace(new RegExp(splitBy + whiteSpacesSelectedText, 'g'), splitBy + whiteSpacesInProcedure);
         return selectedText;
     }
 }

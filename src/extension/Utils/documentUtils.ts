@@ -180,7 +180,8 @@ export class DocumentUtils {
         return;
     }
     public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
-        return this.trimRange2(document.getText().split('\r\n'), currentRange)
+        let splitBy: string = DocumentUtils.getEolByTextDocument(document);
+        return this.trimRange2(document.getText().split(splitBy), currentRange)
     }
     public static trimRange2(fileLines: string[], currentRange: vscode.Range) {
         let newStart: vscode.Position = currentRange.start;
@@ -235,6 +236,19 @@ export class DocumentUtils {
 
         }
         return newRange;
+    }
+    public static getEolByTextDocument(document: vscode.TextDocument): string {
+        return document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n'
+    }
+    public static getEolByContent(content: string): string {
+        let regexCRLF: RegExp = /\r\n/g
+        let countCRLF = regexCRLF.test(content) ? content.match(regexCRLF)!.length : 0
+        let regexLF: RegExp = /\r\n/g
+        let countLF = regexLF.test(content) ? content.match(regexLF)!.length : 0
+        if (countCRLF > countLF / 2)
+            return '\r\n'
+        else
+            return '\n'
     }
 
     public static getProcedureNameOfDiagnosticMessage(message: string): string {

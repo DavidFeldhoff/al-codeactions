@@ -48,7 +48,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                         let filePath: string = analyzedOutputLinesMappedToFileEntry[0]
                         let analyzedOutputLinesOfFile: { range: Range; variableName: string }[] = analyzedOutputLinesMappedToFileEntry[1]
                         let orgFileContent: string = readFileSync(filePath, { encoding: 'utf8' })
-                        let fileLines: string[] = orgFileContent.split('\r\n');
+                        let fileLines: string[] = orgFileContent.split(DocumentUtils.getEolByContent(orgFileContent));
 
                         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(filePath, orgFileContent);
                         let objectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(syntaxTree, analyzedOutputLinesOfFile[0].range.start)
