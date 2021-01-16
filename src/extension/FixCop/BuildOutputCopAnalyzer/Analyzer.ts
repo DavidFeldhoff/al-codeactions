@@ -1,4 +1,4 @@
-import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
+import { ErrorLogUtils } from "../../Terminal/ErrorLogUtils";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";
 

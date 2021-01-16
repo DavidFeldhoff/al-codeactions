@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
 import { commands, Location, Uri } from "vscode";
-import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
-import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
-import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
-import { Err } from "../Utils/Err";
+import { FullSyntaxTreeNodeKind } from "../../AL Code Outline Ext/fullSyntaxTreeNodeKind";
+import { ALFullSyntaxTreeNode } from "../../AL Code Outline/alFullSyntaxTreeNode";
+import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
+import { ErrorLogUtils } from "../../Terminal/ErrorLogUtils";
+import { Err } from "../../Utils/Err";
 import { Analyzer } from "./Analyzer";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";

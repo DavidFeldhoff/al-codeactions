@@ -1,4 +1,4 @@
-import { Err } from "../Utils/Err";
+import { Err } from "../../Utils/Err";
 import { Analyzer } from "./Analyzer";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";
