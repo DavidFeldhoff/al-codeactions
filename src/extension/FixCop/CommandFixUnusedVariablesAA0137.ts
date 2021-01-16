@@ -7,7 +7,7 @@ import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { OwnConsole } from "../console";
-import { MyTerminal } from "../Services/terminal";
+import { MyTerminal } from "../Terminal/terminal";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { Err } from "../Utils/Err";

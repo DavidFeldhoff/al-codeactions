@@ -12,7 +12,7 @@ import { AnalyzedOutputLineAA0008 } from "../BuildOutputCopAnalyzer/Entities/Ana
 import { AnalyzedOutputLineAA0206 } from "../BuildOutputCopAnalyzer/Entities/AnalyzedOutputLineAA0206";
 import { OwnConsole } from "../console";
 import { DocumentUtils } from "../Utils/documentUtils";
-import { MyTerminal } from "../Services/terminal";
+import { MyTerminal } from "../Terminal/terminal";
 import { IFixCop } from "./IFixCop";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
 
