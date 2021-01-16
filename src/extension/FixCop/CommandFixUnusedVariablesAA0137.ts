@@ -90,6 +90,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
         if (!clearedMax) {
             this.resolve([MyTerminal.createPSStatusLine("Removed " + variablesRemoved + " variable(s)", "Start again to check if there remain some warnings.")])
         } else {
+            window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
             OwnConsole.ownConsole.clear();
             OwnConsole.ownConsole.show();
             OwnConsole.ownConsole.appendLine('Finished. Successfully removed variables: ' + this.variablesRemovedInTotal)

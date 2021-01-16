@@ -107,9 +107,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
     }
 
     private printFinishMessage(skippedLines: { reason: number; issue: ErrorLog.Issue; }[]) {
+        window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
         OwnConsole.ownConsole.clear();
         OwnConsole.ownConsole.show();
-        OwnConsole.ownConsole.appendLine('Finished. Successfully removed assignments: ' + this.assignmentsRemovedInTotal);
+        OwnConsole.ownConsole.appendLine('Successfully removed assignments: ' + this.assignmentsRemovedInTotal);
         if (skippedLines.length > 0) {
             skippedLines = skippedLines.sort((a, b) => {
                 if (a.reason == b.reason)
