@@ -87,7 +87,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
 
         let errorMessage = 'Unable to find calling object';
         OwnConsole.ownConsole.appendLine('Error: ' + errorMessage);
-        Err._throw(errorMessage, true);
+        Err._throw(errorMessage);
     }
     getJumpToCreatedProcedure(): boolean {
         return true;
