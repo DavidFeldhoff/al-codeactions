@@ -1,3 +1,4 @@
+import { Err } from "../Utils/Err";
 import { Analyzer } from "./Analyzer";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";
@@ -13,7 +14,8 @@ export class AnalyzerAA0137 extends Analyzer {
         let regexp: RegExp = /Variable \'([^\']+)\' is unused in \'([^\']+)\'./
         let regexpMatch: RegExpMatchArray | null = regexp.exec(analyzedOutputLine.message);
         if (!regexpMatch)
-            throw new Error('Unexpected error.')
+            Err._throw('Unexpected error.')
+
         return new AnalyzedOutputLineAA0137(analyzedOutputLine, regexpMatch[1], regexpMatch[2])
     }
     async extendAnalyzedLines() { }

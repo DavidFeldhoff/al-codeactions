@@ -1,8 +1,7 @@
-import { FSWatcher, readdirSync, readFileSync, watch, writeFileSync } from "fs";
-import { Hook } from "mocha";
+import { FSWatcher, readFileSync, watch, writeFileSync } from "fs";
 import { join, resolve } from "path";
-import { Extension, extensions, ProgressLocation, Terminal, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
-import { AlcExeUtils } from "../Utils/AlcExeUtils";
+import { Extension, extensions, Terminal, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
+import { Err } from "../Utils/Err";
 
 export class MyTerminal {
     private static myTerminal: MyTerminal | undefined;
@@ -21,8 +20,10 @@ export class MyTerminal {
     }
     public compileProject(callback: (errorLogIssues: ErrorLog.Issue[]) => Promise<void>, cops: { codeCop?: boolean, pteCop?: boolean, appSourceCop?: boolean, uiCop?: boolean } = { codeCop: false, pteCop: false, appSourceCop: false, uiCop: false }, preScript: string[], suppressWarnings?: boolean, keepWarnings?: string[]): void {
         let workspaceFolder: WorkspaceFolder | undefined = this.getActiveWorkspaceFolder();
-        if (!workspaceFolder)
-            throw new Error('No workspace folder opened.')
+        if (!workspaceFolder) {
+            window.showErrorMessage('No workspace folder opened')
+            Err._throw('No workspace folder opened.')
+        }
 
         let { alLanguageExtension, alCodeActionsExtension } = this.getExtensions();
 
@@ -104,11 +105,12 @@ export class MyTerminal {
 
     private getExtensions(): { alLanguageExtension: Extension<any>, alCodeActionsExtension: Extension<any> } {
         let alLanguageExtension: Extension<any> | undefined = extensions.getExtension('ms-dynamics-smb.al')
-        if (!alLanguageExtension)
-            throw new Error('Extension ms-dynamics-smb.al not found.')
+        if (!alLanguageExtension) {
+            Err._throw('Extension ms-dynamics-smb.al not found.')
+        }
         let alCodeActionsExtension: Extension<any> | undefined = extensions.getExtension('davidfeldhoff.al-codeactions')
         if (!alCodeActionsExtension)
-            throw new Error('Extension davidfeldhoff.al-codeactions not found.')
+            Err._throw('Extension davidfeldhoff.al-codeactions not found.')
         return { alLanguageExtension, alCodeActionsExtension }
     }
 }

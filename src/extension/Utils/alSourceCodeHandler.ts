@@ -9,6 +9,7 @@ import { AZSymbolKind } from '../AL Code Outline/azSymbolKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALProcedure } from '../Entities/alProcedure';
 import { DocumentUtils } from './documentUtils';
+import { Err } from './Err';
 
 export class ALSourceCodeHandler {
 
@@ -20,7 +21,7 @@ export class ALSourceCodeHandler {
         let azDocumentSymbolsLibrary: AZDocumentSymbolsLibrary = await AZDocumentSymbolsLibrary.getInstance(this.document);
         let objectSymbol = azDocumentSymbolsLibrary.getObjectSymbol();
         if (!objectSymbol) {
-            throw new Error('Unable to get position to insert the procedure.');
+            Err._throw('Unable to get position to insert the procedure.');
         }
         let allMethods: AZSymbolInformation[] = [];
         let testKinds: AZSymbolKind[] = [

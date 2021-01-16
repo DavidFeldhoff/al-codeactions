@@ -1,10 +1,11 @@
 import { Range } from "vscode"
+import { Err } from "../Utils/Err";
 
 export class ErrorLogUtils {
     public static getUri(issue: ErrorLog.Issue): string {
         if (issue.locations.length == 1 && issue.locations[0].analysisTarget.length == 1)
             return issue.locations[0].analysisTarget[0].uri
-        throw new Error('URI could not be parsed out of ErrorLog Issue')
+        Err._throw('URI could not be parsed out of ErrorLog Issue')
     }
     public static getRange(issue: ErrorLog.Issue): Range {
         if (issue.locations.length == 1 && issue.locations[0].analysisTarget.length == 1)
@@ -14,7 +15,7 @@ export class ErrorLogUtils {
                 issue.locations[0].analysisTarget[0].region.endLine - 1,
                 issue.locations[0].analysisTarget[0].region.endColumn - 1
             );
-        throw new Error('Range could not be parsed out of ErrorLog Issue')
+        Err._throw('Range could not be parsed out of ErrorLog Issue')
     }
     public static rangeToRegionJson(range: Range): ErrorLog.IssueLocationAnalysisTargetRegion {
         return {

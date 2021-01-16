@@ -10,6 +10,7 @@ import { OwnConsole } from "../console";
 import { MyTerminal } from "../Services/terminal";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { Err } from "../Utils/Err";
 import { IFixCop } from "./IFixCop";
 
 export class CommandFixUnusedVariablesAA0137 implements IFixCop {
@@ -244,8 +245,10 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
         //Variable 'VersionMgt' is unused in 'FAVProductionBOMMgt'.
         let regexp: RegExp = /Variable \'([^\']+)\' is unused in \'.*\'./
         let regexpMatch: RegExpMatchArray | null = regexp.exec(errorLogIssue.shortMessage);
-        if (!regexpMatch)
-            throw new Error('Unexpected error.')
+        if (!regexpMatch) {
+            window.showErrorMessage('Unexpected error')
+            Err._throw('Unexpected error.')
+        }
         let filePath: string = ErrorLogUtils.getUri(errorLogIssue)
         let range: Range = ErrorLogUtils.getRange(errorLogIssue)
         let variableName: string = regexpMatch[1];

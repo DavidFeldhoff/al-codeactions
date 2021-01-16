@@ -13,6 +13,7 @@ import { TypeDetective } from '../../Utils/typeDetective';
 import { ALParameterParser } from '../../Entity Parser/alParameterParser';
 import { ALFullSyntaxTreeNodeExt } from '../../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { AccessModifier } from '../../Entities/accessModifier';
+import { Err } from '../../Utils/Err';
 
 export class CreateProcedureAL0118 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
@@ -58,9 +59,9 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
     }
     async getObject(): Promise<ALObject> {
         let objectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(this.syntaxTree as SyntaxTree, this.diagnostic.range.start);
-        if (!objectTreeNode) {
-            throw new Error('Object Tree node has to be found.');
-        }
+        if (!objectTreeNode)
+            Err._throw('Object Tree node has to be found.');
+
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
     }
     getJumpToCreatedProcedure(): boolean {

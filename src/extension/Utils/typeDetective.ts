@@ -6,6 +6,7 @@ import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { OwnConsole } from '../console';
 import { DocumentUtils } from './documentUtils';
+import { Err } from './Err';
 
 export class TypeDetective {
     private document: vscode.TextDocument;
@@ -138,7 +139,7 @@ export class TypeDetective {
     }
     private async analyzeTypeOfIdentifierTreeNode(identifierTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument): Promise<boolean> {
         if (identifierTreeNode.kind !== FullSyntaxTreeNodeKind.getIdentifierName()) {
-            throw new Error('This is not an identifier');
+            Err._throw('This is not an identifier');
         }
         let range: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
         let position = range.start;
@@ -328,7 +329,7 @@ export class TypeDetective {
             case 'report': return 'Report';
             case 'query': return 'Query';
             case 'xmlport': return 'Xmlport';
-            default: throw new Error('Expected a valid OptionAccessIdentifier.');
+            default: Err._throw('Expected a valid OptionAccessIdentifier.');
         }
     }
     private getValidOptionAccessIdentifiers(): string[] {

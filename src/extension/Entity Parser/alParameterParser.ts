@@ -9,6 +9,7 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
 import { TypeDetective } from '../Utils/typeDetective';
 import { DocumentUtils } from '../Utils/documentUtils';
+import { Err } from '../Utils/Err';
 
 export class ALParameterParser {
     public static parseALVariableArrayToParameterDeclarationString(variableArray: ALVariable[]): string {
@@ -23,7 +24,7 @@ export class ALParameterParser {
     }
     static async parseParameterTreeNodeToALVariable(document: vscode.TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
         if (!parameterTreeNode.kind || parameterTreeNode.kind !== FullSyntaxTreeNodeKind.getParameter()) {
-            throw new Error('That\'s not a parameter tree node.');
+            Err._throw('That\'s not a parameter tree node.');
         }
         if (parameterTreeNode.childNodes) {
             let identifierTreeNode: ALFullSyntaxTreeNode = parameterTreeNode.childNodes[0];
@@ -38,7 +39,7 @@ export class ALParameterParser {
             let isVar: boolean = document.getText(rangeOfFullDeclaration).toLowerCase().startsWith('var');
             return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, isVar, type, modifyVarName);
         } else {
-            throw new Error('Variable declaration has no child nodes.');
+            Err._throw('Variable declaration has no child nodes.');
         }
     }
     public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {

@@ -1,7 +1,6 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
 import { isNullOrUndefined } from "util";
-import { AZSymbolKind } from './AL Code Outline/azSymbolKind';
+import * as vscode from 'vscode';
+import { Err } from './Utils/Err';
 
 export class ALCodeOutlineExtension {
     private static alCodeOutlineExtensionObject: ALCodeOutlineExtension;
@@ -21,7 +20,7 @@ export class ALCodeOutlineExtension {
     private static setInstance() {
         let vsCodeExtension = vscode.extensions.getExtension('andrzejzwierzchowski.al-code-outline');
         if (isNullOrUndefined(vsCodeExtension)) {
-            throw new Error('AL Code Outline has to be installed.');
+            Err._throw('AL Code Outline has to be installed.');
         }
         this.alCodeOutlineExtensionObject = new ALCodeOutlineExtension(vsCodeExtension as vscode.Extension<any>);
     }

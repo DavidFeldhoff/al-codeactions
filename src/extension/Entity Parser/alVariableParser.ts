@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { ALVariable } from "../Entities/alVariable";
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { DocumentUtils } from '../Utils/documentUtils';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALVariable } from "../Entities/alVariable";
+import { DocumentUtils } from '../Utils/documentUtils';
+import { Err } from '../Utils/Err';
 
 export class ALVariableParser {
 
@@ -21,14 +21,14 @@ export class ALVariableParser {
                     alVariables.push(await this.parseVariableDeclarationNameTreeNodeToALVariable(document, variableTreeNodes[i], modifyVarNames));
                     break;
                 default:
-                    throw new Error('Variable should be one of the above kinds.');
+                    Err._throw('Variable should be one of the above kinds.');
             }
         }
         return alVariables;
     }
     static async parseVariableDeclarationTreeNodeToALVariable(document: vscode.TextDocument, variableDeclarationTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
         if (!variableDeclarationTreeNode.kind || variableDeclarationTreeNode.kind !== FullSyntaxTreeNodeKind.getVariableDeclaration()) {
-            throw new Error('That\'s not a variable declaration tree node.');
+            Err._throw('That\'s not a variable declaration tree node.');
         }
         if (variableDeclarationTreeNode.childNodes) {
             let identifierTreeNode: ALFullSyntaxTreeNode = variableDeclarationTreeNode.childNodes[0];
@@ -41,12 +41,12 @@ export class ALVariableParser {
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
             return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, false, type, modifyVarNames);
         } else {
-            throw new Error('Variable declaration has no child nodes.');
+            Err._throw('Variable declaration has no child nodes.');
         }
     }
     static async parseVariableDeclarationNameTreeNodeToALVariable(document: vscode.TextDocument, declarationNameTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
         if (!declarationNameTreeNode.kind || declarationNameTreeNode.kind !== FullSyntaxTreeNodeKind.getVariableDeclarationName()) {
-            throw new Error('That\'s not a variable declaration name tree node.');
+            Err._throw('That\'s not a variable declaration name tree node.');
         }
         if (declarationNameTreeNode.parentNode && declarationNameTreeNode.parentNode.childNodes) {
             let rangeOfName: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(declarationNameTreeNode.fullSpan));
@@ -58,12 +58,12 @@ export class ALVariableParser {
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
             return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, false, type, modifyVarNames);
         } else {
-            throw new Error('Variable declaration has no parent node.');
+            Err._throw('Variable declaration has no parent node.');
         }
     }
     static async parseReturnValueTreeNodeToALVariable(document: vscode.TextDocument, returnVariableTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
         if (!returnVariableTreeNode.kind || returnVariableTreeNode.kind !== FullSyntaxTreeNodeKind.getReturnValue()) {
-            throw new Error('That\'s not a return value tree node.');
+            Err._throw('That\'s not a return value tree node.');
         }
         if (returnVariableTreeNode.childNodes && returnVariableTreeNode.childNodes.length === 2) {
             let identifierTreeNode: ALFullSyntaxTreeNode = returnVariableTreeNode.childNodes[0];
@@ -76,7 +76,7 @@ export class ALVariableParser {
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
             return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, false, type, modifyVarNames);
         } else {
-            throw new Error('Variable declaration has no child nodes.');
+            Err._throw('Variable declaration has no child nodes.');
         }
     }
 }

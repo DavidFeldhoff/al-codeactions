@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { isNullOrUndefined } from "util";
+import { Err } from '../extension/Utils/Err';
 
 export class ALLanguageExtension {
     private static alLanguageExtensionObject: ALLanguageExtension;
@@ -20,7 +21,7 @@ export class ALLanguageExtension {
         if (isNullOrUndefined(vsCodeExtension)) {
             vsCodeExtension = vscode.extensions.getExtension('ms-dynamics-smb.al');
             if (isNullOrUndefined(vsCodeExtension)) {
-                throw new Error('AL Extension has to be installed.');
+                Err._throw('AL Extension has to be installed.');
             }
         }
         this.alLanguageExtensionObject = new ALLanguageExtension(vsCodeExtension as vscode.Extension<any>);

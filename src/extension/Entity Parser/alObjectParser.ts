@@ -5,6 +5,7 @@ import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTree
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { DocumentUtils } from '../Utils/documentUtils';
+import { Err } from '../Utils/Err';
 
 export class ALObjectParser {
     private static objectKinds: string[] = [
@@ -28,7 +29,7 @@ export class ALObjectParser {
             let objectName: string = this.getName(document, objectTreeNode);
             return new ALObject(objectName, objectType, objectId, document.uri);
         }
-        throw new Error('That\'s not an Object Tree Node.');
+        Err._throw('That\'s not an Object Tree Node.');
     }
     private static getType(kind: string): string {
         if (kind.endsWith('Value')) {

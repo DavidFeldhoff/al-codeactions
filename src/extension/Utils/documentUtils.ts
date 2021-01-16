@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
+import { Err } from './Err';
 
 export class DocumentUtils {
 
@@ -46,7 +47,7 @@ export class DocumentUtils {
         return false;
     }
     static getPreviousValidPositionOfCharacter(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToStart: vscode.Position, characterToSearch: string): vscode.Position {
-        throw new Error('Not yet implemented.');
+        Err._throw('Not yet implemented.');
     }
     static isPositionInQuotes(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
@@ -254,7 +255,7 @@ export class DocumentUtils {
     public static getProcedureNameOfDiagnosticMessage(message: string): string {
         let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);
         if (!regExpMatch || !regExpMatch[1]) {
-            throw new Error('Cannot extract FunctionName of Handler Function');
+            Err._throw('Cannot extract FunctionName of Handler Function');
         }
         return regExpMatch[1];
     }

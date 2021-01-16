@@ -4,6 +4,7 @@ import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNod
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
+import { Err } from "../Utils/Err";
 import { Analyzer } from "./Analyzer";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";
@@ -19,7 +20,7 @@ export class AnalyzerAA0206 extends Analyzer {
         let regexp: RegExp = /The variable \'([^\']+)\' is initialized but not used./
         let regexpMatch: RegExpMatchArray | null = regexp.exec(analyzedOutputLine.message);
         if (!regexpMatch)
-            throw new Error('Unexpected error.')
+            Err._throw('Unexpected error.')
         return new AnalyzedOutputLineAA0206(analyzedOutputLine, regexpMatch[1])
     }
 
