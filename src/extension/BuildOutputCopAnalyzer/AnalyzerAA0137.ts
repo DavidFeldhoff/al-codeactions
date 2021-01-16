@@ -6,7 +6,7 @@ import { AnalyzedOutputLineAA0137 } from "./Entities/AnalyzedOutputLineAA0137";
 export class AnalyzerAA0137 extends Analyzer {
     analyzedLines!: AnalyzedOutputLineAA0137[];
 
-    protected getCop(): Cops{
+    protected getCop(): Cops {
         return Cops.AA0137;
     }
     protected analyzeLineExt(analyzedOutputLine: AnalyzedOutputLine): AnalyzedOutputLineAA0137 {
@@ -16,8 +16,9 @@ export class AnalyzerAA0137 extends Analyzer {
             throw new Error('Unexpected error.')
         return new AnalyzedOutputLineAA0137(analyzedOutputLine, regexpMatch[1], regexpMatch[2])
     }
-    
-    public sortDescending(): AnalyzerAA0137{
+    async extendAnalyzedLines() { }
+
+    public sortDescending(): AnalyzerAA0137 {
         return super.sortDescendingImpl() as AnalyzerAA0137
     }
 }

@@ -41,15 +41,28 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             title: 'Check documents',
             cancellable: true
         }, async (progress, token) => {
-            let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
-            let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = new AnalyzerAA0206(errorLogIssues).sortDescending().analyzedLines;
+            let analyzerAA0008: AnalyzerAA0008 = new AnalyzerAA0008(errorLogIssues);
+            await analyzerAA0008.analyzeLines();
+            analyzerAA0008.sortDescending();
+            let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = analyzerAA0008.analyzedLines;
 
-            let positionsMissingParenthesis: Position[] = []
-            for (const analyzedLine of analyzedLinesMissingParenthesis)
-                positionsMissingParenthesis.push(analyzedLine.range.end)
+            let analyzerAA0206: AnalyzerAA0206 = new AnalyzerAA0206(errorLogIssues);
+            await analyzerAA0206.analyzeLines();
+            analyzerAA0206.sortDescending();
+            let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = analyzerAA0206.analyzedLines;
+
+            let positionsMissingParenthesisPerFile: Map<string, Position[]> = new Map()
+            for (const analyzedLine of analyzedLinesMissingParenthesis) {
+                let positions: Position[] = []
+                if (positionsMissingParenthesisPerFile.has(analyzedLine.filePath))
+                    positions = positionsMissingParenthesisPerFile.get(analyzedLine.filePath)!
+                positions.push(analyzedLine.range.end)
+                positionsMissingParenthesisPerFile.set(analyzedLine.filePath, positions)
+            }
 
             for (const analyzedLine of analyzedLinesAssignedButUnusedVariables) {
                 let fileContent: string = readFileSync(analyzedLine.filePath, { encoding: 'utf8' })
+                let positionsMissingParenthesisOfFile: Position[] = positionsMissingParenthesisPerFile.has(analyzedLine.filePath) ? positionsMissingParenthesisPerFile.get(analyzedLine.filePath)! : []
                 let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent));
                 let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(analyzedLine.filePath, fileContent)
                 let leftVariable: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(analyzedLine.range.start, [FullSyntaxTreeNodeKind.getIdentifierName()])
@@ -64,10 +77,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
                     if (this.removeAll)
                         deleteLine = true
                     else
-                        deleteLine = this.checkIfDeletionIsSafe(assignmentStatementOrEvaluateExpression, positionsMissingParenthesis)
+                        deleteLine = this.checkIfDeletionIsSafe(assignmentStatementOrEvaluateExpression, positionsMissingParenthesisOfFile)
                     if (deleteLine) {
                         if (this.isOneLiner(assignmentStatementOrEvaluateExpression)) {
-                            let skipResult: { skipped: boolean; reason: number | undefined } = this.removeOneLiner(fileLines, assignmentStatementOrEvaluateExpression, positionsMissingParenthesis, this.removeAll);
+                            let skipResult: { skipped: boolean; reason: number | undefined } = this.removeOneLiner(fileLines, assignmentStatementOrEvaluateExpression, positionsMissingParenthesisOfFile, this.removeAll);
                             if (skipResult.skipped)
                                 skippedLines.push({ reason: skipResult.reason!, issue: analyzedLine.originalErrorLogIssue })
                             else {

@@ -16,6 +16,14 @@ export class ErrorLogUtils {
             );
         throw new Error('Range could not be parsed out of ErrorLog Issue')
     }
+    public static rangeToRegionJson(range: Range): ErrorLog.IssueLocationAnalysisTargetRegion {
+        return {
+            startLine: range.start.line + 1,
+            startColumn: range.start.character + 1,
+            endLine: range.end.line + 1,
+            endColumn: range.end.character + 1
+        }
+    }
     public static rebuildCompileLine(issue: ErrorLog.Issue) {
         let uri = this.getUri(issue);
         let range = this.getRange(issue);
