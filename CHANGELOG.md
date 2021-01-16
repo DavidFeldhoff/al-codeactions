@@ -2,6 +2,13 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.25
+
+- Improve "Fix Cop Warnings"-Command
+  - Remove unsafe mode of FixAA0206
+  - Give more information what's currently happening (progressbars and so on)
+  - Improve the removal of unnecessary assignments of variables, so that all are removed at once.
+
 ## 0.2.24
 
 - Improve "Fix Cop Warnings"-Command
