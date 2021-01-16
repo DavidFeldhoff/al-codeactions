@@ -10,6 +10,7 @@ import { ICodeActionProvider } from "./ICodeActionProvider";
 import { WorkspaceUtils } from '../Utils/workspaceUtils';
 import { CreateProcedureAL0132IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132IntegrationEvent';
 import { CreateProcedureAL0132BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132BusinessEvent';
+import { Err } from '../Utils/Err';
 
 export class CodeActionProviderAL0132 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -34,7 +35,7 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
 
     async createCodeActions(): Promise<vscode.CodeAction[]> {
         if (!this.createProcedureAL0132) {
-            throw new Error('considerLine has to be called first.');
+            Err._throw('considerLine has to be called first.');
         }
         let codeActions: vscode.CodeAction[] = [];
         let procedure: ALProcedure = await CreateProcedure.createProcedure(this.createProcedureAL0132);

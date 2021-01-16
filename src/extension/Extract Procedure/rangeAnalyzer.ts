@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { OwnConsole } from '../console';
-import { DocumentUtils } from '../Utils/documentUtils';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { DocumentUtils } from '../Utils/documentUtils';
+import { Err } from '../Utils/Err';
 export class RangeAnalyzer {
     private document: vscode.TextDocument;
     private selectedRange: vscode.Range;
@@ -143,7 +143,7 @@ export class RangeAnalyzer {
 
     public isValidToExtract(): boolean {
         if (!this.analyzed) {
-            throw new Error('Please analyze the range before using it');
+            Err._throw('Please analyze the range before using it');
         }
         if (this.isValidToExtractOnlyWithReturnType()) {
             return true;
@@ -152,26 +152,26 @@ export class RangeAnalyzer {
     }
     public isValidToExtractOnlyWithReturnType(): boolean {
         if (!this.analyzed) {
-            throw new Error('Please analyze the range before using it');
+            Err._throw('Please analyze the range before using it');
         }
         return this.validToExtractOnlyWithReturnType ? this.validToExtractOnlyWithReturnType : false;
     }
     public getTreeNodeToExtractStart(): ALFullSyntaxTreeNode {
         if (!this.treeNodeToExtractStart) {
-            throw new Error('TreeNode must be set when called.');
+            Err._throw('TreeNode must be set when called.');
         }
         return this.treeNodeToExtractStart;
     }
     public getTreeNodeToExtractEnd(): ALFullSyntaxTreeNode {
         if (!this.treeNodeToExtractEnd) {
-            throw new Error('TreeNode must be set when called.');
+            Err._throw('TreeNode must be set when called.');
         }
         return this.treeNodeToExtractEnd;
     }
 
     public getExpandedRange(): vscode.Range {
         if (!this.analyzed) {
-            throw new Error('Please analyze the range before using it');
+            Err._throw('Please analyze the range before using it');
         }
         let rangeToReturn: vscode.Range;
         if (this.expandedRange) {

@@ -2,6 +2,7 @@ import { AZSymbolInformation } from "../AL Code Outline/AZSymbolInformation";
 import { AZSymbolKind } from '../AL Code Outline/azSymbolKind';
 import { AccessModifier } from "../Entities/accessModifier";
 import { ALProcedure } from '../Entities/alProcedure';
+import { Err } from "../Utils/Err";
 
 export class AZSymbolInformationExt {
     public static collectChildNodes(azSymbolInformation: AZSymbolInformation, kindsOfSymbolInformation: AZSymbolKind[], searchAllLevels: boolean, outList: AZSymbolInformation[]) {
@@ -43,6 +44,6 @@ export class AZSymbolInformationExt {
                 case memberAttributes.includes('integrationevent'): return AZSymbolKind.IntegrationEventDeclaration;
             }
         }
-        throw new Error('Could not find kind of procedure.');
+        Err._throw('Could not find kind of procedure.');
     }
 }

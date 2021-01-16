@@ -20,6 +20,7 @@ import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { DocumentUtils } from '../Utils/documentUtils';
+import { Err } from '../Utils/Err';
 import { ICodeActionProvider } from './ICodeActionProvider';
 
 export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
@@ -152,7 +153,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let objectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(syntaxTree, rangeExpanded.start);
         if (!objectTreeNode) {
-            throw new Error('Unable to find object tree node');
+            Err._throw('Unable to find object tree node');
         }
         let alObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(document, objectTreeNode);
         procedure = new ALProcedure(RenameMgt.newProcedureName, parameters, variables, returnType, AccessModifier.local, [], false, false, alObject);
@@ -467,7 +468,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         for (let i = 0; i < 8; i++) {
             whiteSpacesInProcedure += ' ';
         }
-        selectedText = selectedText.replace(new RegExp('\r\n' + whiteSpacesSelectedText, 'g'), '\r\n' + whiteSpacesInProcedure);
+        let splitBy: string = DocumentUtils.getEolByTextDocument(document);
+        selectedText = selectedText.replace(new RegExp(splitBy + whiteSpacesSelectedText, 'g'), splitBy + whiteSpacesInProcedure);
         return selectedText;
     }
 }

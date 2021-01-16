@@ -1,5 +1,5 @@
 import { window } from "vscode";
-import { Cops } from "../BuildOutputCopAnalyzer/Cops";
+import { Cops } from "../FixCop/BuildOutputCopAnalyzer/Cops";
 import { CommandFixAssignedButUnusedVariableAA0206 } from "../FixCop/CommandFixAssignedButUnusedVariableAA0206";
 import { CommandFixUnusedVariablesAA0137 } from "../FixCop/CommandFixUnusedVariablesAA0137";
 import { IFixCop } from "../FixCop/IFixCop";

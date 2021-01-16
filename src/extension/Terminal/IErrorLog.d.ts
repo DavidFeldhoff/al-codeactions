@@ -16,7 +16,13 @@ declare module ErrorLog {
     }
     export interface IssueLocationAnalysisTarget {
         uri: string
-        region: { startLine: number, startColumn: number, endLine: number, endColumn: number }
+        region: IssueLocationAnalysisTargetRegion
+    }
+    export interface IssueLocationAnalysisTargetRegion {
+        startLine: number
+        startColumn: number
+        endLine: number
+        endColumn: number
     }
     export interface IssueProperties {
         severity: string

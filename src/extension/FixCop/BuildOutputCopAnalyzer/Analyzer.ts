@@ -1,4 +1,4 @@
-import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
+import { ErrorLogUtils } from "../../Terminal/ErrorLogUtils";
 import { Cops } from "./Cops";
 import { AnalyzedOutputLine } from "./Entities/AnalyzedOutputLine";
 
@@ -8,21 +8,28 @@ export abstract class Analyzer {
     analyzedLines: AnalyzedOutputLine[];
     constructor(errorLogIssues: ErrorLog.Issue[]) {
         this.errorLogIssues = this.filterLines(errorLogIssues)
-        this.analyzedLines = this.analyzeLines()
+        this.analyzedLines = []
     }
     filterLines(errorLogIssues: ErrorLog.Issue[]): ErrorLog.Issue[] {
         return errorLogIssues.filter(issue => issue.ruleId == Cops[this.getCop()])
     }
     protected abstract getCop(): Cops;
-    private analyzeLines() {
+    public async analyzeLines() {
         this.analyzedLines = []
         for (const errorLogIssue of this.errorLogIssues) {
-            let analyzedLine = this.analyzeLineBasic(errorLogIssue)
-            let analyzedLineExt = this.analyzeLineExt(analyzedLine)
-            this.analyzedLines.push(analyzedLineExt)
+            this.analyzeLine(errorLogIssue);
         }
+        await this.extendAnalyzedLines()
         return this.analyzedLines;
     }
+
+    protected analyzeLine(errorLogIssue: ErrorLog.Issue) {
+        let analyzedLine = this.analyzeLineBasic(errorLogIssue);
+        let analyzedLineExt = this.analyzeLineExt(analyzedLine);
+        this.analyzedLines.push(analyzedLineExt);
+    }
+    protected abstract extendAnalyzedLines(): Promise<void>;
+
     protected analyzeLineBasic(errorLogIssue: ErrorLog.Issue): AnalyzedOutputLine {
         return new AnalyzedOutputLine(errorLogIssue, ErrorLogUtils.getUri(errorLogIssue), ErrorLogUtils.getRange(errorLogIssue), errorLogIssue.shortMessage)
     }

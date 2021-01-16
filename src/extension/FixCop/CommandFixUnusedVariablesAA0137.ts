@@ -7,9 +7,10 @@ import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { OwnConsole } from "../console";
-import { MyTerminal } from "../Services/terminal";
+import { MyTerminal } from "../Terminal/terminal";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { Err } from "../Utils/Err";
 import { IFixCop } from "./IFixCop";
 
 export class CommandFixUnusedVariablesAA0137 implements IFixCop {
@@ -48,7 +49,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                         let filePath: string = analyzedOutputLinesMappedToFileEntry[0]
                         let analyzedOutputLinesOfFile: { range: Range; variableName: string }[] = analyzedOutputLinesMappedToFileEntry[1]
                         let orgFileContent: string = readFileSync(filePath, { encoding: 'utf8' })
-                        let fileLines: string[] = orgFileContent.split('\r\n');
+                        let fileLines: string[] = orgFileContent.split(DocumentUtils.getEolByContent(orgFileContent));
 
                         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(filePath, orgFileContent);
                         let objectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(syntaxTree, analyzedOutputLinesOfFile[0].range.start)
@@ -87,8 +88,9 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
 
         let clearedMax: boolean = variablesRemoved == 0
         if (!clearedMax) {
-            this.resolve([MyTerminal.createPSStatusLine("Removed ' + variablesRemoved + ' variable(s)", "Start again to check if there remain some warnings.")])
+            this.resolve([MyTerminal.createPSStatusLine("Removed " + variablesRemoved + " variable(s)", "Start again to check if there remain some warnings.")])
         } else {
+            window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
             OwnConsole.ownConsole.clear();
             OwnConsole.ownConsole.show();
             OwnConsole.ownConsole.appendLine('Finished. Successfully removed variables: ' + this.variablesRemovedInTotal)
@@ -244,8 +246,10 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
         //Variable 'VersionMgt' is unused in 'FAVProductionBOMMgt'.
         let regexp: RegExp = /Variable \'([^\']+)\' is unused in \'.*\'./
         let regexpMatch: RegExpMatchArray | null = regexp.exec(errorLogIssue.shortMessage);
-        if (!regexpMatch)
-            throw new Error('Unexpected error.')
+        if (!regexpMatch) {
+            window.showErrorMessage('Unexpected error')
+            Err._throw('Unexpected error.')
+        }
         let filePath: string = ErrorLogUtils.getUri(errorLogIssue)
         let range: Range = ErrorLogUtils.getRange(errorLogIssue)
         let variableName: string = regexpMatch[1];

@@ -14,6 +14,7 @@ import { SyntaxTreeExt } from "../../AL Code Outline Ext/syntaxTreeExt";
 import { ALObjectParser } from "../../Entity Parser/alObjectParser";
 import { OwnConsole } from "../../console";
 import { AccessModifier } from "../../Entities/accessModifier";
+import { Err } from "../../Utils/Err";
 
 export class CreateProcedureAL0132 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
@@ -86,7 +87,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
 
         let errorMessage = 'Unable to find calling object';
         OwnConsole.ownConsole.appendLine('Error: ' + errorMessage);
-        throw new Error(errorMessage);
+        Err._throw(errorMessage);
     }
     getJumpToCreatedProcedure(): boolean {
         return true;
@@ -95,7 +96,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         return false;
     }
 
-    
+
     private async isPagePartCall(document: vscode.TextDocument, positionOfMissingProcedure: vscode.Position): Promise<{ isPagePart: boolean, PagePartSourceRange: vscode.Range } | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         //Level 1: [0] MemberAccessExpression, [1] Identifier: MissingProcedure, 

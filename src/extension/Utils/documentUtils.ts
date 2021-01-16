@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { isUndefined } from 'util';
+import { Err } from './Err';
 
 export class DocumentUtils {
 
@@ -46,7 +47,7 @@ export class DocumentUtils {
         return false;
     }
     static getPreviousValidPositionOfCharacter(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToStart: vscode.Position, characterToSearch: string): vscode.Position {
-        throw new Error('Not yet implemented.');
+        Err._throw('Not yet implemented.');
     }
     static isPositionInQuotes(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
@@ -180,7 +181,8 @@ export class DocumentUtils {
         return;
     }
     public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
-        return this.trimRange2(document.getText().split('\r\n'), currentRange)
+        let splitBy: string = DocumentUtils.getEolByTextDocument(document);
+        return this.trimRange2(document.getText().split(splitBy), currentRange)
     }
     public static trimRange2(fileLines: string[], currentRange: vscode.Range) {
         let newStart: vscode.Position = currentRange.start;
@@ -236,11 +238,24 @@ export class DocumentUtils {
         }
         return newRange;
     }
+    public static getEolByTextDocument(document: vscode.TextDocument): string {
+        return document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n'
+    }
+    public static getEolByContent(content: string): string {
+        let regexCRLF: RegExp = /\r\n/g
+        let countCRLF = regexCRLF.test(content) ? content.match(regexCRLF)!.length : 0
+        let regexLF: RegExp = /\r\n/g
+        let countLF = regexLF.test(content) ? content.match(regexLF)!.length : 0
+        if (countCRLF > countLF / 2)
+            return '\r\n'
+        else
+            return '\n'
+    }
 
     public static getProcedureNameOfDiagnosticMessage(message: string): string {
         let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);
         if (!regExpMatch || !regExpMatch[1]) {
-            throw new Error('Cannot extract FunctionName of Handler Function');
+            Err._throw('Cannot extract FunctionName of Handler Function');
         }
         return regExpMatch[1];
     }

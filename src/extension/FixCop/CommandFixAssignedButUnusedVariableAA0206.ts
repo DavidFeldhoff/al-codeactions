@@ -6,50 +6,56 @@ import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import { AnalyzerAA0008 } from "../BuildOutputCopAnalyzer/AnalyzerAA0008";
-import { AnalyzerAA0206 } from "../BuildOutputCopAnalyzer/AnalyzerAA0206";
-import { AnalyzedOutputLineAA0008 } from "../BuildOutputCopAnalyzer/Entities/AnalyzedOutputLineAA0008";
-import { AnalyzedOutputLineAA0206 } from "../BuildOutputCopAnalyzer/Entities/AnalyzedOutputLineAA0206";
+import { AnalyzerAA0008 } from "./BuildOutputCopAnalyzer/AnalyzerAA0008";
+import { AnalyzerAA0206 } from "./BuildOutputCopAnalyzer/AnalyzerAA0206";
+import { AnalyzedOutputLineAA0008 } from "./BuildOutputCopAnalyzer/Entities/AnalyzedOutputLineAA0008";
+import { AnalyzedOutputLineAA0206 } from "./BuildOutputCopAnalyzer/Entities/AnalyzedOutputLineAA0206";
 import { OwnConsole } from "../console";
 import { DocumentUtils } from "../Utils/documentUtils";
-import { MyTerminal } from "../Services/terminal";
+import { MyTerminal } from "../Terminal/terminal";
 import { IFixCop } from "./IFixCop";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
 
 export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
     private assignmentsRemovedInTotal: number;
-    private removeAll: boolean;
 
     constructor() {
         this.assignmentsRemovedInTotal = 0
-        this.removeAll = false
     }
     public async resolve() {
-        let result = await this.askRemoveAll()
-        if (result.abort)
-            return
-        else {
-            this.removeAll = result.removeAll
-            this.compileAndRemove()
-        }
+        this.compileAndRemove()
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
-        let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = new AnalyzerAA0008(errorLogIssues).sortDescending().analyzedLines;
-        let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = new AnalyzerAA0206(errorLogIssues).sortDescending().analyzedLines;
-
-        let positionsMissingParenthesis: Position[] = []
-        for (const analyzedLine of analyzedLinesMissingParenthesis)
-            positionsMissingParenthesis.push(analyzedLine.range.end)
-        let skippedLines: { reason: number, issue: ErrorLog.Issue }[] = []
         let assignmentsRemoved: number = 0
+        let skippedLines: { reason: number, issue: ErrorLog.Issue }[] = []
         await window.withProgress({
             location: ProgressLocation.Notification,
             title: 'Check documents',
             cancellable: true
         }, async (progress, token) => {
+            let analyzerAA0008: AnalyzerAA0008 = new AnalyzerAA0008(errorLogIssues);
+            await analyzerAA0008.analyzeLines();
+            analyzerAA0008.sortDescending();
+            let analyzedLinesMissingParenthesis: AnalyzedOutputLineAA0008[] = analyzerAA0008.analyzedLines;
+
+            let analyzerAA0206: AnalyzerAA0206 = new AnalyzerAA0206(errorLogIssues);
+            await analyzerAA0206.analyzeLines();
+            analyzerAA0206.sortDescending();
+            let analyzedLinesAssignedButUnusedVariables: AnalyzedOutputLineAA0206[] = analyzerAA0206.analyzedLines;
+
+            let positionsMissingParenthesisPerFile: Map<string, Position[]> = new Map()
+            for (const analyzedLine of analyzedLinesMissingParenthesis) {
+                let positions: Position[] = []
+                if (positionsMissingParenthesisPerFile.has(analyzedLine.filePath))
+                    positions = positionsMissingParenthesisPerFile.get(analyzedLine.filePath)!
+                positions.push(analyzedLine.range.end)
+                positionsMissingParenthesisPerFile.set(analyzedLine.filePath, positions)
+            }
+
             for (const analyzedLine of analyzedLinesAssignedButUnusedVariables) {
                 let fileContent: string = readFileSync(analyzedLine.filePath, { encoding: 'utf8' })
-                let fileLines: string[] = fileContent.split('\r\n');
+                let positionsMissingParenthesisOfFile: Position[] = positionsMissingParenthesisPerFile.has(analyzedLine.filePath) ? positionsMissingParenthesisPerFile.get(analyzedLine.filePath)! : []
+                let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent));
                 let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(analyzedLine.filePath, fileContent)
                 let leftVariable: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(analyzedLine.range.start, [FullSyntaxTreeNodeKind.getIdentifierName()])
                 if (!leftVariable || !leftVariable.parentNode)
@@ -59,14 +65,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
                 if (assignmentStatementOrEvaluateExpression == undefined) {
                     this.logSkippedLine(skippedLines, analyzedLine, fileLines);
                 } else {
-                    let deleteLine: boolean;
-                    if (this.removeAll)
-                        deleteLine = true
-                    else
-                        deleteLine = this.checkIfDeletionIsSafe(assignmentStatementOrEvaluateExpression, positionsMissingParenthesis)
+                    let deleteLine: boolean = this.checkIfDeletionIsSafe(assignmentStatementOrEvaluateExpression, positionsMissingParenthesisOfFile)
                     if (deleteLine) {
                         if (this.isOneLiner(assignmentStatementOrEvaluateExpression)) {
-                            let skipResult: { skipped: boolean; reason: number | undefined } = this.removeOneLiner(fileLines, assignmentStatementOrEvaluateExpression, positionsMissingParenthesis, this.removeAll);
+                            let skipResult: { skipped: boolean; reason: number | undefined } = this.removeOneLiner(fileLines, assignmentStatementOrEvaluateExpression, positionsMissingParenthesisOfFile);
                             if (skipResult.skipped)
                                 skippedLines.push({ reason: skipResult.reason!, issue: analyzedLine.originalErrorLogIssue })
                             else {
@@ -105,9 +107,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
     }
 
     private printFinishMessage(skippedLines: { reason: number; issue: ErrorLog.Issue; }[]) {
+        window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
         OwnConsole.ownConsole.clear();
         OwnConsole.ownConsole.show();
-        OwnConsole.ownConsole.appendLine('Finished. Successfully removed assignments: ' + this.assignmentsRemovedInTotal);
+        OwnConsole.ownConsole.appendLine('Successfully removed assignments: ' + this.assignmentsRemovedInTotal);
         if (skippedLines.length > 0) {
             skippedLines = skippedLines.sort((a, b) => {
                 if (a.reason == b.reason)
@@ -161,21 +164,8 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
         return { removed: false, fileLines }
     }
 
-    private async askRemoveAll(): Promise<{ abort: boolean, removeAll: boolean }> {
-        let options: string[] = [
-            'Safe mode: No removal of assignments with functions on the right side',
-            'Unsafe mode: Remove assignments with functions on the right side as well. Please check manually afterwards if no business logic has changed.'
-        ]
-        let chosenOption: string | undefined = await window.showQuickPick(options, { placeHolder: 'What can I remove for you?' })
-        if (chosenOption)
-            return { abort: false, removeAll: chosenOption == options[1] }
-        else
-            return { abort: true, removeAll: false }
-    }
     private compileAndRemove(preScript?: string[]) {
-        let keepWarnings: string[] = ['AA0206']
-        if (!this.removeAll)
-            keepWarnings.push('AA0008')
+        let keepWarnings: string[] = ['AA0206','AA0008']
         if (!preScript)
             preScript = []
         let self = this;
@@ -196,8 +186,9 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             let rangeRightNode: Range = TextRangeExt.createVSCodeRange(rightNode.fullSpan)
             if (positionsMissingParenthesis.some(positionParenthesisMissing => rangeRightNode.contains(positionParenthesisMissing)))
                 return false
-        }
-        return true
+            return true;
+        } else
+            return false
     }
     private isOneLiner(assignmentStatementOrEvaluateExpression: ALFullSyntaxTreeNode): boolean {
         return this.getOneLiner(assignmentStatementOrEvaluateExpression) != undefined;
@@ -221,7 +212,7 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             oneLiner.childNodesLength == assignmentStatementOrEvaluateExpression.parentNode!.childNodes!.length)
         return oneLinerData
     }
-    private removeOneLiner(fileLines: string[], node: ALFullSyntaxTreeNode, positionsMissingParenthesis: Position[], removeAll: boolean): { skipped: boolean; reason: number | undefined } {
+    private removeOneLiner(fileLines: string[], node: ALFullSyntaxTreeNode, positionsMissingParenthesis: Position[]): { skipped: boolean; reason: number | undefined } {
         let oneLinerData: { kind: string, pathToNode: number, childNodesLength: number } = this.getOneLiner(node)!
         if ([FullSyntaxTreeNodeKind.getCaseLine(), FullSyntaxTreeNodeKind.getCaseElse()].includes(oneLinerData.kind)) {
             let range: Range = DocumentUtils.trimRange2(fileLines, TextRangeExt.createVSCodeRange(node.parentNode!.fullSpan))
@@ -235,7 +226,7 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
                 let ifExpressionNode: ALFullSyntaxTreeNode = ifStatementNode.childNodes![0]
                 let ifPartNode: ALFullSyntaxTreeNode = ifStatementNode.childNodes![1]
                 if (oneLinerData.pathToNode == 1 && oneLinerData.childNodesLength == 2) {
-                    let skipped: boolean = this.removeOneLiner_IfPart_IfThen(fileLines, ifExpressionNode, positionsMissingParenthesis, statementRange, removeAll)
+                    let skipped: boolean = this.removeOneLiner_IfPart_IfThen(fileLines, ifExpressionNode, positionsMissingParenthesis, statementRange)
                     if (skipped)
                         return { skipped: true, reason: 2 }
                 } else if (oneLinerData.childNodesLength == 3) {
@@ -251,7 +242,7 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             } else if ([FullSyntaxTreeNodeKind.getWhileStatement()].includes(oneLinerData.kind)) {
                 let whileExpressionRange: Range = TextRangeExt.createVSCodeRange(node.parentNode!.childNodes![0].fullSpan)
                 let isInvocation: boolean = node.parentNode!.childNodes![0].kind == FullSyntaxTreeNodeKind.getInvocationExpression() || positionsMissingParenthesis.some(position => whileExpressionRange.contains(position))
-                if (removeAll || isInvocation)
+                if (isInvocation)
                     fileLines.splice(statementRange.start.line, statementRange.end.line - statementRange.start.line + 1)
                 else
                     return { skipped: true, reason: 2 }
@@ -261,10 +252,10 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             return { skipped: true, reason: 1 }
         // return CommandFixAssignedButUnusedVariableAA0206.removeOneLiner(fileLines, node.parentNode!, positionsMissingParenthesis, removeAll)
     }
-    private removeOneLiner_IfPart_IfThen(fileLines: string[], ifExpressionNode: ALFullSyntaxTreeNode, positionsMissingParenthesis: Position[], statementRange: Range, removeAll: boolean): boolean {
+    private removeOneLiner_IfPart_IfThen(fileLines: string[], ifExpressionNode: ALFullSyntaxTreeNode, positionsMissingParenthesis: Position[], statementRange: Range): boolean {
         let ifExpressionRange: Range = TextRangeExt.createVSCodeRange(ifExpressionNode.fullSpan)
         let isInvocation: boolean = ifExpressionNode.kind == FullSyntaxTreeNodeKind.getInvocationExpression() || positionsMissingParenthesis.some(position => ifExpressionRange.contains(position))
-        if (!removeAll && isInvocation)
+        if (isInvocation)
             return true
         fileLines.splice(statementRange.start.line, statementRange.end.line - statementRange.start.line + 1)
         return false

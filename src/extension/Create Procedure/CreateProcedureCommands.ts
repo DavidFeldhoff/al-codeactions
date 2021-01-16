@@ -1,26 +1,25 @@
 import * as vscode from 'vscode';
-import { CreateProcedure } from './Procedure Creator/CreateProcedure';
-import { CreateProcedureAL0499RequestPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499RequestPageHandler';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { insidersDownloadDirMetadata } from 'vscode-test/out/util';
-import { SupportedHandlers } from './Procedure Creator/AL0499 Specifications/supportedHandlers';
-import { ICreateProcedure } from './Procedure Creator/ICreateProcedure';
+import { Err } from '../Utils/Err';
 import { CreateProcedureAL0499ConfirmHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ConfirmHandler';
 import { CreateProcedureAL0499FilterPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499FilterPageHandler';
-import { isDate } from 'util';
 import { CreateProcedureAL0499HyperlinkHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499HyperlinkHandler';
 import { CreateProcedureAL0499MessageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499MessageHandler';
 import { CreateProcedureAL0499ModalPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ModalPageHandler';
 import { CreateProcedureAL0499PageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499PageHandler';
 import { CreateProcedureAL0499RecallNotificationHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499RecallNotificationHandler';
 import { CreateProcedureAL0499ReportHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ReportHandler';
+import { CreateProcedureAL0499RequestPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499RequestPageHandler';
 import { CreateProcedureAL0499SendNotificationHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SendNotificationHandler';
 import { CreateProcedureAL0499SessionSettingsHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499SessionSettingsHandler';
 import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499StrMenuHandler';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { SupportedHandlers } from './Procedure Creator/AL0499 Specifications/supportedHandlers';
+import { CreateProcedure } from './Procedure Creator/CreateProcedure';
+import { ICreateProcedure } from './Procedure Creator/ICreateProcedure';
+import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 export class CreateProcedureCommands {
 
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
@@ -66,7 +65,7 @@ export class CreateProcedureCommands {
             case SupportedHandlers.StrMenuHandler:
                 return new CreateProcedureAL0499StrMenuHandler(document, diagnostic);
             default:
-                throw new Error('Handler ' + handlerToAdd + ' is not supported.');
+                Err._throw('Handler ' + handlerToAdd + ' is not supported.');
         }
     }
 
