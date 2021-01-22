@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { parse } from 'jsonc-parser';
 import * as vscode from 'vscode';
 
 export class WorkspaceUtils {
@@ -6,8 +8,8 @@ export class WorkspaceUtils {
         if (workspaceFolder) {
             let appsourcecopfile: vscode.Uri[] | undefined = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceFolder, 'AppSourceCop.json'));
             if (appsourcecopfile && appsourcecopfile.length == 1) {
-                let jsonDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(appsourcecopfile[0]);
-                let jsonObject = JSON.parse(jsonDoc.getText());
+                let jsoncContent = readFileSync(appsourcecopfile[0].fsPath, { encoding: 'utf8' })
+                let jsonObject = parse(jsoncContent);
                 let validPrefixList: string[] = [];
                 if (jsonObject.mandatoryPrefix)
                     validPrefixList.push(jsonObject.mandatoryPrefix);

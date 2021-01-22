@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.26
+
+- Support Jsonc format for AppSourceCop.json (Json with comments)
+
 ## 0.2.25
 
 - Improve "Fix Cop Warnings"-Command
