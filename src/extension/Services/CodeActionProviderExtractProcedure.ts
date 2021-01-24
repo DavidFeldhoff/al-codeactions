@@ -1,4 +1,3 @@
-import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
@@ -117,7 +116,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
 
         //Codeunit onRun Trigger implicitly has a Rec Variable which is declared nowhere
         if (typeOfRecWhichBecomesVarParameter) {
-            parameters.push(new ALVariable('Rec', 'OnRun', true, typeOfRecWhichBecomesVarParameter, true));
+            parameters.push(new ALVariable('Rec', typeOfRecWhichBecomesVarParameter, 'OnRun', true).sanitizeName())
         }
 
         for (let i = 0; i < parametersWhichBecomeNormalParameters.length; i++) {
@@ -129,16 +128,16 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             parameters.push(alVariable);
         }
 
-        let alVariablesWhichBecomeVarParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters, false);
+        let alVariablesWhichBecomeVarParameters: ALVariable[] = ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeVarParameters, false);
         alVariablesWhichBecomeVarParameters.forEach(variable => {
             variable.isVar = true;
             parameters.push(variable);
         });
-        let alVariablesWhichBecomeNormalParameters: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters, false);
+        let alVariablesWhichBecomeNormalParameters: ALVariable[] = ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichBecomeNormalParameters, false);
         alVariablesWhichBecomeNormalParameters.forEach(variable => {
             parameters.push(variable);
         });
-        let alVariablesWhichStayLocalVariables: ALVariable[] = await ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables, false);
+        let alVariablesWhichStayLocalVariables: ALVariable[] = ALVariableParser.parseVariableTreeNodeArrayToALVariableArray(document, variableTreeNodesWhichStayLocalVariables, false);
         alVariablesWhichStayLocalVariables.forEach(variable => {
             variables.push(variable);
         });
@@ -360,11 +359,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     private async createCodeAction(currentDocument: vscode.TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
         let codeActionToCreateProcedure: vscode.CodeAction = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
 
-        if (isUndefined(codeActionToCreateProcedure)) {
-            return;
-        } else {
-            return codeActionToCreateProcedure;
-        }
+        return codeActionToCreateProcedure;
     }
 
     private async createFixToCreateProcedure(procedure: ALProcedure, procedureCallingText: string, document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<vscode.CodeAction> {

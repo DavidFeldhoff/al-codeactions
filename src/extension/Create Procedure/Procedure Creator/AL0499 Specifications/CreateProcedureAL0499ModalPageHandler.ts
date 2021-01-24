@@ -11,7 +11,7 @@ export class CreateProcedureAL0499ModalPageHandler extends CreateProcedureAL0499
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('${0:ModalPageToHandle}', this.procedureName, true, 'TestPage ${0:ModalPageToHandle}', false)
+            new ALVariable('${0:ModalPageToHandle}', 'TestPage ${0:ModalPageToHandle}', this.procedureName, true)
         ];
     }
     containsSnippet(): boolean {

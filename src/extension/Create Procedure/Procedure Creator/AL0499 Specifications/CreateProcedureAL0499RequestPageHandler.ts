@@ -11,7 +11,7 @@ export class CreateProcedureAL0499RequestPageHandler extends CreateProcedureAL04
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('${0:RequestPageToHandle}', this.procedureName, true, 'TestRequestPage ${0:RequestPageToHandle}', false)
+            new ALVariable('${0:RequestPageToHandle}', 'TestRequestPage ${0:RequestPageToHandle}', this.procedureName, true)
         ];
     }
     containsSnippet(): boolean {

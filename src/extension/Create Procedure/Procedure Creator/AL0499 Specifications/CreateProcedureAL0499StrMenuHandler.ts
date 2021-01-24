@@ -11,9 +11,9 @@ export class CreateProcedureAL0499StrMenuHandler extends CreateProcedureAL0499 {
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('Options', this.procedureName, false, 'Text[1024]', true),
-            new ALVariable('Choice', this.procedureName, true, 'Integer', true),
-            new ALVariable('Instruction', this.procedureName, false, 'Text[1024]', true)
+            new ALVariable('Options', 'Text[1024]', this.procedureName, false).sanitizeName(),
+            new ALVariable('Choice', 'Integer', this.procedureName, true).sanitizeName(),
+            new ALVariable('Instruction', 'Text[1024]', this.procedureName, false).sanitizeName()
         ];
     }
     containsSnippet(): boolean {

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { SyntaxTree } from '../../../AL Code Outline/syntaxTree';
 import { ALVariable } from '../../../Entities/alVariable';
 import { CreateProcedureAL0499 } from '../CreateProcedureAL0499';
 
@@ -15,8 +14,8 @@ export class CreateProcedureAL0499ConfirmHandler extends CreateProcedureAL0499 {
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('Question', this.procedureName, false, 'Text[1024]', true),
-            new ALVariable('Reply', this.procedureName, true, 'Boolean', true)
+            new ALVariable('Question', 'Text[1024]', this.procedureName, false).sanitizeName(),
+            new ALVariable('Reply', 'Boolean', this.procedureName, true).sanitizeName()
         ];
     }
     containsSnippet(): boolean {

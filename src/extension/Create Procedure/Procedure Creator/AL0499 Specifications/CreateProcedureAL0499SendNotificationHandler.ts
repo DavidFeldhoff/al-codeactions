@@ -11,7 +11,7 @@ export class CreateProcedureAL0499SendNotificationHandler extends CreateProcedur
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('TheNotification', this.procedureName, true, 'Notification', true)
+            new ALVariable('TheNotification', 'Notification', this.procedureName, true).sanitizeName()
         ];
     }
     async getReturnType(): Promise<string | undefined> {

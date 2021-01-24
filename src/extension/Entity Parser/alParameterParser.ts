@@ -1,15 +1,14 @@
 import * as vscode from 'vscode';
-import { ALVariable } from "../Entities/alVariable";
-import { isUndefined } from 'util';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
-import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
-import { TypeDetective } from '../Utils/typeDetective';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALVariable } from "../Entities/alVariable";
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
+import { TypeDetective } from '../Utils/typeDetective';
 
 export class ALParameterParser {
     public static parseALVariableArrayToParameterDeclarationString(variableArray: ALVariable[]): string {
@@ -37,7 +36,10 @@ export class ALParameterParser {
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
             let rangeOfFullDeclaration: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
             let isVar: boolean = document.getText(rangeOfFullDeclaration).toLowerCase().startsWith('var');
-            return new ALVariable(identifierName, methodOrTriggerTreeNode?.name, isVar, type, modifyVarName);
+            let variable: ALVariable = new ALVariable(identifierName, type, methodOrTriggerTreeNode?.name, isVar);
+            if (modifyVarName)
+                variable.sanitizeName();
+            return variable;
         } else {
             Err._throw('Variable declaration has no child nodes.');
         }
@@ -56,7 +58,9 @@ export class ALParameterParser {
             let type: string = typeDetective.getType();
             let name: string = typeDetective.getName();
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();
-            let variable: ALVariable = new ALVariable(name, methodOrTriggerTreeNode?.name, isVar, type, modifyVarNames);
+            let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar);
+            if (modifyVarNames)
+                variable.sanitizeName();
             variable = ALParameterParser.getUniqueVariableName(variables, variable);
             variables.push(variable);
         }
@@ -109,15 +113,15 @@ export class ALParameterParser {
     }
     private static existsVariableName(variables: ALVariable[], variableName: string): boolean {
         let existingVariable = variables.find(v => v.name === variableName);
-        return !isUndefined(existingVariable);
+        return existingVariable !== undefined;
     }
     static existsVariableNameWithNumber(variables: ALVariable[], variableName: string) {
         variableName = this.addNumberToVariableName(variableName);
         let existingVariable = variables.find(v => v.name === variableName);
-        return !isUndefined(existingVariable);
+        return existingVariable !== undefined;
     }
     private static addNumberToVariableName(variableName: string, number?: number): string {
-        if (isUndefined(number)) {
+        if (!number) {
             number = 1;
         }
         if (variableName.endsWith('"')) {

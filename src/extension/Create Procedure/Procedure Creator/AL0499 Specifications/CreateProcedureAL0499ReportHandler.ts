@@ -11,7 +11,7 @@ export class CreateProcedureAL0499ReportHandler extends CreateProcedureAL0499 {
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('${0:ReportToHandle}', this.procedureName, true, 'Report ${0:ReportToHandle}', false)
+            new ALVariable('${0:ReportToHandle}', 'Report ${0:ReportToHandle}', this.procedureName, true)
         ];
     }
     containsSnippet(): boolean {

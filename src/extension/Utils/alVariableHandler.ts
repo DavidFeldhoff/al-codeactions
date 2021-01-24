@@ -1,13 +1,10 @@
 import * as vscode from 'vscode';
-import { isUndefined } from 'util';
-import { ALVariable } from '../Entities/alVariable';
-import { ALVariableParser } from '../Entity Parser/alVariableParser';
-import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
-import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
-import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
+import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALVariable } from '../Entities/alVariable';
 
 export class ALVariableHandler {
     static async getRecAsALVariable(document: vscode.TextDocument, variableRange: vscode.Range): Promise<ALVariable | undefined> {
@@ -20,7 +17,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, cuObject, 'TableNo');
             if (valueOfPropertyTreeNode) {
                 let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfTableNo), true);
+                return new ALVariable(variableName, 'Record ' + document.getText(rangeOfTableNo), undefined, true).sanitizeName();
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getTableObject());
@@ -29,7 +26,7 @@ export class ALVariableHandler {
             let identifierList: ALFullSyntaxTreeNode[] = [];
             ALFullSyntaxTreeNodeExt.collectChildNodes(tableObject, FullSyntaxTreeNodeKind.getIdentifierName(), false, identifierList);
             if (identifierList.length === 1 && identifierList[0].identifier) {
-                return new ALVariable(variableName, undefined, true, 'Record ' + identifierList[0].identifier, true);
+                return new ALVariable(variableName, 'Record ' + identifierList[0].identifier, undefined, true).sanitizeName();
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getPageObject());
@@ -38,7 +35,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, pageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable), true);
+                return new ALVariable(variableName, 'Record ' + document.getText(rangeOfSourceTable), undefined, true).sanitizeName();
             }
         }
         objects = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getRequestPage());
@@ -47,7 +44,7 @@ export class ALVariableHandler {
             let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, requestPageObject, 'SourceTable');
             if (valueOfPropertyTreeNode) {
                 let rangeOfSourceTable: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
-                return new ALVariable(variableName, undefined, true, 'Record ' + document.getText(rangeOfSourceTable), true);
+                return new ALVariable(variableName, 'Record ' + document.getText(rangeOfSourceTable), undefined, true).sanitizeName();
             }
         }
         return undefined;

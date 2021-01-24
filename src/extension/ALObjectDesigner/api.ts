@@ -1,7 +1,7 @@
-import { extensions } from "vscode";
+import { Extension, extensions } from "vscode";
 
 export class ALObjectDesigner {
-    static isInstalled(): boolean{
+    static isInstalled(): boolean {
         return extensions.getExtension('martonsagi.al-object-designer') !== undefined;
     }
     static async getApi(): Promise<ALObjectDesignerAPI> {
