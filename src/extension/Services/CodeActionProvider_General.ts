@@ -5,6 +5,7 @@ import { CodeActionProviderCreateProcedureFactory } from './CodeActionProviderCr
 import { CodeActionProviderExtractProcedure } from './CodeActionProviderExtractProcedure';
 import { CodeActionProviderExtractLabel } from './CodeActionProviderExtractLabel';
 import { CodeActionProviderRefactorToValidate } from './CodeActionProviderRefactorToValidate';
+import { CodeActionProviderLocalVariableToGlobal } from './CodeActionProviderLocalVariableToGlobal';
 
 export class CodeActionProvider_General implements vscode.CodeActionProvider {
     async provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): Promise<vscode.CodeAction[] | undefined> {
@@ -13,6 +14,7 @@ export class CodeActionProvider_General implements vscode.CodeActionProvider {
         myCodeActionProviders.push(new CodeActionProviderExtractProcedure(document, range));
         myCodeActionProviders.push(new CodeActionProviderExtractLabel(document, range));
         myCodeActionProviders.push(new CodeActionProviderRefactorToValidate(document, range));
+        myCodeActionProviders.push(new CodeActionProviderLocalVariableToGlobal(document, range));
 
         let codeActions: vscode.CodeAction[] = [];
 

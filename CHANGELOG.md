@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.26
+
+- New code action: "Make variable global"
+- Support Jsonc format for AppSourceCop.json (Json with comments)
+
 ## 0.2.25
 
 - Improve "Fix Cop Warnings"-Command

@@ -11,7 +11,7 @@ export class CreateProcedureAL0499SessionSettingsHandler extends CreateProcedure
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('SessionSettings', this.procedureName, true, 'SessionSettings', true)
+            new ALVariable('SessionSettings', 'SessionSettings', this.procedureName, true).sanitizeName()
         ];
     }
     async getReturnType(): Promise<string | undefined> {

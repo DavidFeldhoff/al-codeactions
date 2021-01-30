@@ -11,7 +11,7 @@ export class CreateProcedureAL0499FilterPageHandler extends CreateProcedureAL049
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('Record1', this.procedureName, true, 'RecordRef', true)
+            new ALVariable('Record1', 'RecordRef', this.procedureName, true).sanitizeName()
         ];
     }
     async getReturnType(): Promise<string | undefined> {

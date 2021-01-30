@@ -11,7 +11,7 @@ export class CreateProcedureAL0499HyperlinkHandler extends CreateProcedureAL0499
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('Message', this.procedureName, false, 'Text[1024]', true)
+            new ALVariable('Message', 'Text[1024]', this.procedureName, false).sanitizeName()
         ];
     }
     containsSnippet(): boolean {

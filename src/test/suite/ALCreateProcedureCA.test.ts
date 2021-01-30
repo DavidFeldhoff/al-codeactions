@@ -749,7 +749,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[0].type, 'Decimal');
 		assert.strictEqual(alProcedure.parameters[0].isVar, false);
 	});
-	test('getProcedureToCreate_VariableListDeclaredVariables', async function () {
+	test('getProcedureToCreate_MissingProcedureWithTempRec', async function () {
 		let procedureName = 'MissingProcedureWithTempRec';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
 		let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(rangeOfProcedureName, 'Procedure is missing');
