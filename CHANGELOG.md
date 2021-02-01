@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.27
+
+- Fix bug: this.memberAttributes is not iterable
+  - Thanks to Waldemar for opening this quick issue.
+
 ## 0.2.26
 
 - New code action: "Make variable global"

@@ -41,9 +41,8 @@ export class CreateProcedure {
 
         let memberAttributes: string[] = procedure.getMemberAttributes();
         let procedureDefinition = "";
-        memberAttributes.forEach(memberAttribute =>
+        for (const memberAttribute of memberAttributes)
             procedureDefinition += (withIndent ? "\t" : "") + "[" + memberAttribute + "]\r\n"
-        );
         procedureDefinition += (withIndent ? "\t" : "") + procedure.accessModifier.toString() + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
         if (declarationOnly) {
             this.lineOfBodyStart = 0 as number;

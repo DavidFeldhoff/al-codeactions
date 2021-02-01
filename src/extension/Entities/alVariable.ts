@@ -19,10 +19,12 @@ export class ALVariable {
             case 4:
                 this.procedure = args[2]
                 this.isVar == args[3];
+                break;
             case 5:
                 this.procedure = args[2];
                 this.isVar = args[3];
                 this.memberAttributes = args[4];
+                break;
             default:
                 break;
         }
