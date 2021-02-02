@@ -70,4 +70,11 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
     containsSnippet(): boolean {
         return false;
     }
+    isReturnTypeRequired(): boolean {
+        let invocationNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree?.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+        if (invocationNode)
+            if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getPageField())
+                return true
+        return false
+    }
 }

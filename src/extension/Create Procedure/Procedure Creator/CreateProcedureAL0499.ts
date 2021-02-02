@@ -32,7 +32,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     getBody(): string | undefined {
         return undefined;
     }
-    getAccessModifier(): AccessModifier{
+    getAccessModifier(): AccessModifier {
         return AccessModifier.public
     }
     async getVariables(): Promise<ALVariable[]> {
@@ -46,9 +46,9 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     }
     async getObject(): Promise<ALObject> {
         let objectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(this.syntaxTree as SyntaxTree, this.diagnostic.range.start);
-        if (!objectTreeNode) 
+        if (!objectTreeNode)
             Err._throw('Object Tree node has to be found.');
-        
+
         return ALObjectParser.parseObjectTreeNodeToALObject(this.document, objectTreeNode);
     }
     getJumpToCreatedProcedure(): boolean {
@@ -56,5 +56,8 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     }
     containsSnippet(): boolean {
         Err._throw("Method not implemented.");
+    }
+    isReturnTypeRequired(): boolean {
+        return false;
     }
 }
