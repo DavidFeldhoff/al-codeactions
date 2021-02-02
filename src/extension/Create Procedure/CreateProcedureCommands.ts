@@ -150,7 +150,7 @@ export class CreateProcedureCommands {
                             }
                         );
                         if (chosenEnum)
-                            returnType += ' ' + chosenEnum
+                            returnType += ' "' + chosenEnum + '"'
                     }
                     break;
             }

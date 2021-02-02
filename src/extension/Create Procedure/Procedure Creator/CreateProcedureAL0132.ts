@@ -128,6 +128,10 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         return undefined;
     }
     isReturnTypeRequired(): boolean {
+        let invocationNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree?.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+        if (invocationNode)
+            if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getPageField())
+                return true
         return false
     }
 }
