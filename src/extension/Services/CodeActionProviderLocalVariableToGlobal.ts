@@ -17,7 +17,17 @@ export class CodeActionProviderLocalVariableToGlobal implements ICodeActionProvi
     }
 
     async considerLine(): Promise<boolean> {
-        return this.document.lineAt(this.range.start.line).text.includes(':')
+        let currentIndent: number = this.document.lineAt(this.range.start.line).firstNonWhitespaceCharacterIndex
+        let indentOfVar: number = currentIndent - 4
+        for (let lineNo = this.range.start.line; lineNo > 0; lineNo--) {
+            if (this.document.lineAt(lineNo).firstNonWhitespaceCharacterIndex == indentOfVar) {
+                if (this.document.lineAt(lineNo).text.trim().toLowerCase() == 'var')
+                    return true
+                else
+                    break;
+            }
+        }
+        return false;
     }
     async createCodeActions(): Promise<CodeAction[]> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { Err } from '../Utils/Err';
@@ -73,6 +74,11 @@ export class CreateProcedureCommands {
         let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
         let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+
+        if (procedure.isReturnTypeRequired()) {
+            procedure.returnType = await CreateProcedureCommands.askUserForMandatoryReturnType()
+        }
+
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
@@ -97,6 +103,65 @@ export class CreateProcedureCommands {
                 }
             }
         }
+    }
+
+    private static async askUserForMandatoryReturnType(): Promise<string | undefined> {
+        let returnType: string | undefined = await vscode.window.showQuickPick(
+            [
+                'Text',
+                'Decimal',
+                'Boolean',
+                'BigInteger',
+                'Byte',
+                'Char',
+                'Code',
+                'Date',
+                'DateTime',
+                'Duration',
+                'Enum',
+                'Integer',
+                'Guid',
+                'Option',
+                'Time'
+            ],
+            {
+                placeHolder: 'Choose the return type of the procedure'
+            }
+        );
+        if (returnType) {
+            switch (returnType) {
+                case 'Text':
+                case 'Code':
+                    let length: string | undefined = await vscode.window.showInputBox({
+                        placeHolder: 'Specify the length',
+                        validateInput: CreateProcedureCommands.checkNumbersOnly
+                    })
+                    if (length)
+                        returnType += '[' + length + ']'
+                    break;
+                case 'Enum':
+                    let api: any = (await ALCodeOutlineExtension.getInstance()).getAPI()
+                    let enums: string[] = await api.alLangProxy.getEnumList(undefined)
+                    if (enums.length > 0) {
+                        let chosenEnum: string | undefined = await vscode.window.showQuickPick(
+                            enums,
+                            {
+                                placeHolder: 'Choose the enum type'
+                            }
+                        );
+                        if (chosenEnum)
+                            returnType += ' ' + chosenEnum
+                    }
+                    break;
+            }
+        }
+        return returnType
+    }
+    private static checkNumbersOnly(value: string): string {
+        if (/[^\d]/.test(value))
+            return value.replace(/\d/g, '')
+        else
+            return ''
     }
 
     private static async getEditor(document: vscode.TextDocument) {

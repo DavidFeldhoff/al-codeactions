@@ -1,4 +1,3 @@
-import { isUndefined } from "util";
 import { ALVariable } from './alVariable';
 import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { ALObject } from "./alObject";
@@ -16,7 +15,8 @@ export class ALProcedure {
     public memberAttributes: string[];
     private jumpToCreatedPosition: boolean;
     private containsSnippet: boolean;
-    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, accessModifier: AccessModifier, memberAttributes: string[], jumpToCreatedPosition: boolean, containsSnippet: boolean, ALObject: ALObject) {
+    private returnTypeRequired: boolean;
+    constructor(name: string, parameters: ALVariable[], variables: ALVariable[], returnValue: string | undefined, accessModifier: AccessModifier, memberAttributes: string[], jumpToCreatedPosition: boolean, containsSnippet: boolean, ALObject: ALObject, returnTypeRequired: boolean = false) {
         this.name = name;
         this.parameters = parameters;
         this.variables = variables;
@@ -26,6 +26,7 @@ export class ALProcedure {
         this.jumpToCreatedPosition = jumpToCreatedPosition;
         this.containsSnippet = containsSnippet;
         this.ObjectOfProcedure = ALObject;
+        this.returnTypeRequired = returnTypeRequired
     }
     public getMemberAttributes(): string[] {
         return this.memberAttributes;
@@ -34,7 +35,7 @@ export class ALProcedure {
         return ALParameterParser.parseALVariableArrayToParameterDeclarationString(this.parameters);
     }
     public getReturnTypeAsString(): string {
-        if (isUndefined(this.returnType)) {
+        if (!this.returnType) {
             return "";
         }
         return this.returnType;
@@ -60,5 +61,8 @@ export class ALProcedure {
     }
     public getContainsSnippet(): boolean {
         return this.containsSnippet;
+    }
+    public isReturnTypeRequired(): boolean {
+        return this.returnTypeRequired;
     }
 }

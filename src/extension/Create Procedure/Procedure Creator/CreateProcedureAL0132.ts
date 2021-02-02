@@ -127,4 +127,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         }
         return undefined;
     }
+    isReturnTypeRequired(): boolean {
+        return false
+    }
 }

@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.28
+
+- Ask for return value if a procedure needs definitely one. [#76](https://github.com/DavidFeldhoff/al-codeactions/issues/76)
+
 ## 0.2.27
 
 - Fix bug: this.memberAttributes is not iterable
