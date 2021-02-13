@@ -3,7 +3,6 @@ import { isUndefined } from 'util';
 import { Err } from './Err';
 
 export class DocumentUtils {
-
     static isPositionInProcedurecall(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
         let inQuotes: boolean;
         let inText: boolean;
@@ -181,8 +180,8 @@ export class DocumentUtils {
         return;
     }
     public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
-        let splitBy: string = DocumentUtils.getEolByTextDocument(document);
-        return this.trimRange2(document.getText().split(splitBy), currentRange)
+        let eol: string = DocumentUtils.getEolByTextDocument(document);
+        return this.trimRange2(document.getText().split(eol), currentRange)
     }
     public static trimRange2(fileLines: string[], currentRange: vscode.Range) {
         let newStart: vscode.Position = currentRange.start;
@@ -238,6 +237,19 @@ export class DocumentUtils {
         }
         return newRange;
     }
+    public static getSubstringOfFileByRange(fileContent: string, range: vscode.Range): string {
+        let eol: string = DocumentUtils.getEolByContent(fileContent)
+        let fileLines: string[] = fileContent.split(eol);
+        let textOfRange: string = ''
+        for (let line = range.start.line; line <= range.end.line; line++) {
+            let startCharacter: number = range.start.line == line ? range.start.character : 0
+            let endCharacter: number = range.end.line == line ? range.end.character : fileLines[line].length - 1
+            if (textOfRange != '')
+                textOfRange += eol
+            textOfRange += fileLines[line].substring(startCharacter, endCharacter)
+        }
+        return textOfRange;
+    }
     public static getEolByTextDocument(document: vscode.TextDocument): string {
         return document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n'
     }
@@ -251,6 +263,13 @@ export class DocumentUtils {
         else
             return '\n'
     }
+    public static getPositionOfFileContent(fileContent: string, index: number | undefined): vscode.Position {
+        let textUntilIndex: string = fileContent.substring(0, index)
+        let eol: string = DocumentUtils.getEolByContent(fileContent)
+        let fileLines: string[] = textUntilIndex.split(eol)
+        return new vscode.Position(fileLines.length - 1, fileLines[fileLines.length - 1].length)
+    }
+
 
     public static getProcedureNameOfDiagnosticMessage(message: string): string {
         let regExpMatch: RegExpMatchArray | null = message.match(/The handler function ([^\s]+) was not found.*/);

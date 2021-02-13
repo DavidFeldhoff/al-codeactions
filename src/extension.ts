@@ -57,6 +57,9 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
 		);
 	}
+	// context.subscriptions.push(
+	// 	vscode.languages.registerReferenceProvider('al', new ReferenceProviderBuiltInFunctions())
+	// )
 }
 
 

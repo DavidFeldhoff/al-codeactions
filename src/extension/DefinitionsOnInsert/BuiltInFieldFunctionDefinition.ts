@@ -1,22 +1,22 @@
-import { TextDocument, Range, Location, commands, Position, workspace } from "vscode";
+import { commands, Location, Range, TextDocument, workspace } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
-import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import { ObjectDesignerExt } from "../ALObjectDesigner/ObjectDesignerExt";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { WorkspaceUtils } from "../Utils/workspaceUtils";
 import { BuiltInFunctionDefinitionInterface } from "./BuiltInFunctionDefinitionInterface";
+import { BuiltInFunctions } from "./BuiltInFunctions";
 
 export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinitionInterface {
-    builtInFunction: string = '';
+    builtInFunction: BuiltInFunctions | undefined;
     location: Location | undefined;
 
-    getBuiltInFunctionsSupported(): string[] {
-        return ['validate'];
+    getBuiltInFunctionsSupported(): BuiltInFunctions[] {
+        return [BuiltInFunctions.Validate];
     }
-    setBuiltInFunction(builtInFunction: string): void {
+    setBuiltInFunction(builtInFunction: BuiltInFunctions): void {
         this.builtInFunction = builtInFunction;
     }
     async findLocation(document: TextDocument, wordRange: Range): Promise<boolean> {
@@ -78,7 +78,7 @@ export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinition
         let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.start, [FullSyntaxTreeNodeKind.getTableObject()]);
         if (tableTreeNode) {
             let tableName: string | undefined = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, tableTreeNode, true) as string;
-            let tableExtensionDocuments: TextDocument[] = await ObjectDesignerExt.getTableExtensions(tableName);
+            let tableExtensionDocuments: TextDocument[] = await WorkspaceUtils.getTableExtensions(tableName);
             for (const tableExtensionDocument of tableExtensionDocuments) {
                 let syntaxTreeExtension: SyntaxTree = await SyntaxTree.getInstance(tableExtensionDocument);
                 let fieldModifications: ALFullSyntaxTreeNode[] = syntaxTreeExtension.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getFieldModification());

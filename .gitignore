@@ -1,6 +1,7 @@
 out
 node_modules
 .vscode-test/
+.alstudio/
 *.vsix
 images/buymeacoffee.png
 package-lock.json
