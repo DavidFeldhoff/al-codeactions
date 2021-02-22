@@ -153,6 +153,9 @@ export class WorkspaceEditUtils {
         } else if (lastIndexOfTypeWithHigherPriority) {
             let rangeOfNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(categorizedVariableNodes[lastIndexOfTypeWithHigherPriority].node.fullSpan))
             positionToAdd = new Position(rangeOfNode.end.line + 1, 0);
+        } else if (variableDeclarationNodes.length > 0) {
+            let rangeOfFirstNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(varSection.childNodes![0].fullSpan))
+            positionToAdd = new Position(rangeOfFirstNode.start.line, 0);
         } else {
             let rangeOfVarSection: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(varSection.fullSpan));
             positionToAdd = new Position(rangeOfVarSection.end.line + 1, 0);
