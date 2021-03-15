@@ -122,6 +122,15 @@ export class FullSyntaxTreeNodeKind {
     public static getVariableDeclarationName(): string {
         return 'VariableDeclarationName';
     }
+    public static getSubtypedDataTypeName(): string {
+        return 'SubtypedDataType';
+    }
+    public static getRecordTypeReferenceName(): string {
+        return 'RecordTypeReference';
+    }
+    public static getSimpleTypeReferenceName(): string {
+        return 'SimpleTypeReference';
+    }
     public static getMemberAccessExpression(): string {
         return 'MemberAccessExpression';
     }
