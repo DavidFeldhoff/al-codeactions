@@ -33,7 +33,7 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
                 throw new Error('Wouldn\'t happen.')
         }
 
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
         let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getTableObject(), FullSyntaxTreeNodeKind.getTableExtensionObject()]);
         if (!tableTreeNode)
             return [];
@@ -61,15 +61,15 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
         let regexVariableDeclaration: RegExp = /("[^"]+"|\w+)\s*:\s*Record/ig;
         let variableNames: string[] = [];
         if (regexVariableListDeclaration.test(lineTextOfLocation)) {
-            let variableNamesOnly: string = lineTextOfLocation.substring(0, lineTextOfLocation.indexOf(':'));
+            let variableNamesOnly: string = lineTextOfLocation.substring(0, lineTextOfLocation.lastIndexOf(':'));
             let matches: RegExpMatchArray | null = variableNamesOnly.match(/("[^"]+"|\w+)/g);
             for (const match of matches!.values()) {
-                variableNames.push(match);
+                variableNames.push(match.trim());
             }
         } else if (regexVariableDeclaration.test(lineTextOfLocation)) {
             let matches: RegExpMatchArray | null = lineTextOfLocation.match(regexVariableDeclaration);
             for (const match of matches!.values()) {
-                variableNames.push(match.substring(0, match.lastIndexOf(':')));
+                variableNames.push(match.substring(0, match.lastIndexOf(':')).trim());
             }
         }
         for (const variableName of variableNames) {
@@ -113,19 +113,37 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
     private async searchForReference(uri: Uri, fileContent: string, builtInFunction: BuiltInFunctions, range: Range): Promise<Location[]> {
         let eol: string = DocumentUtils.getEolByContent(fileContent);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(uri.fsPath, fileContent);
+        let variableNameRanges: Range[] = []
         let variableDeclaration: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getVariableDeclaration()]);
-        if (!variableDeclaration || !variableDeclaration.childNodes)
+        if (variableDeclaration && variableDeclaration.childNodes) {
+            let variableNameTreeNode: ALFullSyntaxTreeNode = variableDeclaration.childNodes[0];
+            let variableNameRange: Range = DocumentUtils.trimRange2(fileContent.split(eol), TextRangeExt.createVSCodeRange(variableNameTreeNode.fullSpan));
+            variableNameRanges.push(variableNameRange)
+        } else {
+            let variableListDeclaration: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getVariableListDeclaration()]);
+            if (!variableListDeclaration || !variableListDeclaration.childNodes)
+                return []
+            let variableDeclarationNames: ALFullSyntaxTreeNode[] = variableListDeclaration.childNodes.filter(childNode => childNode.kind == FullSyntaxTreeNodeKind.getVariableDeclarationName())
+            for (const variableDeclarationName of variableDeclarationNames) {
+                let variableNameRange: Range = DocumentUtils.trimRange2(fileContent.split(eol), TextRangeExt.createVSCodeRange(variableDeclarationName.fullSpan));
+                variableNameRanges.push(variableNameRange)
+            }
+        }
+        if (variableNameRanges.length == 0)
             return []
-        let variableNameTreeNode: ALFullSyntaxTreeNode = variableDeclaration.childNodes[0];
-        let variableNameRange: Range = DocumentUtils.trimRange2(fileContent.split(eol), TextRangeExt.createVSCodeRange(variableNameTreeNode.fullSpan));
         let locationsBuiltInFunction: Location[] = [];
-        let locationsUsedOfVariable: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', uri, variableNameRange.start);
-        if (locationsUsedOfVariable) {
-            for (const location of locationsUsedOfVariable) {
-                let builtInRange: Range = new Range(location.range.end.translate(0, 1), location.range.end.translate(0, 1 + builtInFunction.length))
-                let textInRange: string = DocumentUtils.getSubstringOfFileByRange(fileContent, builtInRange)
-                if (textInRange.toLowerCase() == builtInFunction.toLowerCase()) {
-                    locationsBuiltInFunction.push(new Location(uri, builtInRange));
+        for (const variableNameRange of variableNameRanges) {
+            let locationsUsedOfVariable: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', uri, variableNameRange.start);
+            if (locationsUsedOfVariable) {
+                for (const location of locationsUsedOfVariable) {
+                    let memberAccessExpression: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.end, [FullSyntaxTreeNodeKind.getMemberAccessExpression()])
+                    if (memberAccessExpression && memberAccessExpression.childNodes) {
+                        let builtInRange: Range = TextRangeExt.createVSCodeRange(memberAccessExpression.childNodes[1].fullSpan)
+                        let textInRange: string = DocumentUtils.getSubstringOfFileByRange(fileContent, builtInRange).trim()
+                        if (textInRange.toLowerCase() == builtInFunction.toLowerCase()) {
+                            locationsBuiltInFunction.push(new Location(uri, builtInRange));
+                        }
+                    }
                 }
             }
         }

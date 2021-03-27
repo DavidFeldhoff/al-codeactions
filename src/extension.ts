@@ -9,6 +9,7 @@ import { FixCop } from './extension/Services/CommandFixCop';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
 import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
 import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
+import { ReferenceProviderBuiltInFunctions } from './extension/Services/ReferenceProviderBuiltInFunctions';
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
@@ -57,9 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
 		);
 	}
-	// context.subscriptions.push(
-	// 	vscode.languages.registerReferenceProvider('al', new ReferenceProviderBuiltInFunctions())
-	// )
+	context.subscriptions.push(
+		vscode.languages.registerReferenceProvider('al', new ReferenceProviderBuiltInFunctions())
+	)
 }
 
 
