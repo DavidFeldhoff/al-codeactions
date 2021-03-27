@@ -5,21 +5,23 @@ import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { OwnConsole } from "../console";
 import { BuiltInFunctions } from "../DefinitionsOnInsert/BuiltInFunctions";
 import { DocumentUtils } from "../Utils/documentUtils";
 
 export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
-
+    static msSpendProvideReferences: number;
+    static msSpendCheckDataItem: number;
+    static msSpendSearchForReference: number;
     async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[]> {
+        let timeStartedComplete = new Date();
         let wordRange: Range | undefined = document.getWordRangeAtPosition(position);
         if (!wordRange)
             return [];
         let word: string = document.getText(wordRange);
-        if (!['oninsert', 'onmodify', 'ondelete'].includes(word.trim().toLowerCase()))
-            return [];
 
         let builtInFunction: BuiltInFunctions;
-        switch (word.toLowerCase()) {
+        switch (word.trim().toLowerCase()) {
             case 'oninsert':
                 builtInFunction = BuiltInFunctions.Insert;
                 break;
@@ -30,8 +32,11 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
                 builtInFunction = BuiltInFunctions.Delete;
                 break;
             default:
-                throw new Error('Wouldn\'t happen.')
+                return [];
         }
+        ReferenceProviderBuiltInFunctions.msSpendProvideReferences = 0
+        ReferenceProviderBuiltInFunctions.msSpendCheckDataItem = 0
+        ReferenceProviderBuiltInFunctions.msSpendSearchForReference = 0
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
         let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getTableObject(), FullSyntaxTreeNodeKind.getTableExtensionObject()]);
@@ -42,7 +47,9 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
         if (!identifierOfTable)
             return [];
         let identifierRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierOfTable.fullSpan));
+        let timeStart = new Date();
         let locationsUsedOfTable: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', document.uri, identifierRange.start);
+        ReferenceProviderBuiltInFunctions.msSpendProvideReferences += new Date().getTime() - timeStart.getTime();
         if (!locationsUsedOfTable)
             return [];
         let locationsOfBuiltInFunctions: Location[] = [];
@@ -54,28 +61,39 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
             locationsOfBuiltInFunctions = this.checkSourceTable(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
             locationsOfBuiltInFunctions = await this.checkDataItem(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
         }
+        // OwnConsole.ownConsole.show();
+        // let timeSpendComplete = (new Date().getTime() - timeStartedComplete.getTime());
+        // OwnConsole.ownConsole.appendLine('msSpendProvideReferences:  ' + ReferenceProviderBuiltInFunctions.msSpendProvideReferences + ', ' + (ReferenceProviderBuiltInFunctions.msSpendProvideReferences / timeSpendComplete * 100))
+        // OwnConsole.ownConsole.appendLine('msSpendCheckDataItem:      ' + ReferenceProviderBuiltInFunctions.msSpendCheckDataItem + ', ' + (ReferenceProviderBuiltInFunctions.msSpendCheckDataItem / timeSpendComplete * 100))
+        // OwnConsole.ownConsole.appendLine('msSpendSearchForReference: ' + ReferenceProviderBuiltInFunctions.msSpendSearchForReference + ', ' + (ReferenceProviderBuiltInFunctions.msSpendSearchForReference / timeSpendComplete * 100))
+        // OwnConsole.ownConsole.appendLine('msSpendComplete:           ' + (new Date().getTime() - timeStartedComplete.getTime()))
         return locationsOfBuiltInFunctions;
     }
-    private async checkVariableDeclarations(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
+    private async checkVariableDeclarations(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, locationTableReferenced: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
         let regexVariableListDeclaration: RegExp = /("[^"]+"|\w+)\s*,\s*("[^"]+"|\w+)\s*:\s*Record/ig;
-        let regexVariableDeclaration: RegExp = /("[^"]+"|\w+)\s*:\s*Record/ig;
+        let regexVariableDeclaration: RegExp = /("[^"]+"|\w+)\s*:\s*Record/i;
         let variableNames: string[] = [];
+        let variableRanges: Range[] = []
         if (regexVariableListDeclaration.test(lineTextOfLocation)) {
             let variableNamesOnly: string = lineTextOfLocation.substring(0, lineTextOfLocation.lastIndexOf(':'));
             let matches: RegExpMatchArray | null = variableNamesOnly.match(/("[^"]+"|\w+)/g);
+            let index: number = 0;
             for (const match of matches!.values()) {
+                index = lineTextOfLocation.indexOf(match, index);
                 variableNames.push(match.trim());
+                variableRanges.push(new Range(locationTableReferenced.range.start.line, index, locationTableReferenced.range.start.line, index + match.trim().length))
             }
         } else if (regexVariableDeclaration.test(lineTextOfLocation)) {
             let matches: RegExpMatchArray | null = lineTextOfLocation.match(regexVariableDeclaration);
-            for (const match of matches!.values()) {
-                variableNames.push(match.substring(0, match.lastIndexOf(':')).trim());
+            if (matches) {
+                variableNames.push(matches[1]);
+                variableRanges.push(new Range(locationTableReferenced.range.start.line, matches.index!, locationTableReferenced.range.start.line, matches.index! + matches[1].length))
             }
         }
-        for (const variableName of variableNames) {
-            let searchFor: string = variableName + '.' + builtInFunction.toLowerCase();
+        for (let i = 0; i < variableNames.length; i++) {
+            let searchFor: string = variableNames[i] + '.' + builtInFunction.toLowerCase();
             if (fileContent.toLowerCase().includes(searchFor.toLowerCase())) {
-                let newLocations: Location[] = await this.searchForReference(location.uri, fileContent, builtInFunction, location.range);
+                let newLocations: Location[] = await this.searchForReference(locationTableReferenced.uri, fileContent, builtInFunction, variableRanges[i]);
                 locationsOfBuiltInFunctions = locationsOfBuiltInFunctions.concat(newLocations);
             }
         }
@@ -94,15 +112,24 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
     }
     private async checkDataItem(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
         if (lineTextOfLocation.trim().toLowerCase().startsWith('dataitem')) {
+            let startPos = new Position(location.range.start.line, lineTextOfLocation.indexOf('dataitem(') + 'dataitem('.length)
+            let match: RegExpMatchArray | null = lineTextOfLocation.match(/dataitem\(("[^"]+"|\w+)\s*;/i)
+            if (!match)
+                return locationsOfBuiltInFunctions
+            let dataItemVariableName = match[1]
+            if (fileContent.indexOf(dataItemVariableName + '.' + builtInFunction.toString()) == -1)
+                return locationsOfBuiltInFunctions
+            let timeStart = new Date()
             let locations: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', location.uri, new Position(location.range.start.line, lineTextOfLocation.indexOf('dataitem(') + 'dataitem('.length))
+            ReferenceProviderBuiltInFunctions.msSpendCheckDataItem += new Date().getTime() - timeStart.getTime();
             if (locations) {
-                let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent))
                 for (const location of locations) {
+                    let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent))
                     let lineSub: string = fileLines[location.range.end.line].substring(location.range.end.character)
                     let result: RegExpExecArray | null
                     if (result = new RegExp('\\.(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All)\\b', 'i').exec(lineSub)) {
                         let position: Position = new Position(location.range.start.line, result.index + 1 + location.range.end.character)
-                        locationsOfBuiltInFunctions = locationsOfBuiltInFunctions.concat(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
+                        locationsOfBuiltInFunctions.push(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
                     }
                 }
             }
@@ -110,40 +137,21 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
         return locationsOfBuiltInFunctions
     }
 
-    private async searchForReference(uri: Uri, fileContent: string, builtInFunction: BuiltInFunctions, range: Range): Promise<Location[]> {
+    private async searchForReference(uri: Uri, fileContent: string, builtInFunction: BuiltInFunctions, variableNameRange: Range): Promise<Location[]> {
         let eol: string = DocumentUtils.getEolByContent(fileContent);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(uri.fsPath, fileContent);
-        let variableNameRanges: Range[] = []
-        let variableDeclaration: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getVariableDeclaration()]);
-        if (variableDeclaration && variableDeclaration.childNodes) {
-            let variableNameTreeNode: ALFullSyntaxTreeNode = variableDeclaration.childNodes[0];
-            let variableNameRange: Range = DocumentUtils.trimRange2(fileContent.split(eol), TextRangeExt.createVSCodeRange(variableNameTreeNode.fullSpan));
-            variableNameRanges.push(variableNameRange)
-        } else {
-            let variableListDeclaration: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(range.start, [FullSyntaxTreeNodeKind.getVariableListDeclaration()]);
-            if (!variableListDeclaration || !variableListDeclaration.childNodes)
-                return []
-            let variableDeclarationNames: ALFullSyntaxTreeNode[] = variableListDeclaration.childNodes.filter(childNode => childNode.kind == FullSyntaxTreeNodeKind.getVariableDeclarationName())
-            for (const variableDeclarationName of variableDeclarationNames) {
-                let variableNameRange: Range = DocumentUtils.trimRange2(fileContent.split(eol), TextRangeExt.createVSCodeRange(variableDeclarationName.fullSpan));
-                variableNameRanges.push(variableNameRange)
-            }
-        }
-        if (variableNameRanges.length == 0)
-            return []
+        let fileLines: string[] = fileContent.split(eol)
+
         let locationsBuiltInFunction: Location[] = [];
-        for (const variableNameRange of variableNameRanges) {
-            let locationsUsedOfVariable: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', uri, variableNameRange.start);
-            if (locationsUsedOfVariable) {
-                for (const location of locationsUsedOfVariable) {
-                    let memberAccessExpression: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.end, [FullSyntaxTreeNodeKind.getMemberAccessExpression()])
-                    if (memberAccessExpression && memberAccessExpression.childNodes) {
-                        let builtInRange: Range = TextRangeExt.createVSCodeRange(memberAccessExpression.childNodes[1].fullSpan)
-                        let textInRange: string = DocumentUtils.getSubstringOfFileByRange(fileContent, builtInRange).trim()
-                        if (textInRange.toLowerCase() == builtInFunction.toLowerCase()) {
-                            locationsBuiltInFunction.push(new Location(uri, builtInRange));
-                        }
-                    }
+        let timeStart = new Date();
+        let locationsUsedOfVariable: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', uri, variableNameRange.start);
+        ReferenceProviderBuiltInFunctions.msSpendSearchForReference += new Date().getTime() - timeStart.getTime();
+        if (locationsUsedOfVariable) {
+            for (const location of locationsUsedOfVariable) {
+                let lineSub = fileLines[location.range.start.line].substring(location.range.end.character)
+                let result: RegExpExecArray | null
+                if (result = new RegExp('\\.(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All)\\b', 'i').exec(lineSub)) {
+                    let position: Position = new Position(location.range.start.line, result.index + 1 + location.range.end.character)
+                    locationsBuiltInFunction.push(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
                 }
             }
         }
