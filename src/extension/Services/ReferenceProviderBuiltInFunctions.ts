@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import { CancellationToken, commands, Location, Position, Range, ReferenceContext, ReferenceProvider, TextDocument, Uri } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
+import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
@@ -58,7 +59,9 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
             let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent))
             let lineTextOfLocation: string = fileLines[location.range.start.line]
             locationsOfBuiltInFunctions = await this.checkVariableDeclarations(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
-            locationsOfBuiltInFunctions = this.checkSourceTable(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
+            locationsOfBuiltInFunctions = await this.checkSourceTableProperty(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
+            locationsOfBuiltInFunctions = await this.checkTableNoProperty(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
+            locationsOfBuiltInFunctions = await this.checkSourceTable(lineTextOfLocation, builtInFunction, fileContent, location, document.uri, locationsOfBuiltInFunctions);
             locationsOfBuiltInFunctions = await this.checkDataItem(lineTextOfLocation, builtInFunction, fileContent, location, locationsOfBuiltInFunctions);
         }
         // OwnConsole.ownConsole.show();
@@ -91,23 +94,79 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
             }
         }
         for (let i = 0; i < variableNames.length; i++) {
-            let searchFor: string = variableNames[i] + '.' + builtInFunction.toLowerCase();
-            if (fileContent.toLowerCase().includes(searchFor.toLowerCase())) {
+            let searchForA: string = variableNames[i] + '.' + builtInFunction.toLowerCase();
+            let searchForB: string = 'with ' + variableNames[i] + ' do'
+            if (fileContent.toLowerCase().includes(searchForA.toLowerCase()) || fileContent.toLowerCase().includes(searchForB.toLowerCase())) {
                 let newLocations: Location[] = await this.searchForReference(locationTableReferenced.uri, fileContent, builtInFunction, variableRanges[i]);
                 locationsOfBuiltInFunctions = locationsOfBuiltInFunctions.concat(newLocations);
             }
         }
         return locationsOfBuiltInFunctions;
     }
-    private checkSourceTable(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Location[] {
-        if (lineTextOfLocation.trim().toLowerCase().startsWith('sourcetable')) {
-            let regex: RegExp = new RegExp('\\s(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All\\b)', 'ig')
-            let result: RegExpExecArray | null
-            while (result = regex.exec(fileContent)) {
-                let position: Position = DocumentUtils.getPositionOfFileContent(fileContent, result.index + 1)
-                locationsOfBuiltInFunctions = locationsOfBuiltInFunctions.concat(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
+    private async checkSourceTableProperty(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
+        if (lineTextOfLocation.trim().toLowerCase().startsWith('sourcetable'))
+            locationsOfBuiltInFunctions = await this.checkRec(builtInFunction, fileContent, location, locationsOfBuiltInFunctions, false)
+        return locationsOfBuiltInFunctions
+    }
+    private async checkTableNoProperty(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
+        if (lineTextOfLocation.trim().toLowerCase().startsWith('tableno'))
+            locationsOfBuiltInFunctions = await this.checkRec(builtInFunction, fileContent, location, locationsOfBuiltInFunctions, true)
+        return locationsOfBuiltInFunctions
+    }
+    private async checkSourceTable(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, originalUri: Uri, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
+        if (originalUri.fsPath == location.uri.fsPath)
+            locationsOfBuiltInFunctions = await this.checkRec(builtInFunction, fileContent, location, locationsOfBuiltInFunctions, false)
+        return locationsOfBuiltInFunctions
+    }
+    private async checkRec(builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[], checkOnRunOnly: boolean): Promise<Location[]> {
+        let regex: RegExp = new RegExp('(\\bRec\.|\\s)(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All\\b)', 'ig')
+        if (!regex.test(fileContent))
+            return locationsOfBuiltInFunctions
+
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(location.uri.fsPath, fileContent)
+        let invocationList: ALFullSyntaxTreeNode[] = []
+        if (checkOnRunOnly) {
+            let triggerNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getTriggerDeclaration())
+            if (triggerNodes.length > 0) {
+                let onRunTriggerNode = triggerNodes.find(node => ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(node, FullSyntaxTreeNodeKind.getIdentifierName(), false)!.identifier?.toLowerCase() == 'onrun')!
+                ALFullSyntaxTreeNodeExt.collectChildNodes(onRunTriggerNode, FullSyntaxTreeNodeKind.getInvocationExpression(), true, invocationList)
             }
+        } else {
+            ALFullSyntaxTreeNodeExt.collectChildNodes(SyntaxTreeExt.getObjectTreeNode(syntaxTree, location.range.start)!, FullSyntaxTreeNodeKind.getInvocationExpression(), true, invocationList)
         }
+        let validMethodCalls: string[] = [builtInFunction.toLowerCase(), builtInFunction.toLowerCase() + 'all']
+        let insertInvocationList: ALFullSyntaxTreeNode[] = invocationList.filter(invocationNode => {
+            if (invocationNode.childNodes![0].kind == FullSyntaxTreeNodeKind.getMemberAccessExpression() &&
+                invocationNode.childNodes![0].childNodes![0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                invocationNode.childNodes![0].childNodes![0].identifier?.toLowerCase() == 'rec' &&
+                invocationNode.childNodes![0].childNodes![1].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                validMethodCalls.includes(invocationNode.childNodes![0].childNodes![1].identifier!.toLowerCase())) {
+                return true
+            } else if (invocationNode.childNodes![0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                validMethodCalls.includes(invocationNode.childNodes![0].identifier!.toLowerCase())) {
+
+                let withStatement: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(new Position(invocationNode.fullSpan!.start!.line, invocationNode.fullSpan!.start!.character), [FullSyntaxTreeNodeKind.getWithStatement()]);
+                if (!withStatement)
+                    return true
+                if (withStatement.childNodes![0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                    withStatement.childNodes![0].identifier?.toLowerCase() == 'rec')
+                    return true;
+            }
+            return false
+        })
+        for (const insertInvocationNode of insertInvocationList) {
+            let identifierNodes: ALFullSyntaxTreeNode[] = []
+            ALFullSyntaxTreeNodeExt.collectChildNodes(insertInvocationNode, FullSyntaxTreeNodeKind.getIdentifierName(), true, identifierNodes)
+            let insertIdentifierNode: ALFullSyntaxTreeNode = identifierNodes.find(node => node.identifier?.toLowerCase() == 'insert')!
+            locationsOfBuiltInFunctions.push(new Location(
+                location.uri,
+                DocumentUtils.trimRange2(
+                    fileContent.split(DocumentUtils.getEolByContent(fileContent)),
+                    TextRangeExt.createVSCodeRange(insertIdentifierNode.fullSpan)
+                )
+            ))
+        }
+
         return locationsOfBuiltInFunctions
     }
     private async checkDataItem(lineTextOfLocation: string, builtInFunction: BuiltInFunctions, fileContent: string, location: Location, locationsOfBuiltInFunctions: Location[]): Promise<Location[]> {
@@ -147,11 +206,32 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
         ReferenceProviderBuiltInFunctions.msSpendSearchForReference += new Date().getTime() - timeStart.getTime();
         if (locationsUsedOfVariable) {
             for (const location of locationsUsedOfVariable) {
+                let funcName: string = builtInFunction.toString()
+                let rFuncName: string = `\\b(${funcName}\\b|${funcName}All)\\b`
+                let regexDirectcall = new RegExp(`\\.${rFuncName}`, 'i')
                 let lineSub = fileLines[location.range.start.line].substring(location.range.end.character)
                 let result: RegExpExecArray | null
-                if (result = new RegExp('\\.(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All)\\b', 'i').exec(lineSub)) {
-                    let position: Position = new Position(location.range.start.line, result.index + 1 + location.range.end.character)
+                if (result = regexDirectcall.exec(lineSub)) {
+                    let position: Position = new Position(location.range.start.line, result.index + '.'.length + location.range.end.character)
                     locationsBuiltInFunction.push(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
+                } else if (/with ("[^"]+"|\w+) do/i.test(fileLines[location.range.start.line])) {
+                    let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(location.uri.fsPath, fileContent);
+                    let withStatement: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(location.range.start, [FullSyntaxTreeNodeKind.getWithStatement()])!
+                    let invocationList: ALFullSyntaxTreeNode[] = []
+                    ALFullSyntaxTreeNodeExt.collectChildNodes(withStatement, FullSyntaxTreeNodeKind.getInvocationExpression(), true, invocationList)
+                    let insertInvocationNodes: ALFullSyntaxTreeNode[] = invocationList.filter(invocationNode =>
+                        invocationNode.childNodes![0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
+                        new RegExp(rFuncName, 'i').test(invocationNode.childNodes![0].identifier!.toLowerCase()))
+                    for (const insertInvocationNode of insertInvocationNodes) {
+                        let insertIdentifierNode = insertInvocationNode.childNodes![0]
+                        locationsBuiltInFunction.push(new Location(
+                            location.uri,
+                            DocumentUtils.trimRange2(
+                                fileContent.split(DocumentUtils.getEolByContent(fileContent)),
+                                TextRangeExt.createVSCodeRange(insertIdentifierNode.fullSpan)
+                            )
+                        ))
+                    }
                 }
             }
         }
