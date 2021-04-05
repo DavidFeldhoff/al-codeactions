@@ -142,7 +142,7 @@ export class WorkspaceEditUtils {
                 lastIndexOfSameType = i;
             } else {
                 let indexCurrentType: number = typePriorities.indexOf(currentType);
-                if (indexCurrentType >= 0 && indexVariable >= 0 && indexCurrentType < indexVariable)
+                if (indexCurrentType >= 0 && (indexCurrentType < indexVariable || indexVariable == -1))
                     lastIndexOfTypeWithHigherPriority = i;
             }
         }
