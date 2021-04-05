@@ -18,7 +18,7 @@ export class ALVariable {
                 break;
             case 4:
                 this.procedure = args[2]
-                this.isVar == args[3];
+                this.isVar = args[3];
                 break;
             case 5:
                 this.procedure = args[2];
