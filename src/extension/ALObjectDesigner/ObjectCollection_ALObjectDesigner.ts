@@ -34,34 +34,40 @@ export class ObjectCollection_ALObjectDesigner implements ObjectCollectionInterf
         return documents;
     }
 
-    async getEventSubscriberDocuments(tableName: string): Promise<TextDocument[]> {
+    async getEventSubscriberDocuments(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
         if (!this.isAvailable())
             return [];
         let api: ALObjectDesignerAPI = await ALObjectDesigner.getApi();
+
         let eventList: CollectorItem[] | undefined = api.ALPanel.eventList;
-        if (!eventList)
-            return [];
+        if (!eventList) {
+            await api.ALObjectCollector.discover()
+            eventList = api.ALPanel.eventList;
+            if (!eventList)
+                return [];
+        }
 
         let allEventSubscribersOfTable: CollectorItem[] = eventList.filter(object =>
             !object.EventPublisher &&
             object.EventType && object.EventType.toLowerCase() == 'eventsubscriber' &&
             object.TargetObjectType && object.TargetObjectType.toLowerCase() == 'table' &&
             object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableName.toLowerCase()
-            //&& object.EventPublisherName
+            && object.TargetEventName && validEvents.includes(object.TargetEventName.trim().toLowerCase())
         );
-        let documents: TextDocument[] = [];
+        let locations: { uri: Uri, methodName: string }[] = [];
         for (let i = 0; i < allEventSubscribersOfTable.length; i++) {
+            let uri: Uri
             if (allEventSubscribersOfTable[i].FsPath == '') {
                 try {
                     let objectRow: CollectorItem = allEventSubscribersOfTable[i];
-                    let uri = Uri.parse(`alObjectDesignerDal://symbol/${objectRow.Type}${objectRow.Id > 0 ? ` ${objectRow.Id} ` : ''}${objectRow.Name.replace(/\//g, "_")} - ${objectRow.Application.replace(/[^\w]/g, "_")}.al#${JSON.stringify({ Type: objectRow.Type, Name: objectRow.Name })}`);
-                    documents.push(await workspace.openTextDocument(uri));
+                    uri = Uri.parse(`alObjectDesignerDal://symbol/${objectRow.Type}${objectRow.Id > 0 ? ` ${objectRow.Id} ` : ''}${objectRow.Name.replace(/\//g, "_")} - ${objectRow.Application.replace(/[^\w]/g, "_")}.al#${JSON.stringify({ Type: objectRow.Type, Name: objectRow.Name })}`);
                 } catch {
                     continue;
                 }
             } else
-                documents.push(await workspace.openTextDocument(allEventSubscribersOfTable[i].FsPath));
+                uri = Uri.file(allEventSubscribersOfTable[i].FsPath)
+            locations.push({ uri: uri, methodName: allEventSubscribersOfTable[i].EventName });
         }
-        return documents;
+        return locations;
     }
 }

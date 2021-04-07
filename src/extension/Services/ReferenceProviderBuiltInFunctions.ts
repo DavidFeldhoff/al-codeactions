@@ -176,7 +176,7 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
             if (!match)
                 return locationsOfBuiltInFunctions
             let dataItemVariableName = match[1]
-            if (fileContent.indexOf(dataItemVariableName + '.' + builtInFunction.toString()) == -1)
+            if (fileContent.toLowerCase().indexOf((dataItemVariableName + '.' + builtInFunction.toString()).toLowerCase()) == -1)
                 return locationsOfBuiltInFunctions
             let timeStart = new Date()
             let locations: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', location.uri, new Position(location.range.start.line, lineTextOfLocation.indexOf('dataitem(') + 'dataitem('.length))
@@ -187,7 +187,7 @@ export class ReferenceProviderBuiltInFunctions implements ReferenceProvider {
                     let lineSub: string = fileLines[location.range.end.line].substring(location.range.end.character)
                     let result: RegExpExecArray | null
                     if (result = new RegExp('\\.(' + builtInFunction.toString() + '\\b|' + builtInFunction.toString() + 'All)\\b', 'i').exec(lineSub)) {
-                        let position: Position = new Position(location.range.start.line, result.index + 1 + location.range.end.character)
+                        let position: Position = new Position(location.range.start.line, result.index + '.'.length + location.range.end.character)
                         locationsOfBuiltInFunctions.push(new Location(location.uri, new Range(position, position.translate(undefined, result[1].length))));
                     }
                 }

@@ -37,12 +37,12 @@ export class WorkspaceUtils {
         }
         return tableExtensionDocuments;
     }
-    static async getEventSubscriberDocuments(tableName: string): Promise<TextDocument[]> {
+    static async getEventSubscribers(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
         let objectCollectionTools: ObjectCollectionInterface[] = [new ObjectCollection_ALStudio(), new ObjectCollection_ALObjectDesigner()];
-        let tableExtensionDocuments: TextDocument[] = [];
+        let tableExtensionDocuments: { uri: Uri, methodName: string }[] = [];
         for (const objectCollectionTool of objectCollectionTools) {
             if (objectCollectionTool.isAvailable()) {
-                tableExtensionDocuments = await objectCollectionTool.getEventSubscriberDocuments(tableName);
+                tableExtensionDocuments = await objectCollectionTool.getEventSubscriberDocuments(tableName, validEvents);
                 break;
             }
         }

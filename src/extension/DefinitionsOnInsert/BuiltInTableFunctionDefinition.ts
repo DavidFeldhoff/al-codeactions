@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import { commands, Location, Position, Range, TextDocument, Uri, workspace } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
@@ -5,7 +6,6 @@ import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import * as ALObjectDesigner from '../ALObjectDesigner/api';
 import { DocumentUtils } from "../Utils/documentUtils";
 import { WorkspaceUtils } from "../Utils/workspaceUtils";
 import { BuiltInFunctionDefinitionInterface } from "./BuiltInFunctionDefinitionInterface";
@@ -171,40 +171,26 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
     async getEventSubscriberNodes(tableNameToSearch: string): Promise<Location[]> {
         if (!this.builtInFunction)
             return [];
-        let documents: TextDocument[] = await WorkspaceUtils.getEventSubscriberDocuments(tableNameToSearch);
+        let validEvents: string[] = ['onbefore' + this.builtInFunction.toLowerCase() + 'event', 'onafter' + this.builtInFunction.toLowerCase() + 'event'];
+        let locations: { uri: Uri, methodName: string }[] = await WorkspaceUtils.getEventSubscribers(tableNameToSearch, validEvents);
         let validEventSubscribers: Location[] = [];
-        for (const document of documents) {
-            let newEventNodes: ALFullSyntaxTreeNode[] = await this.getValidBuiltInEventsOfDocument(document, this.builtInFunction);
+        for (const location of locations) {
+            let newEventNodes: ALFullSyntaxTreeNode[] = await this.getRelatedSyntaxTreeNodes(location);
+            let fileContent: string = readFileSync(location.uri.fsPath, { encoding: 'utf8' })
+            let fileLines: string[] = fileContent.split(DocumentUtils.getEolByContent(fileContent))
             for (const newEventNode of newEventNodes)
-                validEventSubscribers.push(new Location(document.uri, DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(newEventNode.fullSpan))));
+                validEventSubscribers.push(new Location(location.uri, DocumentUtils.trimRange2(fileLines, TextRangeExt.createVSCodeRange(newEventNode.fullSpan))));
         }
         return validEventSubscribers;
     }
 
 
-    private async getValidBuiltInEventsOfDocument(doc: TextDocument, builtInFunction: BuiltInFunctions): Promise<ALFullSyntaxTreeNode[]> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(doc);
+    private async getRelatedSyntaxTreeNodes(location: { uri: Uri, methodName: string }): Promise<ALFullSyntaxTreeNode[]> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(location.uri.fsPath, readFileSync(location.uri.fsPath, { encoding: 'utf8' }));
         let methodNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getMethodDeclaration());
-        let validNodes: ALFullSyntaxTreeNode[] = methodNodes.filter(methodNode => {
-            let memberAttributes: ALFullSyntaxTreeNode[] = [];
-            ALFullSyntaxTreeNodeExt.collectChildNodes(methodNode, FullSyntaxTreeNodeKind.getMemberAttribute(), false, memberAttributes);
-            let eventSubscriberNode: ALFullSyntaxTreeNode | undefined = memberAttributes.find(attr =>
-                attr.childNodes &&
-                doc.getText(TextRangeExt.createVSCodeRange(attr.childNodes[0].fullSpan)).toLowerCase() == 'eventsubscriber'
-            );
-            if (eventSubscriberNode) {
-                let argumentList: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(eventSubscriberNode, FullSyntaxTreeNodeKind.getAttributeArgumentList(), false);
-                if (argumentList && argumentList.childNodes) {
-                    let validEvents: string[] = ['onbefore' + builtInFunction.toLowerCase() + 'event', 'onafter' + builtInFunction.toLowerCase() + 'event'];
-                    let eventName: string = doc.getText(TextRangeExt.createVSCodeRange(argumentList.childNodes[2].fullSpan)).toLowerCase().replace(/'(\w+)'/, '$1');
-                    if (validEvents.includes(eventName)) {
-                        let identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
-                        if (identifierNode)
-                            return identifierNode;
-                    }
-                }
-            }
-        })
+        let validNodes: ALFullSyntaxTreeNode[] = methodNodes.filter(methodNode => methodNode.name?.toLowerCase() == location.methodName.toLowerCase())
+        for (let i = 0; i < validNodes.length; i++)
+            validNodes[i] = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(validNodes[i], FullSyntaxTreeNodeKind.getIdentifierName(), false)!
         return validNodes;
     }
 }

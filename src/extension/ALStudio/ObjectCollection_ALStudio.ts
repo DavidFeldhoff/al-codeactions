@@ -1,4 +1,4 @@
-import { TextDocument, Uri, workspace } from 'vscode';
+import { commands, TextDocument, Uri, workspace } from 'vscode';
 import { ObjectCollectionInterface } from '../Utils/ObjectCollectionInterface';
 import { ALStudioExtension } from './ALStudioExtension';
 import { alstudio } from './api';
@@ -13,6 +13,9 @@ export class ObjectCollection_ALStudio implements ObjectCollectionInterface {
         let api: alstudio.IExternalAPIService | undefined = await ALStudioExtension.getAlStudioAPI();
         if (!api)
             return [];
+
+        if (!api.isWorkspaceScanned)
+            await commands.executeCommand('alStudio.discover');
 
         let objects: alstudio.CollectorItemExternal[] = api.getObjects();
         let tableExtensions: alstudio.CollectorItemExternal[] = objects.filter(object =>
@@ -35,30 +38,37 @@ export class ObjectCollection_ALStudio implements ObjectCollectionInterface {
         return documents;
     }
 
-    async getEventSubscriberDocuments(tableName: string): Promise<TextDocument[]> {
+    async getEventSubscriberDocuments(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
         let api: alstudio.IExternalAPIService | undefined = await ALStudioExtension.getAlStudioAPI();
         if (!api)
             return [];
+
+        if (!api.isWorkspaceScanned)
+            await commands.executeCommand('alStudio.discover');
+
         let objects: alstudio.CollectorItemExternal[] = api.getObjects();
-        let uri: Uri | null = api.getSymbolUri(alstudio.ALObjectType.table, tableName);
+        
+        validEvents.forEach(event => event.toLowerCase())
         let eventSubscribersOfTable: alstudio.CollectorItemExternal[] = objects.filter(object =>
             object.ItemTypeCaption.toLowerCase() == 'eventsubscriber' &&
             object.TargetObjectType == 'table' &&
-            object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableName.toLowerCase()
+            object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableName.toLowerCase() &&
+            object.EventName && validEvents.includes(object.EventName.trim().toLowerCase())
         );
 
-        let documents: TextDocument[] = [];
+        let locations: { uri: Uri, methodName: string }[] = [];
         for (const eventSubscriberOfTable of eventSubscribersOfTable) {
+            let uri: Uri
             if (eventSubscriberOfTable.FsPath == '') {
                 try {
-                    let uri = api.getSymbolUri(eventSubscriberOfTable.TypeId, eventSubscriberOfTable.Name);
-                    documents.push(await workspace.openTextDocument(uri));
+                    uri = api.getSymbolUri(eventSubscriberOfTable.TypeId, eventSubscriberOfTable.Name);
                 } catch {
                     continue;
                 }
             } else
-                documents.push(await workspace.openTextDocument(eventSubscriberOfTable.FsPath));
+                uri = Uri.file(eventSubscriberOfTable.FsPath)
+            locations.push({ uri: uri, methodName: eventSubscriberOfTable.EventSubscriberName })
         }
-        return documents;
+        return locations;
     }
 }

@@ -43,10 +43,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
 		let locations: vscode.Location[] = await new DefinitionProviderOnInsert().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
-		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
-		assert.strictEqual(locations[0].uri.fsPath.includes('Customer'), true);
-		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
+
+		let expectedDefinitions: Map<string, string[]> = new Map();
+		expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
+		expectedDefinitions.set('Customer.dal', ['OnInsert'])
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 	test('GetInsertTrigger_Symbols_DefaultParameter', async () => {
 		let tableName: string = 'Customer';
@@ -55,10 +56,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
 		let locations: vscode.Location[] = await new DefinitionProviderOnInsert().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
-		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
-		assert.strictEqual(locations[0].uri.fsPath.includes('Customer'), true);
-		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
+
+		let expectedDefinitions: Map<string, string[]> = new Map();
+		expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
+		expectedDefinitions.set('Customer.dal', ['OnInsert'])
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 	test('GetInsertTrigger_Symbols_WithParameter', async () => {
 		let tableName: string = 'Customer';
@@ -67,10 +69,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
 		let locations: vscode.Location[] = await new DefinitionProviderOnInsert().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
-		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
-		assert.strictEqual(locations[0].uri.fsPath.includes('Customer'), true);
-		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
+		
+		let expectedDefinitions: Map<string, string[]> = new Map();
+		expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
+		expectedDefinitions.set('Customer.dal', ['OnInsert'])
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 	test('GetInsertTrigger_OwnProject', async () => {
 		let tableName: string = 'MyTable';
@@ -195,21 +198,12 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, 'Item.'.length);
 		let cancellationToken: any;
 		let locations: vscode.Location[] = await new DefinitionProviderOnInsert().provideDefinition(myPageDocument, positionToExecuteDefProvider, cancellationToken)
+
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnInsert']);
 		expectedDefinitions.set('ItemExt.al', ['OnInsert', 'OnBeforeInsert', 'OnAfterInsert'])
 		expectedDefinitions.set('codeunitBuiltInFunctions.al', ['Item_OnBeforeInsertEvent']);
-		assert.strictEqual(locations.length, 5, 'Definitions expected');
-		for (const key of expectedDefinitions.keys()) {
-			let expectedValues: string[] = expectedDefinitions.get(key) as string[];
-			assert.strictEqual(locations.some(l => l.uri.fsPath.includes(key)), true, '');
-			let filteredLocations: vscode.Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as vscode.Location[];
-			assert.strictEqual(expectedValues.length, filteredLocations.length);
-			for (const location of filteredLocations) {
-				let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(location.uri);
-				assert.strictEqual(expectedValues.some(value => value == targetDoc.getText(location.range)), true);
-			}
-		}
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 	test('GetEventSubscriptionsAndTableExtensionsAsWellOfFieldFunction', async () => {
 		let lineTextToSearch = 'Item.Validate("No.", \'Test\');';
@@ -220,17 +214,8 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnValidate']);
 		expectedDefinitions.set('ItemExt.al', ['OnBeforeValidate', 'OnAfterValidate'])
-		assert.strictEqual(locations.length, 3, 'Definitions expected');
-		for (const key of expectedDefinitions.keys()) {
-			let expectedValues: string[] = expectedDefinitions.get(key) as string[];
-			assert.strictEqual(locations.some(l => l.uri.fsPath.includes(key)), true, '');
-			let filteredLocations: vscode.Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as vscode.Location[];
-			assert.strictEqual(expectedValues.length, filteredLocations.length);
-			for (const location of filteredLocations) {
-				let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(location.uri);
-				assert.strictEqual(expectedValues.some(value => value == targetDoc.getText(location.range)), true);
-			}
-		}
+		
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 	test('GetFieldFunctionOfTableExtension', async () => {
 		let lineTextToSearch = 'Item.Validate(Item.NewField, 5);';
@@ -240,17 +225,8 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let locations: vscode.Location[] = await new DefinitionProviderOnInsert().provideDefinition(myPageDocument, positionToExecuteDefProvider, cancellationToken)
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('ItemExt.al', ['OnValidate'])
-		assert.strictEqual(locations.length, 1, 'Definitions expected');
-		for (const key of expectedDefinitions.keys()) {
-			let expectedValues: string[] = expectedDefinitions.get(key) as string[];
-			assert.strictEqual(locations.some(l => l.uri.fsPath.includes(key)), true, '');
-			let filteredLocations: vscode.Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as vscode.Location[];
-			assert.strictEqual(expectedValues.length, filteredLocations.length);
-			for (const location of filteredLocations) {
-				let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(location.uri);
-				assert.strictEqual(expectedValues.some(value => value == targetDoc.getText(location.range)), true);
-			}
-		}
+		
+		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 
 	function getRangeOfLine(document: vscode.TextDocument, lineTextToSearch: string, startingAtLine: number = 0): vscode.Range {
@@ -269,3 +245,23 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		return new vscode.Range(line, startPos, line, endPos);
 	}
 });
+
+async function validateLocationsAndDefinitions(locations: vscode.Location[], expectedDefinitions: Map<string, string[]>) {
+	let expectedAmount: number = 0
+	for (const key of expectedDefinitions.keys())
+		expectedAmount += expectedDefinitions.get(key)!.length
+	assert.strictEqual(locations.length, expectedAmount, 'Definitions expected');
+
+	for (const key of expectedDefinitions.keys()) {
+		let expectedValues: string[] = expectedDefinitions.get(key)!;
+		assert.strictEqual(locations.some(l => l.uri.fsPath.includes(key)), true, '');
+		let filteredLocations: vscode.Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as vscode.Location[];
+		assert.strictEqual(expectedValues.length, filteredLocations.length);
+
+		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(filteredLocations[0].uri);
+		for (const location of filteredLocations) {
+			let locationValue = targetDoc.getText(location.range)
+			assert.strictEqual(expectedValues.some(value => value == locationValue), true);
+		}
+	}
+}
