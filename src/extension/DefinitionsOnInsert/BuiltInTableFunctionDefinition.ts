@@ -171,6 +171,7 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
     async getEventSubscriberNodes(tableNameToSearch: string): Promise<Location[]> {
         if (!this.builtInFunction)
             return [];
+        tableNameToSearch = tableNameToSearch.replace(/^"(.*)"$/, '$1')
         let validEvents: string[] = ['onbefore' + this.builtInFunction.toLowerCase() + 'event', 'onafter' + this.builtInFunction.toLowerCase() + 'event'];
         let locations: { uri: Uri, methodName: string }[] = await WorkspaceUtils.getEventSubscribers(tableNameToSearch, validEvents);
         let validEventSubscribers: Location[] = [];

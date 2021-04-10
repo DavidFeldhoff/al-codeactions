@@ -237,6 +237,10 @@ export class DocumentUtils {
         }
         return newRange;
     }
+    public static trimRange3(fileContent: string, currentRange: vscode.Range) {
+        let fileLines = fileContent.split(DocumentUtils.getEolByContent(fileContent))
+        return this.trimRange2(fileLines, currentRange)
+    }
     public static getSubstringOfFileByRange(fileContent: string, range: vscode.Range): string {
         let eol: string = DocumentUtils.getEolByContent(fileContent)
         let fileLines: string[] = fileContent.split(eol);
@@ -268,6 +272,15 @@ export class DocumentUtils {
         let eol: string = DocumentUtils.getEolByContent(fileContent)
         let fileLines: string[] = textUntilIndex.split(eol)
         return new vscode.Position(fileLines.length - 1, fileLines[fileLines.length - 1].length)
+    }
+    public static getIndexOfFileContent(fileContent: string, position: vscode.Position): number {
+        let eol: string = DocumentUtils.getEolByContent(fileContent)
+        let fileLines = fileContent.split(eol)
+        let index: number = 0;
+        for (let i = 0; i < position.line; i++)
+            index += fileLines[i].length
+        index = index + (position.line * eol.length) + position.character
+        return index
     }
 
 

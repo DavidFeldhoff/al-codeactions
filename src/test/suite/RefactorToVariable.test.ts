@@ -42,6 +42,8 @@ suite('RefactorValidate Test Suite', function () {
 		await vscode.workspace.applyEdit(edit);
 		let lineText: string = tmpDoc.lineAt(positionToExecute.line).text.trim();
 		assert.strictEqual(lineText, 'MyTable.Validate(MyField, MissingProcedureWithFieldReturn1(myInteger));', 'wrong refactoring to validate')
+		await vscode.window.showTextDocument(tmpDoc)
+		await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
 	});
 	test('refactorByRangeOfOneLine', async () => {
 		let assignmentStatement = 'MyTable.MyField := MissingProcedureWithFieldReturn1(myInteger);';
@@ -55,6 +57,8 @@ suite('RefactorValidate Test Suite', function () {
 		await vscode.workspace.applyEdit(edit);
 		let lineText: string = tmpDoc.lineAt(rangeOfAssignmentStatement.start.line).text.trim();
 		assert.strictEqual(lineText, 'MyTable.Validate(MyField, MissingProcedureWithFieldReturn1(myInteger));', 'wrong refactoring to validate')
+		await vscode.window.showTextDocument(tmpDoc)
+		await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
 	});
 	test('refactorMultipleLines', async () => {
 		let assignmentStatement = 'MyTable.MyField := MissingProcedureWithFieldReturn1(myInteger);';
@@ -77,6 +81,8 @@ suite('RefactorValidate Test Suite', function () {
 			'        "MyTable".Validate(MyField, MissingProcedureWithFieldReturn2(myInteger));\r\n' +
 			'        MyTable.Validate("MyField", MissingProcedureWithFieldReturn3(myInteger));',
 			'wrong refactoring to validate')
+		await vscode.window.showTextDocument(tmpDoc)
+		await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
 	});
 
 
