@@ -32,7 +32,8 @@ export class ALSourceCodeHandler {
             AZSymbolKind.MessageHandlerDeclaration,
             AZSymbolKind.ModalPageHandlerDeclaration,
             AZSymbolKind.PageHandlerDeclaration,
-            //AZSymbolKind.RecallNotificationHandler, // is missing
+            //AZSymbolKind.RecallNotificationHandler, // is missing, so I'll insert 238 manually
+            238,
             AZSymbolKind.ReportHandlerDeclaration,
             AZSymbolKind.RequestPageHandlerDeclaration,
             AZSymbolKind.SendNotificationHandlerDeclaration,

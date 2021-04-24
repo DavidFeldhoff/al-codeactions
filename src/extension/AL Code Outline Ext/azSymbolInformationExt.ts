@@ -9,7 +9,10 @@ export class AZSymbolInformationExt {
         if (azSymbolInformation.childSymbols) {
             for (let i = 0; i < azSymbolInformation.childSymbols.length; i++) {
                 if (kindsOfSymbolInformation.includes(azSymbolInformation.childSymbols[i].kind)) {
-                    outList.push(azSymbolInformation.childSymbols[i]);
+                    //AzSymbolKind RecallNotificationHandler is missing, so I added it manually and this is just a doublecheck
+                    if ((azSymbolInformation.childSymbols[i].kind != 238) ||
+                        (azSymbolInformation.childSymbols[i].kind == 238 && azSymbolInformation.subtype?.toLowerCase() == 'recallnotificationhandler'))
+                        outList.push(azSymbolInformation.childSymbols[i]);
                 }
                 if (searchAllLevels) {
                     this.collectChildNodes(azSymbolInformation.childSymbols[i], kindsOfSymbolInformation, searchAllLevels, outList);
@@ -37,6 +40,7 @@ export class AZSymbolInformationExt {
                 case memberAttributes.includes('reporthandler'): return AZSymbolKind.ReportHandlerDeclaration;
                 case memberAttributes.includes('requestpagehandler'): return AZSymbolKind.RequestPageHandlerDeclaration;
                 case memberAttributes.includes('sendnotificationhandler'): return AZSymbolKind.SendNotificationHandlerDeclaration;
+                case memberAttributes.includes('recallnotificationhandler'): return 238;
                 case memberAttributes.includes('sessionsettingshandler'): return AZSymbolKind.SessionSettingsHandlerDeclaration;
                 case memberAttributes.includes('strmenuhandler'): return AZSymbolKind.StrMenuHandlerDeclaration;
                 case memberAttributes.includes('eventsubscriber'): return AZSymbolKind.EventSubscriberDeclaration;

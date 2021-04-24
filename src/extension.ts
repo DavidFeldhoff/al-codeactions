@@ -6,6 +6,7 @@ import { ALProcedure } from './extension/Entities/alProcedure';
 import { Command } from './extension/Entities/Command';
 import { CodeActionProvider_General } from './extension/Services/CodeActionProvider_General';
 import { FixCop } from './extension/Services/CommandFixCop';
+import { CompletionItemProviderVariable } from './extension/Services/CompletionItemProviderVariable';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
 import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
 import { DefinitionProviderOnInsert } from './extension/Services/DefinitionProviderOnInsert';
@@ -60,6 +61,9 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 	context.subscriptions.push(
 		vscode.languages.registerReferenceProvider('al', new ReferenceProviderBuiltInFunctions())
+	)
+	context.subscriptions.push(
+		vscode.languages.registerCompletionItemProvider('al',new CompletionItemProviderVariable())
 	)
 }
 
