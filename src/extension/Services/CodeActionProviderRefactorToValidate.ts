@@ -13,12 +13,15 @@ export class CodeActionProviderRefactorToValidate implements ICodeActionProvider
         this.document = document;
         this.range = range;
     }
-    
+
     async considerLine(): Promise<boolean> {
         if (this.range.start.compareTo(this.range.end) == 0) {
-            let word1: string = this.document.getText(new Range(this.range.start.translate(0, 0), this.range.start.translate(0, 2)));
-            let word2: string = this.document.getText(new Range(this.range.start.translate(0, -1), this.range.start.translate(0, 1)));
-            let word3: string = this.document.getText(new Range(this.range.start.translate(0, -2), this.range.start.translate(0, 0)));
+            let word1, word2, word3: string = ''
+            word1 = this.document.getText(new Range(this.range.start.translate(0, 0), this.range.start.translate(0, 2)));
+            if (this.range.start.character >= 2) {
+                word2 = this.document.getText(new Range(this.range.start.translate(0, -1), this.range.start.translate(0, 1)));
+                word3 = this.document.getText(new Range(this.range.start.translate(0, -2), this.range.start.translate(0, 0)));
+            }
             if ([word1, word2, word3].includes(':=')) {
                 return true;
             }
