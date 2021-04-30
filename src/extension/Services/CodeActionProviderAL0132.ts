@@ -73,12 +73,12 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         }
     }
     private isValidDocument(procedureToCreate: ALProcedure): boolean {
-        if (procedureToCreate.ObjectOfProcedure.documentUri.fsPath.endsWith('dal'))
+        if (procedureToCreate.ObjectOfProcedure.documentUri!.fsPath.endsWith('dal'))
             return false
         return true
     }
     private async createCodeAction(msg: string, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction> {
-        let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri);
+        let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri!);
         let codeActionToCreateProcedure: vscode.CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, diagnostic);
         return codeActionToCreateProcedure;
     }

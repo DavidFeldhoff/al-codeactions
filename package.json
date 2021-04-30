@@ -33,15 +33,59 @@
 	},
 	"main": "./out/extension.js",
 	"activationEvents": [
-		"onCommand:alcodeactions.fixCop",
+		"onCommand:alCodeActions.fixCop",
 		"onLanguage:al"
 	],
 	"contributes": {
 		"commands": [
 			{
 				"category": "AL Code Actions",
-				"command": "alcodeactions.fixCop",
+				"command": "alCodeActions.fixCop",
 				"title": "Fix Cop warnings.."
+			},
+			{
+				"category": "AL Code Actions",
+				"command": "alCodeActions.findRelatedCalls",
+				"title": "Find related method calls (e.g. Rec.Insert)",
+				"enablement": "editorLangId == al && resourceExtname != .dal && alCodeActions.findRelated"
+			},
+			{
+				"category": "AL Code Actions",
+				"command": "alCodeActions.findRelatedEventSubscriber",
+				"title": "Find related event subscribers",
+				"enablement": "editorLangId == al && alCodeActions.findRelated"
+			},
+			{
+				"category": "AL Code Actions",
+				"command": "alCodeActions.findRelatedTriggers",
+				"title": "Find related triggers",
+				"enablement": "editorLangId == al && alCodeActions.findRelated"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"submenu": "alCodeAction.findRelated",
+					"group": "0_navigation@10",
+					"when": "editorLangId == al && alCodeActions.findRelated"
+				}
+			],
+			"alCodeAction.findRelated": [
+				{
+					"command": "alCodeActions.findRelatedCalls"
+				},
+				{
+					"command": "alCodeActions.findRelatedEventSubscriber"
+				},
+				{
+					"command": "alCodeActions.findRelatedTriggers"
+				}
+			]
+		},
+		"submenus": [
+			{
+				"id": "alCodeAction.findRelated",
+				"label": "Find Related"
 			}
 		],
 		"configuration": []

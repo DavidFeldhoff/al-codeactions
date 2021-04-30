@@ -1,5 +1,5 @@
 import { commands, TextDocument, Uri, workspace } from 'vscode';
-import { ObjectCollectionInterface } from '../Utils/ObjectCollectionInterface';
+import { ObjectCollectionInterface } from '../ObjectCollection/ObjectCollectionInterface';
 import { ALStudioExtension } from './ALStudioExtension';
 import { alstudio } from './api';
 
@@ -20,7 +20,7 @@ export class ObjectCollection_ALStudio implements ObjectCollectionInterface {
         let objects: alstudio.CollectorItemExternal[] = api.getObjects();
         let tableExtensions: alstudio.CollectorItemExternal[] = objects.filter(object =>
             object.Type == 'tableextension' &&
-            object.TargetObject.toLowerCase() == tableName.toLowerCase()
+            object.TargetObject.removeQuotes().toLowerCase() == tableName.removeQuotes().toLowerCase()
         );
         let documents: TextDocument[] = [];
         for (const tableExtension of tableExtensions) {
@@ -38,7 +38,7 @@ export class ObjectCollection_ALStudio implements ObjectCollectionInterface {
         return documents;
     }
 
-    async getEventSubscriberDocuments(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
+    async getEventSubscriberDocuments(tableName: string, validEvents?: string[], fieldName?: string): Promise<{ uri: Uri, methodName: string }[]> {
         let api: alstudio.IExternalAPIService | undefined = await ALStudioExtension.getAlStudioAPI();
         if (!api)
             return [];
@@ -47,13 +47,16 @@ export class ObjectCollection_ALStudio implements ObjectCollectionInterface {
             await commands.executeCommand('alStudio.discover');
 
         let objects: alstudio.CollectorItemExternal[] = api.getObjects();
+        if (validEvents)
+            validEvents.forEach(event => event.toLowerCase())
         
-        validEvents.forEach(event => event.toLowerCase())
+
         let eventSubscribersOfTable: alstudio.CollectorItemExternal[] = objects.filter(object =>
             object.ItemTypeCaption.toLowerCase() == 'eventsubscriber' &&
             object.TargetObjectType == 'table' &&
-            object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableName.toLowerCase() &&
-            object.EventName && validEvents.includes(object.EventName.trim().toLowerCase())
+            object.TargetObject && object.TargetObject.trim().removeQuotes().toLowerCase() == tableName.removeQuotes().toLowerCase() &&
+            (!validEvents || object.EventName && validEvents.includes(object.EventName.trim().toLowerCase())) &&
+            (!fieldName || object.EventFieldName && object.EventFieldName.trim().removeQuotes().toLowerCase() == fieldName.removeQuotes().toLowerCase())
         );
 
         let locations: { uri: Uri, methodName: string }[] = [];

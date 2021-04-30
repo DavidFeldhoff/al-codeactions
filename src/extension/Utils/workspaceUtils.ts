@@ -3,7 +3,8 @@ import { parse } from 'jsonc-parser';
 import { RelativePattern, TextDocument, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { ObjectCollection_ALObjectDesigner } from '../ALObjectDesigner/ObjectCollection_ALObjectDesigner';
 import { ObjectCollection_ALStudio } from '../ALStudio/ObjectCollection_ALStudio';
-import { ObjectCollectionInterface } from './ObjectCollectionInterface';
+import { ObjectCollectionImpl } from '../ObjectCollection/ObjectCollectionImpl';
+import { ObjectCollectionInterface } from '../ObjectCollection/ObjectCollectionInterface';
 
 export class WorkspaceUtils {
     public static async findValidAppSourcePrefixes(uri: Uri): Promise<string[] | undefined> {
@@ -27,7 +28,7 @@ export class WorkspaceUtils {
         return undefined;
     }
     static async getTableExtensions(tableName: string): Promise<TextDocument[]> {
-        let objectCollectionTools: ObjectCollectionInterface[] = [new ObjectCollection_ALStudio(), new ObjectCollection_ALObjectDesigner()];
+        let objectCollectionTools: ObjectCollectionInterface[] = [new ObjectCollection_ALStudio(), new ObjectCollection_ALObjectDesigner(), new ObjectCollectionImpl()];
         let tableExtensionDocuments: TextDocument[] = [];
         for (const objectCollectionTool of objectCollectionTools) {
             if (objectCollectionTool.isAvailable()) {
@@ -37,12 +38,13 @@ export class WorkspaceUtils {
         }
         return tableExtensionDocuments;
     }
-    static async getEventSubscribers(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
-        let objectCollectionTools: ObjectCollectionInterface[] = [new ObjectCollection_ALStudio(), new ObjectCollection_ALObjectDesigner()];
+    static async getEventSubscribers(tableName: string, validEvents?: string[], fieldName?: string): Promise<{ uri: Uri, methodName: string }[]> {
+        let objectCollectionTools: ObjectCollectionInterface[] = [new ObjectCollection_ALStudio(), new ObjectCollection_ALObjectDesigner(), new ObjectCollectionImpl()];
         let tableExtensionDocuments: { uri: Uri, methodName: string }[] = [];
         for (const objectCollectionTool of objectCollectionTools) {
+            fieldName = fieldName ? fieldName : '';
             if (objectCollectionTool.isAvailable()) {
-                tableExtensionDocuments = await objectCollectionTool.getEventSubscriberDocuments(tableName, validEvents);
+                tableExtensionDocuments = await objectCollectionTool.getEventSubscriberDocuments(tableName.removeQuotes(), validEvents, fieldName);
                 break;
             }
         }

@@ -6,6 +6,8 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
+import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { Position, TextDocument } from 'vscode';
 
 export class ALObjectParser {
     private static objectKinds: string[] = [
@@ -31,6 +33,30 @@ export class ALObjectParser {
         }
         Err._throw('That\'s not an Object Tree Node.');
     }
+    public static async getBaseObjectName(document: vscode.TextDocument, position: vscode.Position): Promise<string | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
+        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, this.objectKinds);
+        if (!objectTreeNode || !objectTreeNode.kind)
+            return;
+        let isExtension = [FullSyntaxTreeNodeKind.getTableExtensionObject(),
+        FullSyntaxTreeNodeKind.getPageExtensionObject(),
+        FullSyntaxTreeNodeKind.getPageCustomizationObject(),
+        FullSyntaxTreeNodeKind.getEnumExtensionType()
+        ].includes(objectTreeNode.kind)
+
+        let kindToSearch: string = isExtension ? FullSyntaxTreeNodeKind.getObjectReference() : FullSyntaxTreeNodeKind.getIdentifierName()
+        let identifierOfObject: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, kindToSearch, false);
+        if (!identifierOfObject)
+            return;
+        let name: string = identifierOfObject.identifier!
+        return name
+    }
+    public static async findTableFieldAndReturnFieldName(document: TextDocument, position: Position): Promise<string | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
+        let fieldNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getField(), FullSyntaxTreeNodeKind.getFieldModification()])
+        if (fieldNode)
+            return ALFullSyntaxTreeNodeExt.getIdentifierValue(document, fieldNode, false)
+    }
     private static getType(kind: string): string {
         if (kind.endsWith('Value')) {
             return kind.substring(0, kind.length - 'Value'.length);
@@ -55,4 +81,5 @@ export class ALObjectParser {
         }
         return '';
     }
+    
 }

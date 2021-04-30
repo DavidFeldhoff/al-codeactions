@@ -21,6 +21,7 @@ export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinition
     }
     async findLocation(document: TextDocument, wordRange: Range): Promise<boolean> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        //Rec.Validate("No.") - wordRange.Text = Validate
         let treeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(wordRange.end.translate(0, 1), [FullSyntaxTreeNodeKind.getIdentifierName()]);
         if (treeNode) {
             let identifierTreeNode: ALFullSyntaxTreeNode;
@@ -50,13 +51,12 @@ export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinition
 
         let document: TextDocument = await workspace.openTextDocument(this.location.uri);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let triggerTreeNodes: ALFullSyntaxTreeNode[] = [];
 
         let fieldTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.location.range.start, [FullSyntaxTreeNodeKind.getField()]);
         if (!fieldTreeNode)
             return [];
-        let fieldName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, fieldTreeNode, true) as string;
 
+        let triggerTreeNodes: ALFullSyntaxTreeNode[] = [];
         ALFullSyntaxTreeNodeExt.collectChildNodes(fieldTreeNode, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, triggerTreeNodes);
         for (const triggerTreeNode of triggerTreeNodes) {
             let identifierTreeNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(triggerTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
@@ -66,32 +66,27 @@ export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinition
                 locations.push(new Location(document.uri, identifierRange));
         }
 
-        let locationsOfTableExtensions: Location[] = await this.getTriggersOfTableExtensions(this.location, fieldName, validTriggers);
-        locations = locations.concat(locationsOfTableExtensions);
+        // let locationsOfTableExtensions: Location[] = await this.getTriggersOfTableExtensions(this.location, fieldName, validTriggers);
+        // locations = locations.concat(locationsOfTableExtensions);
 
         return locations;
     }
-    async getTriggersOfTableExtensions(location: Location, fieldName: string, validTriggers: string[]): Promise<Location[]> {
+    private async getTriggersOfTableExtensions(tableName: string, fieldName: string, validTriggers: string[]): Promise<Location[]> {
         let locations: Location[] = [];
-        let document: TextDocument = await workspace.openTextDocument(location.uri);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.start, [FullSyntaxTreeNodeKind.getTableObject()]);
-        if (tableTreeNode) {
-            let tableName: string | undefined = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, tableTreeNode, true) as string;
-            let tableExtensionDocuments: TextDocument[] = await WorkspaceUtils.getTableExtensions(tableName);
-            for (const tableExtensionDocument of tableExtensionDocuments) {
-                let syntaxTreeExtension: SyntaxTree = await SyntaxTree.getInstance(tableExtensionDocument);
-                let fieldModifications: ALFullSyntaxTreeNode[] = syntaxTreeExtension.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getFieldModification());
-                let fieldModification: ALFullSyntaxTreeNode | undefined = fieldModifications.find(fieldMod => fieldName.toLowerCase() == (ALFullSyntaxTreeNodeExt.getIdentifierValue(tableExtensionDocument, fieldMod, true) as string).toLowerCase())
-                if (fieldModification) {
-                    let triggers: ALFullSyntaxTreeNode[] = [];
-                    ALFullSyntaxTreeNodeExt.collectChildNodes(fieldModification, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, triggers)
-                    triggers = triggers.filter(trigger => validTriggers.includes((ALFullSyntaxTreeNodeExt.getIdentifierValue(tableExtensionDocument, trigger, true) as string).toLowerCase()))
-                    for (const trigger of triggers) {
-                        let identifierTreeNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(trigger, FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
-                        let identifierRange: Range = TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan);
-                        locations.push(new Location(tableExtensionDocument.uri, identifierRange))
-                    }
+
+        let tableExtensionDocuments: TextDocument[] = await WorkspaceUtils.getTableExtensions(tableName);
+        for (const tableExtensionDocument of tableExtensionDocuments) {
+            let syntaxTreeExtension: SyntaxTree = await SyntaxTree.getInstance(tableExtensionDocument);
+            let fieldModifications: ALFullSyntaxTreeNode[] = syntaxTreeExtension.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getFieldModification());
+            let fieldModification: ALFullSyntaxTreeNode | undefined = fieldModifications.find(fieldMod => fieldName.toLowerCase() == (ALFullSyntaxTreeNodeExt.getIdentifierValue(tableExtensionDocument, fieldMod, true) as string).toLowerCase())
+            if (fieldModification) {
+                let triggers: ALFullSyntaxTreeNode[] = [];
+                ALFullSyntaxTreeNodeExt.collectChildNodes(fieldModification, FullSyntaxTreeNodeKind.getTriggerDeclaration(), false, triggers)
+                triggers = triggers.filter(trigger => validTriggers.includes((ALFullSyntaxTreeNodeExt.getIdentifierValue(tableExtensionDocument, trigger, true) as string).toLowerCase()))
+                for (const trigger of triggers) {
+                    let identifierTreeNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(trigger, FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
+                    let identifierRange: Range = TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan);
+                    locations.push(new Location(tableExtensionDocument.uri, identifierRange))
                 }
             }
         }
@@ -103,5 +98,12 @@ export class BuiltInFieldFunctionDefinition implements BuiltInFunctionDefinition
         let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.start, [FullSyntaxTreeNodeKind.getTableObject()]);
         if (tableTreeNode)
             return ALFullSyntaxTreeNodeExt.getIdentifierValue(document, tableTreeNode, true);
+    }
+    private async getRelatedSyntaxTreeNodes(syntaxTree: SyntaxTree, methodName: string): Promise<ALFullSyntaxTreeNode[]> {
+        let methodNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getMethodDeclaration());
+        let validNodes: ALFullSyntaxTreeNode[] = methodNodes.filter(methodNode => methodNode.name?.toLowerCase() == methodName.toLowerCase())
+        for (let i = 0; i < validNodes.length; i++)
+            validNodes[i] = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(validNodes[i], FullSyntaxTreeNodeKind.getIdentifierName(), false)!
+        return validNodes;
     }
 }

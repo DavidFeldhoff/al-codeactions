@@ -3,7 +3,7 @@ import { BuiltInFieldFunctionDefinition } from '../DefinitionsOnInsert/BuiltInFi
 import { BuiltInFunctionDefinitionInterface } from '../DefinitionsOnInsert/BuiltInFunctionDefinitionInterface';
 import { BuiltInFunctions } from '../DefinitionsOnInsert/BuiltInFunctions';
 import { BuiltInTableDefinitionReference } from '../DefinitionsOnInsert/BuiltInTableFunctionDefinition';
-export class DefinitionProviderOnInsert implements DefinitionProvider {
+export class DefinitionProviderCallToTrigger implements DefinitionProvider {
 
     async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location[]> {
         let wordRange: Range | undefined = document.getWordRangeAtPosition(position);

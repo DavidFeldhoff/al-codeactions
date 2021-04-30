@@ -35,7 +35,7 @@ export class ALFullSyntaxTreeNodeExt {
 
         let objectNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
         if (removeQuotes)
-            return objectNameWithQuotes.replace(/^"(.*)"$/, '$1');
+            return objectNameWithQuotes.removeQuotes()
         else
             return objectNameWithQuotes;
     }

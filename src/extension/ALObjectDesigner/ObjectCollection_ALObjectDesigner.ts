@@ -1,6 +1,6 @@
 import { Location, TextDocument, Uri, workspace } from 'vscode';
 import { ALObjectDesigner, ALObjectDesignerAPI, CollectorItem } from './api';
-import { ObjectCollectionInterface } from '../Utils/ObjectCollectionInterface';
+import { ObjectCollectionInterface } from '../ObjectCollection/ObjectCollectionInterface';
 
 export class ObjectCollection_ALObjectDesigner implements ObjectCollectionInterface {
     isAvailable(): boolean {
@@ -15,7 +15,7 @@ export class ObjectCollection_ALObjectDesigner implements ObjectCollectionInterf
         let tableExtensions: Array<CollectorItem> = api.ALPanel.objectList.filter(object =>
             object.Type == 'TableExtension' &&
             object.TargetObjectType && object.TargetObjectType.toLowerCase() == 'table' &&
-            object.TargetObject && object.TargetObject.toLowerCase() == tableName.toLowerCase()
+            object.TargetObject && object.TargetObject.removeQuotes().toLowerCase() == tableName.removeQuotes().toLowerCase()
         );
         let documents: TextDocument[] = [];
         for (const tableExtension of tableExtensions) {
@@ -34,7 +34,7 @@ export class ObjectCollection_ALObjectDesigner implements ObjectCollectionInterf
         return documents;
     }
 
-    async getEventSubscriberDocuments(tableName: string, validEvents: string[]): Promise<{ uri: Uri, methodName: string }[]> {
+    async getEventSubscriberDocuments(tableName: string, validEvents?: string[], fieldName?: string): Promise<{ uri: Uri, methodName: string }[]> {
         if (!this.isAvailable())
             return [];
         let api: ALObjectDesignerAPI = await ALObjectDesigner.getApi();
@@ -51,8 +51,9 @@ export class ObjectCollection_ALObjectDesigner implements ObjectCollectionInterf
             !object.EventPublisher &&
             object.EventType && object.EventType.toLowerCase() == 'eventsubscriber' &&
             object.TargetObjectType && object.TargetObjectType.toLowerCase() == 'table' &&
-            object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableName.toLowerCase()
-            && object.TargetEventName && validEvents.includes(object.TargetEventName.trim().toLowerCase())
+            object.TargetObject && object.TargetObject.trim().removeQuotes().toLowerCase() == tableName.removeQuotes().toLowerCase()
+            && (!validEvents || object.TargetEventName && validEvents.includes(object.TargetEventName.trim().toLowerCase())) &&
+            (!fieldName|| (object.TargetElementName && object.TargetElementName.trim().removeQuotes().toLowerCase() == fieldName.removeQuotes()))
         );
         let locations: { uri: Uri, methodName: string }[] = [];
         for (let i = 0; i < allEventSubscribersOfTable.length; i++) {
