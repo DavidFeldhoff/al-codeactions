@@ -2,6 +2,20 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 0.2.30
+
+- Add feature "Find related" in the context menu of onInsert/Modify/Delete/Validate triggers:
+  - Find related calls (with RunTrigger=true only or all calls)
+  - Find related event subscribers like OnAfterInsertEvent
+  - Find related triggers of table extensions like OnAfterInsert-Trigger
+  - Note: Supports AL Studio and AL Object Designer and uses the data of their research to avoid duplicate processing of files.
+- add a completionItemProvider like AL Variable Helper for parameters, Interfaces, and TestRequestPages while waiting for a fix of AL Variable Helper.
+- small bugfixes
+  - #109 - thanks Tin
+  - RefactorToValidate threw errors in the background (not critical, but unnecessary)
+  - HandlerFunctions which were created were missing var-parameters
+- Improve "Move local var to global one" as the global variable is in the right place
+
 ## 0.2.29
 
 - Support the feature of v0.2.28 for procedures which should be created in other documents as well.
