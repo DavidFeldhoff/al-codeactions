@@ -58,7 +58,8 @@ export class ALParameterParser {
             let type: string = typeDetective.getType();
             let name: string = typeDetective.getName();
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();
-            let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar);
+            let canBeVar: boolean = typeDetective.getCanBeVar();
+            let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar, canBeVar);
             if (modifyVarNames)
                 variable.sanitizeName();
             variable = ALParameterParser.getUniqueVariableName(variables, variable);

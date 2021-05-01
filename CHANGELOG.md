@@ -4,12 +4,13 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 0.2.30
 
-- Add feature "Find related" in the context menu of onInsert/Modify/Delete/Validate triggers:
+- Add feature "Find related" in the context menu of onInsert/Modify/Delete/Validate triggers: #86, #94
   - Find related calls (with RunTrigger=true only or all calls)
   - Find related event subscribers like OnAfterInsertEvent
   - Find related triggers of table extensions like OnAfterInsert-Trigger
   - Note: Supports AL Studio and AL Object Designer and uses the data of their research to avoid duplicate processing of files.
-- Add feature "Fix Cop AA0008 Missing Parentheses"
+- Add feature "Fix Cop AA0008 Missing Parentheses" #110
+- Declare parameters of newly created publishers as 'var', if possible #63, #69
 - Add a completionItemProvider like AL Variable Helper for parameters, Interfaces, and TestRequestPages while waiting for a fix of AL Variable Helper.
 - small bugfixes/improvements
   - #109 - thanks Tin

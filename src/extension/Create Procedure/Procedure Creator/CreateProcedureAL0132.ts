@@ -48,7 +48,13 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
 
         let argumentList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(invocationExpressionTreeNode, FullSyntaxTreeNodeKind.getArgumentList(), false) as ALFullSyntaxTreeNode;
-        return await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range), true);
+        let parameters: ALVariable[] = await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range), true);
+        if (this.isVarForced())
+            parameters.forEach(parameter => { if (parameter.canBeVar) { parameter.isVar = true } })
+        return parameters;
+    }
+    isVarForced(): boolean {
+        return false;
     }
     async getReturnType(): Promise<string | undefined> {
         if (!this.syntaxTree) { return undefined; }

@@ -12,6 +12,9 @@ export class CreateProcedureAL0132BusinessEvent extends CreateProcedureAL0132 im
     async getReturnType(): Promise<string | undefined> {
         return undefined;
     }
+    isVarForced(): boolean{
+        return true;
+    }
     getJumpToCreatedProcedure(): boolean {
         return false;
     }

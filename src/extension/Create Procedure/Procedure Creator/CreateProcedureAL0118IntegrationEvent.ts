@@ -12,6 +12,9 @@ export class CreateProcedureAL0118IntegrationEvent extends CreateProcedureAL0118
     async getReturnType(): Promise<string | undefined> {
         return undefined;
     }
+    isVarForced(): boolean{
+        return true;
+    }
     getJumpToCreatedProcedure(): boolean {
         return false;
     }

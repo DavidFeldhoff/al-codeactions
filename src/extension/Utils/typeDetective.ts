@@ -14,6 +14,7 @@ export class TypeDetective {
     private treeNode: ALFullSyntaxTreeNode;
     private type: string | undefined;
     private name: string | undefined;
+    private canBeVar: boolean | undefined;
     private isVar: boolean | undefined;
     private isTemporary: boolean | undefined;
     private hoverMessageFirstLine: string | undefined;
@@ -29,6 +30,9 @@ export class TypeDetective {
     }
     public getIsVar(): boolean {
         return this.isVar ? this.isVar : false;
+    }
+    public getCanBeVar(): boolean{
+        return this.canBeVar ? this.canBeVar: false
     }
     public getIsTemporary(): boolean {
         return this.isTemporary ? this.isTemporary : false;
@@ -156,6 +160,7 @@ export class TypeDetective {
                     if (this.hoverMessageFirstLine.includes(':')) {
                         this.type = this.hoverMessageFirstLine.substr(this.hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
                         this.type = this.fixHoverMessage(this.type);
+                        this.canBeVar = true;
 
                         this.checkIsVar(this.hoverMessageFirstLine);
                         await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
