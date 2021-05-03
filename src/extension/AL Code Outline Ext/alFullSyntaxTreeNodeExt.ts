@@ -19,6 +19,12 @@ export class ALFullSyntaxTreeNodeExt {
             }
         }
     }
+    public static collectChildNodesOfKinds(treeNode: ALFullSyntaxTreeNode, searchForNodeKinds: string[], searchAllLevels: boolean): ALFullSyntaxTreeNode[] {
+        let outList: ALFullSyntaxTreeNode[] = [];
+        for (let searchForNodeKind of searchForNodeKinds)
+            ALFullSyntaxTreeNodeExt.collectChildNodes(treeNode, searchForNodeKind, searchAllLevels, outList);
+        return outList;
+    }
     public static getFirstChildNodeOfKind(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean): ALFullSyntaxTreeNode | undefined {
         let outList: ALFullSyntaxTreeNode[] = [];
         this.collectChildNodes(treeNode, kindOfSyntaxTreeNode, searchAllLevels, outList);

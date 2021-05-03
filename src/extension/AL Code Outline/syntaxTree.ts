@@ -77,6 +77,11 @@ export class SyntaxTree {
         ALFullSyntaxTreeNodeExt.collectChildNodes(this.fullSyntaxTreeResponse.root, searchForNodeKind, true, outList);
         return outList;
     }
+    public getRoot(): ALFullSyntaxTreeNode {
+        if (!this.fullSyntaxTreeResponse?.root)
+            throw new Error('The syntax tree couldn\'t be loaded. Please file an issue on github.');
+        return this.fullSyntaxTreeResponse.root;
+    }
     public isOutdated(documentContent: string): boolean {
         return this.documentContentOfCreation !== documentContent;
     }

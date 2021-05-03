@@ -43,8 +43,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
-			(document: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedure: ALProcedure) =>
-				CreateProcedureCommands.addProcedureToSourceCode(document, diagnostic, procedure))
+			(document: vscode.TextDocument, procedure: ALProcedure) =>
+				CreateProcedureCommands.addProcedureToSourceCode(document, procedure))
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(CreateProcedureCommands.createHandlerCommand,

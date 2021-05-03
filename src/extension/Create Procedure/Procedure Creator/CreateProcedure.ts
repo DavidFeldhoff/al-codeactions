@@ -1,8 +1,9 @@
-import * as vscode from 'vscode';
+import { Position, Range, TextDocument } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
+import { AccessModifier } from '../../Entities/accessModifier';
 import { ALProcedure } from "../../Entities/alProcedure";
 import { ALVariable } from '../../Entities/alVariable';
 import { ReturnTypeAnalyzer } from '../../Extract Procedure/returnTypeAnalyzer';
@@ -44,7 +45,22 @@ export class CreateProcedure {
         let procedureDefinition = "";
         for (const memberAttribute of memberAttributes)
             procedureDefinition += (withIndent ? "\t" : "") + "[" + memberAttribute + "]\r\n"
-        procedureDefinition += (withIndent ? "\t" : "") + procedure.accessModifier.toString() + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
+        let prefixAccessModifier: string;
+        switch (procedure.accessModifier) {
+            case AccessModifier.local:
+                prefixAccessModifier = 'local '
+                break;
+            case AccessModifier.protected:
+                prefixAccessModifier = 'protected ';
+                break;
+            case AccessModifier.internal:
+                prefixAccessModifier = 'internal ';
+                break;
+            default:
+                prefixAccessModifier = '';
+                break;
+        }
+        procedureDefinition += (withIndent ? "\t" : "") + prefixAccessModifier + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
         if (declarationOnly) {
             this.lineOfBodyStart = 0 as number;
             return procedureDefinition + ';';
@@ -77,7 +93,7 @@ export class CreateProcedure {
         return false;
     }
 
-    static async createProcedureCallDefinition(document: vscode.TextDocument, rangeToExtract: vscode.Range, newProcedureName: string, parameters: ALVariable[], returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<string> {
+    static async createProcedureCallDefinition(document: TextDocument, rangeToExtract: Range, newProcedureName: string, parameters: ALVariable[], returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<string> {
         let procedureCall: string = '';
         if (returnTypeAnalyzer.getAddVariableToCallingPosition()) {
             // TODO: If I add the returnedValue-Variable, I have to add it also to the variables
@@ -96,7 +112,7 @@ export class CreateProcedure {
 
         let statementNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeToExtract.end, FullSyntaxTreeNodeKind.getAllStatementKinds());
         if (statementNode) {
-            let statementRange: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(statementNode.fullSpan));
+            let statementRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(statementNode.fullSpan));
             if (rangeToExtract.contains(statementRange)) { //if one or more statements are extracted then the semicolon would be missing
                 procedureCall += ';';
             }
@@ -104,7 +120,7 @@ export class CreateProcedure {
         return procedureCall;
     }
 
-    public addLineBreaksToProcedureCall(document: vscode.TextDocument, position: vscode.Position, textToInsert: string, isInterface: boolean) {
+    public addLineBreaksToProcedureCall(document: TextDocument, position: Position, textToInsert: string, isInterface: boolean) {
         if (!isInterface) {
             this.lineOfBodyStart = this.lineOfBodyStart ? this.lineOfBodyStart + 1 : undefined;
             textToInsert = "\r\n" + textToInsert;

@@ -41,7 +41,7 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         let procedure: ALProcedure = await CreateProcedure.createProcedure(this.createProcedureAL0132);
         if (!this.isValidDocument(procedure))
             return []
-        let codeActionProcedure: vscode.CodeAction = await this.createCodeAction('Create procedure ' + procedure.name, this.diagnostic, procedure);
+        let codeActionProcedure: vscode.CodeAction = await this.createCodeAction('Create procedure ' + procedure.name, procedure);
         codeActionProcedure.isPreferred = true;
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
@@ -49,13 +49,13 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         if (procedure.name.match(regexPattern)) {
             let createProcedureAL0132IntegrationEvent: CreateProcedureAL0132IntegrationEvent = new CreateProcedureAL0132IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132IntegrationEvent);
-            let codeActionIntegrationEvent: vscode.CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, this.diagnostic, integrationEvent);
+            let codeActionIntegrationEvent: vscode.CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, integrationEvent);
             codeActionIntegrationEvent.isPreferred = true;
             codeActions.push(codeActionIntegrationEvent);
 
             let createProcedureAL0132BusinessEvent: CreateProcedureAL0132BusinessEvent = new CreateProcedureAL0132BusinessEvent(this.document, this.diagnostic);
             let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132BusinessEvent);
-            let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction('Create BusinessEvent Publisher ' + businessEvent.name, this.diagnostic, businessEvent);//businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
+            let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction('Create BusinessEvent Publisher ' + businessEvent.name, businessEvent);//businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
             codeActions.push(codeActionBusinessEvent);
         } else
             codeActionProcedure.isPreferred = true
@@ -77,18 +77,18 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
             return false
         return true
     }
-    private async createCodeAction(msg: string, diagnostic: vscode.Diagnostic, procedureToCreate: ALProcedure): Promise<vscode.CodeAction> {
+    private async createCodeAction(msg: string, procedureToCreate: ALProcedure): Promise<vscode.CodeAction> {
         let otherDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri!);
-        let codeActionToCreateProcedure: vscode.CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, diagnostic);
+        let codeActionToCreateProcedure: vscode.CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument);
         return codeActionToCreateProcedure;
     }
 
-    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
+    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: vscode.TextDocument): vscode.CodeAction {
         const codeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
         codeAction.command = {
             command: CreateProcedureCommands.createProcedureCommand,
             title: 'Create Procedure',
-            arguments: [document, diagnostic, procedure]
+            arguments: [document, procedure]
         };
         return codeAction;
     }

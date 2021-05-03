@@ -357,16 +357,17 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         return undefined;
     }
     private async createCodeAction(currentDocument: vscode.TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
-        let codeActionToCreateProcedure: vscode.CodeAction = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
-
+        let codeActionToCreateProcedure: vscode.CodeAction | undefined = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
         return codeActionToCreateProcedure;
     }
 
-    private async createFixToCreateProcedure(procedure: ALProcedure, procedureCallingText: string, document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<vscode.CodeAction> {
+    private async createFixToCreateProcedure(procedure: ALProcedure, procedureCallingText: string, document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
         const fix = new vscode.CodeAction(`Extract to procedure`, vscode.CodeActionKind.QuickFix);
         fix.edit = new vscode.WorkspaceEdit();
 
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line, procedure);
+        let position: vscode.Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
+        if (!position)
+            return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();

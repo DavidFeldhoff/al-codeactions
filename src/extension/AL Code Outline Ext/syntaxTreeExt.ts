@@ -9,20 +9,7 @@ export class SyntaxTreeExt {
     }
     
     static getObjectTreeNode(syntaxTree: SyntaxTree, position: vscode.Position): ALFullSyntaxTreeNode | undefined {
-        let kinds: string[] = [
-            FullSyntaxTreeNodeKind.getTableObject(),
-            FullSyntaxTreeNodeKind.getTableExtensionObject(),
-            FullSyntaxTreeNodeKind.getPageObject(),
-            FullSyntaxTreeNodeKind.getPageExtensionObject(),
-            FullSyntaxTreeNodeKind.getCodeunitObject(),
-            FullSyntaxTreeNodeKind.getReportObject(),
-            FullSyntaxTreeNodeKind.getXmlPortObject(),
-            FullSyntaxTreeNodeKind.getQueryObject(),
-            FullSyntaxTreeNodeKind.getEnumType(),
-            FullSyntaxTreeNodeKind.getEnumExtensionType(),
-            FullSyntaxTreeNodeKind.getInterface()
-        ];
-        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, kinds);
+        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, FullSyntaxTreeNodeKind.getAllObjectKinds());
         return objectTreeNode;
     }
 

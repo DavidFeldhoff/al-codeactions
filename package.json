@@ -88,7 +88,28 @@
 				"label": "Find Related"
 			}
 		],
-		"configuration": []
+		"configuration": [
+			{
+				"title": "AL CodeActions",
+				"properties": {
+					"alCodeActions.findNewProcedureLocation":{
+						"type": "string",
+						"default": "Sort by type, access modifier, name",
+						"enum": [
+							"Sort by type, access modifier, name",
+							"Sort by type, access modifier, range",
+							"Always ask"
+						],
+						"enumDescriptions": [
+							"Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally the sort by name is self-explanatory.",
+							"Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.",
+							"You are always asked where to place the procedure in the document"
+						],
+						"description": "Specifies the search criteria to find an anchor to add the new procedure in the document."
+					}
+				}
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

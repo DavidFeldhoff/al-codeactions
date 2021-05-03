@@ -30,7 +30,7 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         let codeActions: vscode.CodeAction[] = [];
         let createprocedureAL0118: CreateProcedureAL0118 = new CreateProcedureAL0118(this.document, this.diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
-        let codeActionProcedure: vscode.CodeAction = await this.createCodeAction(procedure, 'Create Procedure ' + procedure.name, this.document, this.diagnostic);
+        let codeActionProcedure: vscode.CodeAction = await this.createCodeAction(procedure, 'Create Procedure ' + procedure.name, this.document);
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
         let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
@@ -39,13 +39,13 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
 
             let createProcedureAL0118IntegrationEvent: CreateProcedureAL0118IntegrationEvent = new CreateProcedureAL0118IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118IntegrationEvent);
-            let codeActionIntegrationEvent: vscode.CodeAction = await this.createCodeAction(integrationEvent, 'Create IntegrationEvent Publisher ' + integrationEvent.name, this.document, this.diagnostic);
+            let codeActionIntegrationEvent: vscode.CodeAction = await this.createCodeAction(integrationEvent, 'Create IntegrationEvent Publisher ' + integrationEvent.name, this.document);
             codeActionIntegrationEvent.isPreferred = true;
             codeActions.push(codeActionIntegrationEvent);
 
             let createProcedureAL0118BusinessEvent: CreateProcedureAL0118BusinessEvent = new CreateProcedureAL0118BusinessEvent(this.document, this.diagnostic);
             let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118BusinessEvent);
-            let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction(businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
+            let codeActionBusinessEvent: vscode.CodeAction = await this.createCodeAction(businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document);
             codeActions.push(codeActionBusinessEvent);
         } else
             codeActionProcedure.isPreferred = true;
@@ -54,12 +54,12 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         return codeActions;
     }
 
-    private async createCodeAction(procedure: ALProcedure, msg: string, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<vscode.CodeAction> {
+    private async createCodeAction(procedure: ALProcedure, msg: string, document: vscode.TextDocument): Promise<vscode.CodeAction> {
         const codeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
         codeAction.command = {
             command: CreateProcedureCommands.createProcedureCommand,
             title: 'Create Procedure',
-            arguments: [document, diagnostic, procedure]
+            arguments: [document, procedure]
         };
         return codeAction;
     }
