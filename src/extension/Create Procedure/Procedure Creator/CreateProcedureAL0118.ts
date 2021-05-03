@@ -1,5 +1,4 @@
 import { ICreateProcedure } from './ICreateProcedure';
-import * as vscode from 'vscode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { FullSyntaxTreeNodeKind } from '../../AL Code Outline Ext/fullSyntaxTreeNodeKind';
@@ -14,12 +13,13 @@ import { ALParameterParser } from '../../Entity Parser/alParameterParser';
 import { ALFullSyntaxTreeNodeExt } from '../../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { AccessModifier } from '../../Entities/accessModifier';
 import { Err } from '../../Utils/Err';
+import { Diagnostic, Range, TextDocument } from 'vscode';
 
 export class CreateProcedureAL0118 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
-    document: vscode.TextDocument;
-    diagnostic: vscode.Diagnostic;
-    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
+    document: TextDocument;
+    diagnostic: Diagnostic;
+    constructor(document: TextDocument, diagnostic: Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
     }
@@ -57,7 +57,7 @@ export class CreateProcedureAL0118 implements ICreateProcedure {
     async getReturnType(): Promise<string | undefined> {
         if (!this.syntaxTree) { return undefined; }
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
-        let invocationExpressionRange: vscode.Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
+        let invocationExpressionRange: Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
         invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
 
         let returnType: string | undefined = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);

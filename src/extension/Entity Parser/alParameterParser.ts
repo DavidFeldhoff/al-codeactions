@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { Range, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -21,20 +21,20 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    static async parseParameterTreeNodeToALVariable(document: vscode.TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
+    static async parseParameterTreeNodeToALVariable(document: TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
         if (!parameterTreeNode.kind || parameterTreeNode.kind !== FullSyntaxTreeNodeKind.getParameter()) {
             Err._throw('That\'s not a parameter tree node.');
         }
         if (parameterTreeNode.childNodes) {
             let identifierTreeNode: ALFullSyntaxTreeNode = parameterTreeNode.childNodes[0];
-            let rangeOfName: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
+            let rangeOfName: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
             let identifierName = document.getText(rangeOfName);
             let typeTreeNode: ALFullSyntaxTreeNode = parameterTreeNode.childNodes[1];
-            let rangeOfType: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
+            let rangeOfType: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
             let type = document.getText(rangeOfType);
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
-            let rangeOfFullDeclaration: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
+            let rangeOfFullDeclaration: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
             let isVar: boolean = document.getText(rangeOfFullDeclaration).toLowerCase().startsWith('var');
             let variable: ALVariable = new ALVariable(identifierName, type, methodOrTriggerTreeNode?.name, isVar);
             if (modifyVarName)
@@ -44,7 +44,7 @@ export class ALParameterParser {
             Err._throw('Variable declaration has no child nodes.');
         }
     }
-    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {
+    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
         if (!argumentListTreeNode.childNodes) {
             return variables;
@@ -68,7 +68,7 @@ export class ALParameterParser {
 
         return variables;
     }
-    public static async createParametersOutOfArgumentListTreeNode(document: vscode.TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
+    public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
         parameters.forEach(parameter => {
             parameter.isLocal = true;
@@ -77,8 +77,8 @@ export class ALParameterParser {
         return parameters;
     }
 
-    static async getArgumentRangeArrayOutOfArgumentListRange(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): Promise<vscode.Range[]> {
-        let vscodeRangeArr: vscode.Range[] = [];
+    static async getArgumentRangeArrayOutOfArgumentListRange(document: TextDocument, rangeOfParameterCall: Range): Promise<Range[]> {
+        let vscodeRangeArr: Range[] = [];
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let invocationExpression: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfParameterCall.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
         if (invocationExpression) {

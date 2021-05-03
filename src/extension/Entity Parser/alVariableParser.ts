@@ -1,5 +1,4 @@
-import * as vscode from 'vscode';
-import { TextDocument } from 'vscode';
+import { Range, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -12,7 +11,7 @@ import { Err } from '../Utils/Err';
 
 export class ALVariableParser {
 
-    static parseVariableTreeNodeArrayToALVariableArray(document: vscode.TextDocument, variableTreeNodes: ALFullSyntaxTreeNode[], sanitizeName: boolean): ALVariable[] {
+    static parseVariableTreeNodeArrayToALVariableArray(document: TextDocument, variableTreeNodes: ALFullSyntaxTreeNode[], sanitizeName: boolean): ALVariable[] {
         let alVariables: ALVariable[] = [];
         for (let i = 0; i < variableTreeNodes.length; i++) {
             switch (variableTreeNodes[i].kind) {
@@ -48,16 +47,16 @@ export class ALVariableParser {
             variable.sanitizeName();
         return variable;
     }
-    static async parseReturnValueTreeNodeToALVariable(document: vscode.TextDocument, returnVariableTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
+    static async parseReturnValueTreeNodeToALVariable(document: TextDocument, returnVariableTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
         if (!returnVariableTreeNode.kind || returnVariableTreeNode.kind !== FullSyntaxTreeNodeKind.getReturnValue()) {
             Err._throw('That\'s not a return value tree node.');
         }
         if (returnVariableTreeNode.childNodes && returnVariableTreeNode.childNodes.length === 2) {
             let identifierTreeNode: ALFullSyntaxTreeNode = returnVariableTreeNode.childNodes[0];
-            let rangeOfName: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
+            let rangeOfName: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
             let identifierName = document.getText(rangeOfName);
             let typeTreeNode: ALFullSyntaxTreeNode = returnVariableTreeNode.childNodes[1];
-            let rangeOfType: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
+            let rangeOfType: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
             let type = document.getText(rangeOfType);
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);

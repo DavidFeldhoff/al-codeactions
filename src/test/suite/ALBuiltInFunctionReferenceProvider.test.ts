@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { TextDocument, workspace, window, Position, Location, Range } from 'vscode';
 import { BuiltInFunctions } from '../../extension/DefinitionsOnInsert/BuiltInFunctions';
 import { FindRelatedCalls, showInsertConfig } from '../../extension/Services/FindRelatedCalls';
 import { FindRelatedEventSubscribers } from '../../extension/Services/FindRelatedEventSubscribers';
@@ -9,10 +9,10 @@ import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
 
 suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
-	let codeunitDocument: vscode.TextDocument;
-	let tableTriggersTableDoc: vscode.TextDocument;
-	let ItemExtDoc: vscode.TextDocument;
-	let myPageDocument: vscode.TextDocument;
+	let codeunitDocument: TextDocument;
+	let tableTriggersTableDoc: TextDocument;
+	let ItemExtDoc: TextDocument;
+	let myPageDocument: TextDocument;
 
 	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
@@ -20,25 +20,25 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		await ALLanguageExtension.getInstance().activate();
 
 		let fileName = path.resolve(ALTestProject.dir, 'TableTriggerReferences', 'TableTriggers.Table.al');
-		await vscode.workspace.openTextDocument(fileName).then(doc => {
+		await workspace.openTextDocument(fileName).then(doc => {
 			tableTriggersTableDoc = doc;
 		});
 		fileName = path.resolve(ALTestProject.dir, 'ItemExt.al');
-		await vscode.workspace.openTextDocument(fileName).then(doc => {
+		await workspace.openTextDocument(fileName).then(doc => {
 			ItemExtDoc = doc;
 		});
 
-		vscode.window.showInformationMessage('Start all tests of ALBuiltInFunctionDefinitionProvider.');
+		window.showInformationMessage('Start all tests of ALBuiltInFunctionDefinitionProvider.');
 	});
 
 	test('GetInsertTrueCalls_TableTriggers.Table', async () => {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnInsert()';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteRefProvider: vscode.Position = rangeOfLine.start.translate(0, textToSkip.length);
+		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
 		FindRelatedCalls.activateListener(BuiltInFunctions.Insert, showInsertConfig['Insert(true)-Calls only'])
-		let locations: vscode.Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\TableTriggers.Table.al', 4);
@@ -52,10 +52,10 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnInsert()';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteRefProvider: vscode.Position = rangeOfLine.start.translate(0, textToSkip.length);
+		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
 		FindRelatedCalls.activateListener(BuiltInFunctions.Insert, showInsertConfig['All Insert-Calls'])
-		let locations: vscode.Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\TableTriggers.Table.al', 6);
@@ -69,10 +69,10 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnInsert()';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteRefProvider: vscode.Position = rangeOfLine.start.translate(0, textToSkip.length);
+		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
 		FindRelatedEventSubscribers.activateListener(BuiltInFunctions.Insert)
-		let locations: vscode.Location[] = await new FindRelatedEventSubscribers().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedEventSubscribers().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\CodeunitWithDifferentTableNo.Codeunit.al', 1);
@@ -82,10 +82,10 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnInsert()';
 		let rangeOfLine = getRangeOfLine(ItemExtDoc, lineTextToSearch);
-		let positionToExecuteRefProvider: vscode.Position = rangeOfLine.start.translate(0, textToSkip.length);
+		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
 		FindRelatedTriggersOfTableExt.activateListener(BuiltInFunctions.Insert)
-		let locations: vscode.Location[] = await new FindRelatedTriggersOfTableExt().provideReferences(ItemExtDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedTriggersOfTableExt().provideReferences(ItemExtDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\ItemExt.al', 3);
@@ -96,10 +96,10 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnValidate()';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteRefProvider: vscode.Position = rangeOfLine.start.translate(0, textToSkip.length);
+		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
 		FindRelatedCalls.activateListener(BuiltInFunctions.Validate)
-		let locations: vscode.Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\ItemExt.al', 3);
@@ -107,7 +107,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 	});
 });
 
-function getRangeOfLine(document: vscode.TextDocument, lineTextToSearch: string, startingAtLine: number = 0): vscode.Range {
+function getRangeOfLine(document: TextDocument, lineTextToSearch: string, startingAtLine: number = 0): Range {
 	let line: number | undefined;
 	for (let i = startingAtLine; i < document.lineCount; i++) {
 		if (document.lineAt(i).text.trim() == lineTextToSearch) {
@@ -120,10 +120,10 @@ function getRangeOfLine(document: vscode.TextDocument, lineTextToSearch: string,
 	let lineText = document.lineAt(line).text;
 	let startPos = lineText.indexOf(lineTextToSearch);
 	let endPos = startPos + lineTextToSearch.length;
-	return new vscode.Range(line, startPos, line, endPos);
+	return new Range(line, startPos, line, endPos);
 }
 
-function validateLocations(expected: Map<string, number>, locations: vscode.Location[]) {
+function validateLocations(expected: Map<string, number>, locations: Location[]) {
 	let expectedLength = 0;
 	for (const value of expected.values())
 		expectedLength += value;

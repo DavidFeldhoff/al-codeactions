@@ -1,13 +1,12 @@
-import * as vscode from 'vscode';
 import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
-import { isUndefined } from 'util';
+import { TextDocument, Range, Diagnostic, languages, Uri } from 'vscode';
 
 export class DiagnosticAnalyzer {
     public constructor() {
 
     }
-    public getValidDiagnosticOfCurrentPositionToCreateProcedure(document: vscode.TextDocument, range: vscode.Range): vscode.Diagnostic[] {
-        let diagnostics = vscode.languages.getDiagnostics(document.uri).filter(d => {
+    public getValidDiagnosticOfCurrentPositionToCreateProcedure(document: TextDocument, range: Range): Diagnostic[] {
+        let diagnostics = languages.getDiagnostics(document.uri).filter(d => {
             let isAL = this.checkDiagnosticsLanguage(d);
             let samePos = this.checkDiagnosticsPosition(d, range);
             let validCode: boolean = this.checkDiagnosticsCode(d);
@@ -16,27 +15,27 @@ export class DiagnosticAnalyzer {
 
         return diagnostics;
     }
-    getAllDiagnosticsOfExplicitWith(): [vscode.Uri, vscode.Diagnostic[]][] {
-        let allDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics();
-        let filteredDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [];
+    getAllDiagnosticsOfExplicitWith(): [Uri, Diagnostic[]][] {
+        let allDiagnostics: [Uri, Diagnostic[]][] = languages.getDiagnostics();
+        let filteredDiagnostics: [Uri, Diagnostic[]][] = [];
         for (let i = 0; i < allDiagnostics.length; i++) {
-            let currentUri: vscode.Uri = allDiagnostics[i][0];
-            let diagnosticsOfUri: vscode.Diagnostic[] = allDiagnostics[i][1];
-            let filteredDiagnosticsOfUri: vscode.Diagnostic[] = diagnosticsOfUri.filter(d => d.code && ['AL0606', 'AL0604'].includes(d.code.toString()));
+            let currentUri: Uri = allDiagnostics[i][0];
+            let diagnosticsOfUri: Diagnostic[] = allDiagnostics[i][1];
+            let filteredDiagnosticsOfUri: Diagnostic[] = diagnosticsOfUri.filter(d => d.code && ['AL0606', 'AL0604'].includes(d.code.toString()));
             if (filteredDiagnosticsOfUri.length > 0) {
                 filteredDiagnostics.push([currentUri, filteredDiagnosticsOfUri]);
             }
         }
         return filteredDiagnostics;
     }
-    private checkDiagnosticsLanguage(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.source)) {
+    private checkDiagnosticsLanguage(d: Diagnostic): boolean {
+        if (!d.source) {
             return false;
         }
         return d.source.toLowerCase() === 'al';
     }
-    private checkDiagnosticsCode(d: vscode.Diagnostic): boolean {
-        if (isUndefined(d.code)) {
+    private checkDiagnosticsCode(d: Diagnostic): boolean {
+        if (!d.code) {
             return false;
         }
         let supportedDiagnosticCodes: string[] = [];
@@ -46,7 +45,7 @@ export class DiagnosticAnalyzer {
         return supportedDiagnosticCodes.includes(d.code.toString());
     }
 
-    private checkDiagnosticsPosition(d: vscode.Diagnostic, range: vscode.Range): boolean {
+    private checkDiagnosticsPosition(d: Diagnostic, range: Range): boolean {
         return d.range.contains(range);
     }
 }

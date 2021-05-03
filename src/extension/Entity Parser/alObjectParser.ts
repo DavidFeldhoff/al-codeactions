@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { ALObject } from '../Entities/alObject';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
@@ -24,7 +23,7 @@ export class ALObjectParser {
         FullSyntaxTreeNodeKind.getInterface()
     ];
 
-    public static parseObjectTreeNodeToALObject(document: vscode.TextDocument, objectTreeNode: ALFullSyntaxTreeNode): ALObject {
+    public static parseObjectTreeNodeToALObject(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): ALObject {
         if (objectTreeNode.kind && this.objectKinds.includes(objectTreeNode.kind)) {
             let objectType: string = this.getType(objectTreeNode.kind);
             let objectId: number = this.getObjectId(document, objectTreeNode);
@@ -33,7 +32,7 @@ export class ALObjectParser {
         }
         Err._throw('That\'s not an Object Tree Node.');
     }
-    public static async getBaseObjectName(document: vscode.TextDocument, position: vscode.Position): Promise<string | undefined> {
+    public static async getBaseObjectName(document: TextDocument, position: Position): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
         let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, this.objectKinds);
         if (!objectTreeNode || !objectTreeNode.kind)
@@ -66,7 +65,7 @@ export class ALObjectParser {
         }
         return kind;
     }
-    private static getObjectId(document: vscode.TextDocument, objectTreeNode: ALFullSyntaxTreeNode): number {
+    private static getObjectId(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): number {
         let objectIdTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getObjectId(), false);
         if (objectIdTreeNode && objectIdTreeNode.fullSpan) {
             let objectIdString: string = document.getText(TextRangeExt.createVSCodeRange(objectIdTreeNode.fullSpan));
@@ -74,7 +73,7 @@ export class ALObjectParser {
         }
         return 0;
     }
-    private static getName(document: vscode.TextDocument, objectTreeNode: ALFullSyntaxTreeNode): string {
+    private static getName(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): string {
         let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
         if (identifierTreeNode && identifierTreeNode.fullSpan) {
             return document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)));

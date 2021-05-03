@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { TextDocument, Range, Hover, commands, Position, Location, SignatureHelp } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -9,8 +9,8 @@ import { DocumentUtils } from './documentUtils';
 import { Err } from './Err';
 
 export class TypeDetective {
-    private document: vscode.TextDocument;
-    // private range: vscode.Range;
+    private document: TextDocument;
+    // private range: Range;
     private treeNode: ALFullSyntaxTreeNode;
     private type: string | undefined;
     private name: string | undefined;
@@ -18,7 +18,7 @@ export class TypeDetective {
     private isVar: boolean | undefined;
     private isTemporary: boolean | undefined;
     private hoverMessageFirstLine: string | undefined;
-    constructor(document: vscode.TextDocument, treeNode: ALFullSyntaxTreeNode) {
+    constructor(document: TextDocument, treeNode: ALFullSyntaxTreeNode) {
         this.document = document;
         this.treeNode = treeNode;
     }
@@ -141,16 +141,16 @@ export class TypeDetective {
         }
         return false;
     }
-    private async analyzeTypeOfIdentifierTreeNode(identifierTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument): Promise<boolean> {
+    private async analyzeTypeOfIdentifierTreeNode(identifierTreeNode: ALFullSyntaxTreeNode, document: TextDocument): Promise<boolean> {
         if (identifierTreeNode.kind !== FullSyntaxTreeNodeKind.getIdentifierName()) {
             Err._throw('This is not an identifier');
         }
-        let range: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
+        let range: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
         let position = range.start;
         if (identifierTreeNode && identifierTreeNode.kind && identifierTreeNode.kind === FullSyntaxTreeNodeKind.getIdentifierName()) {
             this.name = identifierTreeNode.identifier;
 
-            let hovers: vscode.Hover[] | undefined = await vscode.commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
+            let hovers: Hover[] | undefined = await commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
             if (hovers && hovers.length > 0) {
                 let hoverMessage: string = hovers[0].contents.values().next().value.value;
                 let hoverMessageLines: string[] = hoverMessage.split('\r\n');
@@ -202,24 +202,24 @@ export class TypeDetective {
         }
     }
 
-    private async checkIsTemporary(hoverMessageFirstLine: string, document: vscode.TextDocument, position: vscode.Position) {
+    private async checkIsTemporary(hoverMessageFirstLine: string, document: TextDocument, position: Position) {
         let isVarOrParameter: boolean = hoverMessageFirstLine.startsWith('(local)') || hoverMessageFirstLine.startsWith('(global)') || hoverMessageFirstLine.startsWith('(parameter)');
         if (isVarOrParameter) {
-            let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, position);
+            let locations: Location[] | undefined = await commands.executeCommand('vscode.executeDefinitionProvider', document.uri, position);
             if (locations && locations.length > 0) {
-                let positionOfVariableDeclaration: vscode.Position = locations[0].range.start;
+                let positionOfVariableDeclaration: Position = locations[0].range.start;
                 let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
                 let declarationTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(positionOfVariableDeclaration, [FullSyntaxTreeNodeKind.getVariableDeclaration(), FullSyntaxTreeNodeKind.getVariableListDeclaration(), FullSyntaxTreeNodeKind.getParameter()]);
                 if (declarationTreeNode && declarationTreeNode.kind) {
                     switch (declarationTreeNode.kind) {
                         case FullSyntaxTreeNodeKind.getParameter():
-                            let rangeOfDeclaration: vscode.Range = TextRangeExt.createVSCodeRange(declarationTreeNode.fullSpan);
+                            let rangeOfDeclaration: Range = TextRangeExt.createVSCodeRange(declarationTreeNode.fullSpan);
                             this.isTemporary = document.getText(rangeOfDeclaration).trim().toLowerCase().endsWith('temporary');
                             break;
                         case FullSyntaxTreeNodeKind.getVariableDeclaration():
                         case FullSyntaxTreeNodeKind.getVariableListDeclaration():
                             if (declarationTreeNode.childNodes) {
-                                let rangeOfTypeDeclaration: vscode.Range = TextRangeExt.createVSCodeRange(declarationTreeNode.childNodes[declarationTreeNode.childNodes.length - 1].fullSpan);
+                                let rangeOfTypeDeclaration: Range = TextRangeExt.createVSCodeRange(declarationTreeNode.childNodes[declarationTreeNode.childNodes.length - 1].fullSpan);
                                 this.isTemporary = document.getText(rangeOfTypeDeclaration).trim().toLowerCase().endsWith('temporary');
                             }
                             break;
@@ -229,12 +229,12 @@ export class TypeDetective {
             }
         }
     }
-    public static async findReturnTypeOfInvocationAtPosition(document: vscode.TextDocument, position: vscode.Position): Promise<string | undefined> {
+    public static async findReturnTypeOfInvocationAtPosition(document: TextDocument, position: Position): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
         return await this.findReturnTypeOfTreeNode(document, invocationExpressionTreeNode);
     }
-    public static async findReturnTypeOfTreeNode(document: vscode.TextDocument, treeNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
+    public static async findReturnTypeOfTreeNode(document: TextDocument, treeNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
         while (treeNode.parentNode && treeNode.parentNode.kind === FullSyntaxTreeNodeKind.getParenthesizedExpression()) {
             treeNode = treeNode.parentNode;
         }
@@ -248,7 +248,7 @@ export class TypeDetective {
                     break;
                 case FullSyntaxTreeNodeKind.getExitStatement():
                     let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-                    let rangeOfExitStatement: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNode.parentNode.fullSpan));
+                    let rangeOfExitStatement: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNode.parentNode.fullSpan));
                     let methodOrTriggerNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfExitStatement.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
                     if (methodOrTriggerNode) {
                         let identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
@@ -298,9 +298,9 @@ export class TypeDetective {
         }
         return undefined;
     }
-    static async getReturnTypeIfInArgumentList(treeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, parentNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
+    static async getReturnTypeIfInArgumentList(treeNode: ALFullSyntaxTreeNode, document: TextDocument, parentNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
         let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(parentNode, treeNode);
-        let signatureHelp: vscode.SignatureHelp | undefined = await vscode.commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
+        let signatureHelp: SignatureHelp | undefined = await commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
         if (signatureHelp) {
             let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
             let procedureDeclarationLine = signatureHelp.signatures[0].label;

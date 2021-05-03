@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import * as path from 'path';
+import { TextDocument, workspace, window, Position, Location, Range } from 'vscode';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from 'vscode';
 import { DefinitionProviderCallToTrigger } from '../../extension/Services/DefinitionProviderOnInsert';
 import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
@@ -10,9 +10,9 @@ import { ALTestProject } from './ALTestProject';
 // import * as myExtension from '../extension';
 
 suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
-	let codeunitDocument: vscode.TextDocument;
-	let tableTriggersTableDoc: vscode.TextDocument;
-	let vendorPageDoc: vscode.TextDocument;
+	let codeunitDocument: TextDocument;
+	let tableTriggersTableDoc: TextDocument;
+	let vendorPageDoc: TextDocument;
 
 	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
@@ -21,28 +21,28 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 
 		//open the file just once
 		let fileName = path.resolve(ALTestProject.dir, 'TableTriggerReferences', 'CodeunitWithDifferentTableNo.Codeunit.al');
-		await vscode.workspace.openTextDocument(fileName).then(doc => {
+		await workspace.openTextDocument(fileName).then(doc => {
 			codeunitDocument = doc;
 		});
 		fileName = path.resolve(ALTestProject.dir, 'TableTriggerReferences', 'TableTriggers.Table.al');
-		await vscode.workspace.openTextDocument(fileName).then(doc => {
+		await workspace.openTextDocument(fileName).then(doc => {
 			tableTriggersTableDoc = doc;
 		});
 		fileName = path.resolve(ALTestProject.dir, 'TableTriggerReferences', 'VendorPage.Page.al');
-		await vscode.workspace.openTextDocument(fileName).then(doc => {
+		await workspace.openTextDocument(fileName).then(doc => {
 			vendorPageDoc = doc;
 		});
 
-		vscode.window.showInformationMessage('Start all tests of ALBuiltInFunctionDefinitionProvider.');
+		window.showInformationMessage('Start all tests of ALBuiltInFunctionDefinitionProvider.');
 	});
 
 	test('GetInsertTrigger_Symbols_NoParantheses', async () => {
 		let tableName: string = 'Customer';
 		let lineTextToSearch = 'Customer.Insert;';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
@@ -53,9 +53,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'Customer';
 		let lineTextToSearch = 'Customer.Insert();';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
@@ -66,9 +66,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'Customer';
 		let lineTextToSearch = 'customer.Insert(false);';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('customer.TabExt.al', ['OnInsert']);
@@ -79,9 +79,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'TableTriggers.Insert();';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('CodeunitWithDifferentTableNo.Codeunit.al', ['TableTriggers_OnBeforeInsertEvent']);
@@ -92,20 +92,20 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'TableTriggers.Delete();';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 0, 'Definition expected');
 	});
 	test('GetInsertTrigger_FieldFunction', async () => {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'TableTriggers.Validate(MyField, 5);';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
 		assert.strictEqual(locations[0].uri.fsPath.includes('TableTriggers'), true);
 		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnValidate');
 	});
@@ -113,11 +113,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'TableTriggers.Validate(TableTriggers.MyField, 5);';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, (tableName + '.').length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, (tableName + '.').length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
 		assert.strictEqual(locations[0].uri.fsPath.includes(tableName), true);
 		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnValidate');
 	});
@@ -125,9 +125,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'Insert(true); //explicit should be referenced';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start;
+		let positionToExecuteDefProvider: Position = rangeOfLine.start;
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('CodeunitWithDifferentTableNo.Codeunit.al', ['TableTriggers_OnBeforeInsertEvent']);
@@ -138,11 +138,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'Vendor';
 		let lineTextToSearch = 'Insert(); //implicit';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start;
+		let positionToExecuteDefProvider: Position = rangeOfLine.start;
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
 		assert.strictEqual(locations[0].uri.fsPath.includes(tableName), true);
 		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
 	});
@@ -150,11 +150,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'Vendor';
 		let lineTextToSearch = 'Rec.Insert();';
 		let rangeOfLine = getRangeOfLine(codeunitDocument, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, 'Rec.'.length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, 'Rec.'.length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(codeunitDocument, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
 		assert.strictEqual(locations[0].uri.fsPath.includes(tableName), true);
 		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
 	});
@@ -162,9 +162,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'Insert(true); //implicit Rec';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start;
+		let positionToExecuteDefProvider: Position = rangeOfLine.start;
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(tableTriggersTableDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(tableTriggersTableDoc, positionToExecuteDefProvider, cancellationToken)
 		
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('CodeunitWithDifferentTableNo.Codeunit.al', ['TableTriggers_OnBeforeInsertEvent']);
@@ -175,9 +175,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'TableTriggers';
 		let lineTextToSearch = 'Insert(true); //explicit Rec';
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start;
+		let positionToExecuteDefProvider: Position = rangeOfLine.start;
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(tableTriggersTableDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(tableTriggersTableDoc, positionToExecuteDefProvider, cancellationToken)
 		
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		// expectedDefinitions.set('CodeunitWithDifferentTableNo.Codeunit.al', ['TableTriggers_OnBeforeInsertEvent']);
@@ -188,20 +188,20 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let tableName: string = 'Vendor.dal';
 		let lineTextToSearch = 'Insert(); //implicit';
 		let rangeOfLine = getRangeOfLine(vendorPageDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start;
+		let positionToExecuteDefProvider: Position = rangeOfLine.start;
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 		assert.strictEqual(locations.length, 1, 'Definition expected');
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
 		assert.strictEqual(locations[0].uri.fsPath.includes(tableName), true);
 		assert.strictEqual(targetDoc.getText(locations[0].range), 'OnInsert');
 	});
 	test('GetEventSubscriptionsAndTableExtensionsAsWellOfTableFunction', async () => {
 		let lineTextToSearch = 'Item.Insert();';
 		let rangeOfLine = getRangeOfLine(vendorPageDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, 'Item.'.length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, 'Item.'.length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnInsert']);
@@ -212,9 +212,9 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 	test('GetEventSubscriptionsAndTableExtensionsAsWellOfFieldFunction', async () => {
 		let lineTextToSearch = 'Item.Validate("No.", \'Test\');';
 		let rangeOfLine = getRangeOfLine(vendorPageDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, 'Item.'.length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, 'Item.'.length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnValidate']);
 		// expectedDefinitions.set('ItemExt.al', ['OnBeforeValidate', 'OnAfterValidate'])
@@ -224,16 +224,16 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 	test('GetFieldFunctionOfTableExtension', async () => {
 		let lineTextToSearch = 'Item.Validate(Item.NewField, 5);';
 		let rangeOfLine = getRangeOfLine(vendorPageDoc, lineTextToSearch);
-		let positionToExecuteDefProvider: vscode.Position = rangeOfLine.start.translate(0, 'Item.'.length);
+		let positionToExecuteDefProvider: Position = rangeOfLine.start.translate(0, 'Item.'.length);
 		let cancellationToken: any;
-		let locations: vscode.Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
+		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('ItemExt.al', ['OnValidate'])
 
 		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
 
-	function getRangeOfLine(document: vscode.TextDocument, lineTextToSearch: string, startingAtLine: number = 0): vscode.Range {
+	function getRangeOfLine(document: TextDocument, lineTextToSearch: string, startingAtLine: number = 0): Range {
 		let line: number | undefined;
 		for (let i = startingAtLine; i < document.lineCount; i++) {
 			if (document.lineAt(i).text.trim() == lineTextToSearch) {
@@ -246,11 +246,11 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let lineText = document.lineAt(line).text;
 		let startPos = lineText.indexOf(lineTextToSearch);
 		let endPos = startPos + lineTextToSearch.length;
-		return new vscode.Range(line, startPos, line, endPos);
+		return new Range(line, startPos, line, endPos);
 	}
 });
 
-async function validateLocationsAndDefinitions(locations: vscode.Location[], expectedDefinitions: Map<string, string[]>) {
+async function validateLocationsAndDefinitions(locations: Location[], expectedDefinitions: Map<string, string[]>) {
 	let expectedAmount: number = 0
 	for (const key of expectedDefinitions.keys())
 		expectedAmount += expectedDefinitions.get(key)!.length
@@ -259,10 +259,10 @@ async function validateLocationsAndDefinitions(locations: vscode.Location[], exp
 	for (const key of expectedDefinitions.keys()) {
 		let expectedValues: string[] = expectedDefinitions.get(key)!;
 		assert.strictEqual(locations.some(l => l.uri.fsPath.includes(key)), true, '');
-		let filteredLocations: vscode.Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as vscode.Location[];
+		let filteredLocations: Location[] = locations.filter(l => l.uri.fsPath.includes(key)) as Location[];
 		assert.strictEqual(expectedValues.length, filteredLocations.length);
 
-		let targetDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(filteredLocations[0].uri);
+		let targetDoc: TextDocument = await workspace.openTextDocument(filteredLocations[0].uri);
 		for (const location of filteredLocations) {
 			let locationValue = targetDoc.getText(location.range)
 			assert.strictEqual(expectedValues.some(value => value == locationValue), true);

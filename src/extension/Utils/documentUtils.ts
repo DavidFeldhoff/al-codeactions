@@ -1,9 +1,8 @@
-import * as vscode from 'vscode';
-import { isUndefined } from 'util';
+import { TextDocument, Range, Position, EndOfLine, Location, window, Selection, commands } from 'vscode';
 import { Err } from './Err';
 
 export class DocumentUtils {
-    static isPositionInProcedurecall(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
+    static isPositionInProcedurecall(document: TextDocument, rangeToSearchIn: Range, positionToCheck: Position): boolean {
         let inQuotes: boolean;
         let inText: boolean;
         let bracketDepth: number = 0;
@@ -15,7 +14,7 @@ export class DocumentUtils {
             let charNo = lineNo === rangeToSearchIn.start.line ? rangeToSearchIn.start.character : 0;
             let endCharOfLine = lineNo === rangeToSearchIn.end.line ? rangeToSearchIn.end.character : lineText.length - 1;
             for (; charNo <= endCharOfLine; charNo++) {
-                if (positionToCheck.isEqual(new vscode.Position(lineNo, charNo))) {
+                if (positionToCheck.isEqual(new Position(lineNo, charNo))) {
                     return bracketDepth <= 0;
                 } else {
                     if (lineChars[charNo] === '\'') {
@@ -45,10 +44,10 @@ export class DocumentUtils {
         }
         return false;
     }
-    static getPreviousValidPositionOfCharacter(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToStart: vscode.Position, characterToSearch: string): vscode.Position {
+    static getPreviousValidPositionOfCharacter(document: TextDocument, rangeToSearchIn: Range, positionToStart: Position, characterToSearch: string): Position {
         Err._throw('Not yet implemented.');
     }
-    static isPositionInQuotes(document: vscode.TextDocument, rangeToSearchIn: vscode.Range, positionToCheck: vscode.Position): boolean {
+    static isPositionInQuotes(document: TextDocument, rangeToSearchIn: Range, positionToCheck: Position): boolean {
         let inQuotes: boolean;
         for (let lineNo = rangeToSearchIn.start.line; lineNo <= rangeToSearchIn.end.line; lineNo++) {
             let lineText = document.lineAt(lineNo).text;
@@ -57,7 +56,7 @@ export class DocumentUtils {
             let charNo = lineNo === rangeToSearchIn.start.line ? rangeToSearchIn.start.character : 0;
             let endCharOfLine = lineNo === rangeToSearchIn.end.line ? rangeToSearchIn.end.character : lineText.length - 1;
             for (; charNo <= endCharOfLine; charNo++) {
-                if (positionToCheck.isEqual(new vscode.Position(lineNo, charNo))) {
+                if (positionToCheck.isEqual(new Position(lineNo, charNo))) {
                     return inQuotes;
                 } else {
                     if (lineChars[charNo] === '"') {
@@ -68,7 +67,7 @@ export class DocumentUtils {
         }
         return false;
     }
-    public static getNextWordRangeInsideLine(document: vscode.TextDocument, range: vscode.Range, startPos?: vscode.Position): vscode.Range | undefined {
+    public static getNextWordRangeInsideLine(document: TextDocument, range: Range, startPos?: Position): Range | undefined {
         if (!startPos) {
             startPos = range.start;
         }
@@ -77,7 +76,7 @@ export class DocumentUtils {
         let word: string = '';
         let wordStart: number | undefined;
         for (let i = startPos.character; i <= range.end.character; i++) {
-            if (isUndefined(wordStart)) {
+            if (wordStart === undefined) {
                 if (lineChars[i] === '"' || lineChars[i].match(/\w/)) {
                     wordStart = i;
                     inQuotes = lineChars[i] === '"';
@@ -87,11 +86,11 @@ export class DocumentUtils {
                 if (inQuotes) {
                     word += lineChars[i];
                     if (lineChars[i] === '"') {
-                        return new vscode.Range(startPos.line, Number(wordStart), startPos.line, Number(wordStart) + word.length);
+                        return new Range(startPos.line, Number(wordStart), startPos.line, Number(wordStart) + word.length);
                     }
                 } else {
                     if (!lineChars[i].match(/\w/)) {
-                        return new vscode.Range(startPos.line, Number(wordStart), startPos.line, Number(wordStart) + word.length);
+                        return new Range(startPos.line, Number(wordStart), startPos.line, Number(wordStart) + word.length);
                     }
                     word += lineChars[i];
                 }
@@ -106,7 +105,7 @@ export class DocumentUtils {
         let word: string = '';
         let wordStart: number | undefined;
         for (let i = startCharacter; i <= text.length; i++) {
-            if (isUndefined(wordStart)) {
+            if (wordStart === undefined) {
                 if (text.charAt(i) === '"' || text.charAt(i).match(/\w/)) {
                     wordStart = i;
                     inQuotes = text.charAt(i) === '"';
@@ -127,14 +126,14 @@ export class DocumentUtils {
             }
         }
     }
-    public static getPreviousWordRange(document: vscode.TextDocument, startPos: vscode.Position): vscode.Range | undefined {
+    public static getPreviousWordRange(document: TextDocument, startPos: Position): Range | undefined {
         let inQuotes: boolean = false;
         let lineChars: string[] = document.lineAt(startPos.line).text.split('');
         let word: string = '';
         let wordEnd: number | undefined;
         for (let i = startPos.character - 1; i >= 0; i--) {
             let char = lineChars[i];
-            if (isUndefined(wordEnd)) {
+            if (wordEnd === undefined) {
                 if (char === '"' || char.match(/\w/)) {
                     wordEnd = i;
                     inQuotes = char === '"';
@@ -146,18 +145,18 @@ export class DocumentUtils {
                 if (inQuotes) {
                     word = char + word;
                     if (char === '"') {
-                        return new vscode.Range(startPos.line, i, startPos.line, Number(wordEnd));
+                        return new Range(startPos.line, i, startPos.line, Number(wordEnd));
                     }
                 } else {
                     if (!char.match(/\w/)) {
-                        return new vscode.Range(startPos.line, i + 1, startPos.line, Number(wordEnd));
+                        return new Range(startPos.line, i + 1, startPos.line, Number(wordEnd));
                     }
                     word = char + word;
                 }
             }
         }
     }
-    public static findMatchingClosingBracket(document: vscode.TextDocument, positionBeforeOpeningBracket: vscode.Position): vscode.Position | undefined {
+    public static findMatchingClosingBracket(document: TextDocument, positionBeforeOpeningBracket: Position): Position | undefined {
         let lineText = document.lineAt(positionBeforeOpeningBracket.line).text;
         let chars: string[] = lineText.split('');
         let inQuotes: boolean = false;
@@ -172,20 +171,20 @@ export class DocumentUtils {
                 } else if (char === ')') {
                     bracketDepth -= 1;
                     if (bracketDepth === 0) {
-                        return new vscode.Position(positionBeforeOpeningBracket.line, i);
+                        return new Position(positionBeforeOpeningBracket.line, i);
                     }
                 }
             }
         }
         return;
     }
-    public static trimRange(document: vscode.TextDocument, currentRange: vscode.Range): vscode.Range {
+    public static trimRange(document: TextDocument, currentRange: Range): Range {
         let eol: string = DocumentUtils.getEolByTextDocument(document);
         return this.trimRange2(document.getText().split(eol), currentRange)
     }
-    public static trimRange2(fileLines: string[], currentRange: vscode.Range) {
-        let newStart: vscode.Position = currentRange.start;
-        let newEnd: vscode.Position = currentRange.end;
+    public static trimRange2(fileLines: string[], currentRange: Range) {
+        let newStart: Position = currentRange.start;
+        let newEnd: Position = currentRange.end;
         let searchClosingTag: boolean = false;
         for (let i = currentRange.start.line; i <= currentRange.end.line; i++) {
             let startPositionToSearch = i === currentRange.start.line ? currentRange.start.character : 0;
@@ -204,7 +203,7 @@ export class DocumentUtils {
                     i--;
                     continue;
                 }
-                newStart = new vscode.Position(i, fileLines[i].lastIndexOf(textRestOfLine.trimLeft()));
+                newStart = new Position(i, fileLines[i].lastIndexOf(textRestOfLine.trimLeft()));
                 break;
             }
         }
@@ -227,21 +226,21 @@ export class DocumentUtils {
                     continue;
                 }
                 let amountSpaces = textFrom0ToEndPos.length - textFrom0ToEndPos.trimRight().length;
-                newEnd = new vscode.Position(i, endPositionToSearch - amountSpaces);
+                newEnd = new Position(i, endPositionToSearch - amountSpaces);
                 break;
             }
         }
-        let newRange: vscode.Range = new vscode.Range(newStart, newEnd);
+        let newRange: Range = new Range(newStart, newEnd);
         if (fileLines[newRange.start.line].substr(newRange.start.character).startsWith('//') || fileLines[newRange.start.line].substr(newRange.start.character).startsWith('/*')) {
 
         }
         return newRange;
     }
-    public static trimRange3(fileContent: string, currentRange: vscode.Range) {
+    public static trimRange3(fileContent: string, currentRange: Range) {
         let fileLines = fileContent.split(DocumentUtils.getEolByContent(fileContent))
         return this.trimRange2(fileLines, currentRange)
     }
-    public static getSubstringOfFileByRange(fileContent: string, range: vscode.Range): string {
+    public static getSubstringOfFileByRange(fileContent: string, range: Range): string {
         let eol: string = DocumentUtils.getEolByContent(fileContent)
         let fileLines: string[] = fileContent.split(eol);
         let textOfRange: string = ''
@@ -254,8 +253,8 @@ export class DocumentUtils {
         }
         return textOfRange;
     }
-    public static getEolByTextDocument(document: vscode.TextDocument): string {
-        return document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n'
+    public static getEolByTextDocument(document: TextDocument): string {
+        return document.eol == EndOfLine.CRLF ? '\r\n' : '\n'
     }
     public static getEolByContent(content: string): string {
         let regexCRLF: RegExp = /\r\n/g
@@ -267,13 +266,13 @@ export class DocumentUtils {
         else
             return '\n'
     }
-    public static getPositionOfFileContent(fileContent: string, index: number | undefined): vscode.Position {
+    public static getPositionOfFileContent(fileContent: string, index: number | undefined): Position {
         let textUntilIndex: string = fileContent.substring(0, index)
         let eol: string = DocumentUtils.getEolByContent(fileContent)
         let fileLines: string[] = textUntilIndex.split(eol)
-        return new vscode.Position(fileLines.length - 1, fileLines[fileLines.length - 1].length)
+        return new Position(fileLines.length - 1, fileLines[fileLines.length - 1].length)
     }
-    public static getIndexOfFileContent(fileContent: string, position: vscode.Position): number {
+    public static getIndexOfFileContent(fileContent: string, position: Position): number {
         let eol: string = DocumentUtils.getEolByContent(fileContent)
         let fileLines = fileContent.split(eol)
         let index: number = 0;
@@ -292,11 +291,11 @@ export class DocumentUtils {
         return regExpMatch[1];
     }
 
-    static async executeRename(location: vscode.Location): Promise<any> {
-        let editor = vscode.window.activeTextEditor;
+    static async executeRename(location: Location): Promise<any> {
+        let editor = window.activeTextEditor;
         if (editor) {
-            editor.selection = new vscode.Selection(location.range.start, location.range.start);
+            editor.selection = new Selection(location.range.start, location.range.start);
         }
-        vscode.commands.executeCommand('editor.action.rename');
+        commands.executeCommand('editor.action.rename');
     }
 }

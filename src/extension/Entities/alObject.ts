@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { Location, Range, Uri } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
@@ -13,9 +12,9 @@ export class ALObject {
     public name: string;
     public type: string;
     public id?: number;
-    public documentUri?: vscode.Uri;
+    public documentUri?: Uri;
     constructor(name: string, type: string);
-    constructor(name: string, type: string, id: number, documentUri: vscode.Uri);
+    constructor(name: string, type: string, id: number, documentUri: Uri);
     constructor(...args: any[]) {
         this.name = args[0];
         this.type = args[1];

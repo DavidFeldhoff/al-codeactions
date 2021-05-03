@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { SyntaxTreeExt } from '../../AL Code Outline Ext/syntaxTreeExt';
 import { ALFullSyntaxTreeNode } from '../../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../../AL Code Outline/syntaxTree';
@@ -9,13 +8,14 @@ import { ALObjectParser } from '../../Entity Parser/alObjectParser';
 import { ICreateProcedure } from './ICreateProcedure';
 import { AccessModifier } from '../../Entities/accessModifier';
 import { Err } from '../../Utils/Err';
+import { Diagnostic, TextDocument } from 'vscode';
 
 export class CreateProcedureAL0499 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
-    document: vscode.TextDocument;
-    diagnostic: vscode.Diagnostic;
+    document: TextDocument;
+    diagnostic: Diagnostic;
     procedureName: string;
-    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
+    constructor(document: TextDocument, diagnostic: Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
         this.procedureName = DocumentUtils.getProcedureNameOfDiagnosticMessage(diagnostic.message);

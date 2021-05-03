@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
+import { Extension, extensions } from 'vscode';
 import { Err } from '../extension/Utils/Err';
 
 export class ALLanguageExtension {
     private static alLanguageExtensionObject: ALLanguageExtension | undefined;
     private alLanguageExtension: any;
-    private constructor(alLanguageExtension: vscode.Extension<any>) {
+    private constructor(alLanguageExtension: Extension<any>) {
         this.alLanguageExtension = alLanguageExtension;
     }
 
@@ -16,14 +16,14 @@ export class ALLanguageExtension {
     }
 
     private static setInstance() {
-        let vsCodeExtension: vscode.Extension<any> | undefined = vscode.extensions.getExtension('microsoft.al');
+        let vsCodeExtension: Extension<any> | undefined = extensions.getExtension('microsoft.al');
         if (!vsCodeExtension) {
-            vsCodeExtension = vscode.extensions.getExtension('ms-dynamics-smb.al');
+            vsCodeExtension = extensions.getExtension('ms-dynamics-smb.al');
             if (!vsCodeExtension) {
                 Err._throw('AL Extension has to be installed.');
             }
         }
-        this.alLanguageExtensionObject = new ALLanguageExtension(vsCodeExtension as vscode.Extension<any>);
+        this.alLanguageExtensionObject = new ALLanguageExtension(vsCodeExtension as Extension<any>);
     }
 
     public async activate() {

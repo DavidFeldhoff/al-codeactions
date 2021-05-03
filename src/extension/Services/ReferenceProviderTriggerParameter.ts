@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
@@ -6,11 +5,12 @@ import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTree
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { ReferenceProvider, TextDocument, Position, ReferenceContext, CancellationToken, Location, Range, commands } from "vscode";
 
-export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvider {
+export class ReferenceProviderTriggerParameter implements ReferenceProvider {
 
-    async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
-        let locationsReferenced: vscode.Location[] = [];
+    async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[] | undefined> {
+        let locationsReferenced: Location[] = [];
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let parameterTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getParameter()]);
         if (!parameterTreeNode) {
@@ -32,16 +32,16 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
         return locationsReferenced;
     }
 
-    private async getReferenceLocations(syntaxTree: SyntaxTree, document: vscode.TextDocument, position: vscode.Position, parameterName: string): Promise<vscode.Location[]> {
-        let locationsReferenced: vscode.Location[] = [];
+    private async getReferenceLocations(syntaxTree: SyntaxTree, document: TextDocument, position: Position, parameterName: string): Promise<Location[]> {
+        let locationsReferenced: Location[] = [];
         locationsReferenced = locationsReferenced.concat(
             await this.getReferenceLocationsInSameDocument(syntaxTree, document, position, parameterName)
         );
         return locationsReferenced;
     }
 
-    private async getReferenceLocationsInSameDocument(syntaxTree: SyntaxTree, document: vscode.TextDocument, position: vscode.Position, parameterName: string): Promise<vscode.Location[]> {
-        let locationsReferenced: vscode.Location[] = [];
+    private async getReferenceLocationsInSameDocument(syntaxTree: SyntaxTree, document: TextDocument, position: Position, parameterName: string): Promise<Location[]> {
+        let locationsReferenced: Location[] = [];
 
         let parameterTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getParameter()]) as ALFullSyntaxTreeNode;
         let triggerTreeNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getTriggerDeclaration()]) as ALFullSyntaxTreeNode;
@@ -49,7 +49,7 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
         if (!blockTreeNode || !blockTreeNode.fullSpan) {
             return [];
         }
-        let blockRange: vscode.Range = TextRangeExt.createVSCodeRange(blockTreeNode.fullSpan);
+        let blockRange: Range = TextRangeExt.createVSCodeRange(blockTreeNode.fullSpan);
         for (let lineNo = blockRange.start.line; lineNo <= blockRange.end.line; lineNo++) {
             let lineText: string = document.lineAt(lineNo).text;
             if (lineNo === blockRange.start.line && lineNo !== blockRange.end.line) {
@@ -61,23 +61,23 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
             }
             let indexOfParameterName: number = lineText.search(new RegExp('\\b' + parameterName + '\\b', 'i'));
             while (indexOfParameterName !== -1) {
-                let identifierOfUsedParameter: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(new vscode.Position(lineNo, indexOfParameterName), [FullSyntaxTreeNodeKind.getIdentifierName()]);
+                let identifierOfUsedParameter: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(new Position(lineNo, indexOfParameterName), [FullSyntaxTreeNodeKind.getIdentifierName()]);
                 if (!identifierOfUsedParameter) {
                     continue;
                 }
-                let rangeOfIdentifierOfUsedParameter: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierOfUsedParameter.fullSpan));
+                let rangeOfIdentifierOfUsedParameter: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierOfUsedParameter.fullSpan));
                 if (rangeOfIdentifierOfUsedParameter.start.line === rangeOfIdentifierOfUsedParameter.end.line) {
                     indexOfParameterName = rangeOfIdentifierOfUsedParameter.end.character;
                 } else {
                     indexOfParameterName = lineText.length - 1;
                 }
 
-                let locations: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new vscode.Position(lineNo, indexOfParameterName));
+                let locations: Location[] | undefined = await commands.executeCommand('vscode.executeDefinitionProvider', document.uri, new Position(lineNo, indexOfParameterName));
                 if (locations && locations.length > 0) {
                     let location = locations[0];
-                    let parameterRange: vscode.Range = TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan);
+                    let parameterRange: Range = TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan);
                     if (parameterRange.contains(location.range)) {
-                        locationsReferenced.push(new vscode.Location(document.uri, rangeOfIdentifierOfUsedParameter));
+                        locationsReferenced.push(new Location(document.uri, rangeOfIdentifierOfUsedParameter));
                     }
                 }
 
@@ -92,23 +92,23 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
         return locationsReferenced;
     }
 
-    private getReferenceLocationOfMethod(method: ALFullSyntaxTreeNode, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location | undefined {
+    private getReferenceLocationOfMethod(method: ALFullSyntaxTreeNode, document: TextDocument, handlerFunctionName: string): Location | undefined {
         let memberAttributes: ALFullSyntaxTreeNode[] = [];
         ALFullSyntaxTreeNodeExt.collectChildNodes(method, FullSyntaxTreeNodeKind.getMemberAttribute(), false, memberAttributes);
         for (let i = 0; i < memberAttributes.length; i++) {
-            let location: vscode.Location | undefined = this.getReferenceLocationOfMemberAttribute(memberAttributes[i], document, handlerFunctionName);
+            let location: Location | undefined = this.getReferenceLocationOfMemberAttribute(memberAttributes[i], document, handlerFunctionName);
             if (location) {
                 return location;
             }
         }
         return undefined;
     }
-    private getReferenceLocationOfMemberAttribute(memberAttribute: ALFullSyntaxTreeNode, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location | undefined {
+    private getReferenceLocationOfMemberAttribute(memberAttribute: ALFullSyntaxTreeNode, document: TextDocument, handlerFunctionName: string): Location | undefined {
         let memberIdentifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(memberAttribute, FullSyntaxTreeNodeKind.getIdentifierName(), false);
         if (!memberIdentifierTreeNode) {
             return undefined;
         }
-        let range: vscode.Range = TextRangeExt.createVSCodeRange(memberIdentifierTreeNode.fullSpan);
+        let range: Range = TextRangeExt.createVSCodeRange(memberIdentifierTreeNode.fullSpan);
         let identifier: string = document.getText(range);
         if (identifier.toLowerCase() !== 'handlerfunctions') {
             return undefined;
@@ -116,7 +116,7 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
 
         let handlerFunctionsTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(memberAttribute, FullSyntaxTreeNodeKind.getLiteralAttributeArgument(), true);
         if (handlerFunctionsTreeNode) {
-            let rangeOfFunctions: vscode.Range = TextRangeExt.createVSCodeRange(handlerFunctionsTreeNode.fullSpan);
+            let rangeOfFunctions: Range = TextRangeExt.createVSCodeRange(handlerFunctionsTreeNode.fullSpan);
             let startCharacter: number = rangeOfFunctions.start.character;
             let handlerFunctionsString: string = document.getText(rangeOfFunctions);
             if (handlerFunctionsString.trim() !== '') {
@@ -125,9 +125,9 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
                 let handlerFunctionsArr = handlerFunctionsString.split(',');
                 for (let i = 0; i < handlerFunctionsArr.length; i++) {
                     if (handlerFunctionsArr[i].toLowerCase() === handlerFunctionName.toLowerCase()) {
-                        let wordRange: vscode.Range | undefined = document.getWordRangeAtPosition(new vscode.Position(rangeOfFunctions.start.line, startCharacter));
+                        let wordRange: Range | undefined = document.getWordRangeAtPosition(new Position(rangeOfFunctions.start.line, startCharacter));
                         if (wordRange) {
-                            return new vscode.Location(document.uri, wordRange);
+                            return new Location(document.uri, wordRange);
                         }
                     }
                     startCharacter += handlerFunctionsArr[i].length + 1; // due to the removed , by split
@@ -137,7 +137,7 @@ export class ReferenceProviderTriggerParameter implements vscode.ReferenceProvid
         return undefined;
     }
 
-    private isHandlerFunction(methodTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument) {
+    private isHandlerFunction(methodTreeNode: ALFullSyntaxTreeNode, document: TextDocument) {
         let validHandlerFunctions: string[] = [
             'confirmhandler',
             'filterpagehandler',

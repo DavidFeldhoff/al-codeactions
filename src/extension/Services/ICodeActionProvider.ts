@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
+import { CodeAction } from 'vscode';
 
 export interface ICodeActionProvider {
     considerLine(): Promise<boolean>;
-    createCodeActions(): Promise<vscode.CodeAction[]>;
+    createCodeActions(): Promise<CodeAction[]>;
 }

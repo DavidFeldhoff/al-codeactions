@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import './extension/Utils/StringPrototype'
 import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
 import { OwnConsole } from './extension/console';
@@ -19,63 +18,64 @@ import { DocumentUtils } from './extension/Utils/documentUtils';
 import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
 import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
 import { ContextSetter } from './extension/Services/ContextSetter';
+import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, TextDocument, window } from 'vscode';
 
-export function activate(context: vscode.ExtensionContext) {
-	OwnConsole.ownConsole = vscode.window.createOutputChannel("AL CodeActions");
+export function activate(context: ExtensionContext) {
+	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
 
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
-			{ providedCodeActionKinds: [vscode.CodeActionKind.QuickFix, vscode.CodeActionKind.RefactorExtract] })
+		languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
+			{ providedCodeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract] })
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(Command.renameCommand, (location: vscode.Location) => DocumentUtils.executeRename(location))
+		commands.registerCommand(Command.renameCommand, (location: Location) => DocumentUtils.executeRename(location))
 	);
-	context.subscriptions.push(vscode.commands.registerCommand('alCodeActions.findRelatedCalls', () => FindRelated.exec(1)))
-	context.subscriptions.push(vscode.commands.registerCommand('alCodeActions.findRelatedEventSubscriber', () => FindRelated.exec(2)))
-	context.subscriptions.push(vscode.commands.registerCommand('alCodeActions.findRelatedTriggers', () => FindRelated.exec(3)))
-	context.subscriptions.push(vscode.languages.registerReferenceProvider('al', new FindRelatedCalls))
-	context.subscriptions.push(vscode.languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
-	context.subscriptions.push(vscode.languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
+	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedCalls', () => FindRelated.exec(1)))
+	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedEventSubscriber', () => FindRelated.exec(2)))
+	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedTriggers', () => FindRelated.exec(3)))
+	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
+	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
+	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
 		
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
-			(document: vscode.TextDocument, procedure: ALProcedure) =>
+		commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
+			(document: TextDocument, procedure: ALProcedure) =>
 				CreateProcedureCommands.addProcedureToSourceCode(document, procedure))
 	);
 	context.subscriptions.push(
-		vscode.commands.registerCommand(CreateProcedureCommands.createHandlerCommand,
-			(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) =>
+		commands.registerCommand(CreateProcedureCommands.createHandlerCommand,
+			(document: TextDocument, diagnostic: Diagnostic) =>
 				CreateProcedureCommands.addHandler(document, diagnostic))
 	);
 	context.subscriptions.push(
-		vscode.commands.registerCommand('alCodeActions.fixCop', () => new FixCop().resolve())
+		commands.registerCommand('alCodeActions.fixCop', () => new FixCop().resolve())
 	)
 
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())
+		languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions())
+		languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDefinitionProvider('al', new DefinitionProviderCallToTrigger())
+		languages.registerDefinitionProvider('al', new DefinitionProviderCallToTrigger())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
+		languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
 	);
 	if (!ALStudioExtension.isAvailable()) {
 		context.subscriptions.push(
-			vscode.languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
+			languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
 		);
 	}
 	context.subscriptions.push(
-		vscode.languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable())
+		languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable())
 	)
-	context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
+	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
 }
 
 

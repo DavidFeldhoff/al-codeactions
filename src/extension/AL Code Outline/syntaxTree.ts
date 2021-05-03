@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import * as vscode from 'vscode';
+import { Position, Range, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
@@ -15,7 +15,7 @@ export class SyntaxTree {
         this.fullSyntaxTreeResponse = fullSyntaxTreeResponse;
         this.documentContentOfCreation = currentDocumentContent;
     }
-    public static async getInstance(document: vscode.TextDocument): Promise<SyntaxTree> {
+    public static async getInstance(document: TextDocument): Promise<SyntaxTree> {
         return this.getInstance2(document.uri.fsPath, document.getText())
     }
     public static async getInstance2(fsPath: string, fileContent?: string): Promise<SyntaxTree> {
@@ -27,7 +27,7 @@ export class SyntaxTree {
         }
         return this.instances.get(fsPath) as SyntaxTree;
     }
-    public static clearInstance(document: vscode.TextDocument) {
+    public static clearInstance(document: TextDocument) {
         let instance: SyntaxTree | undefined = this.instances.get(document.uri.fsPath);
         if (instance) {
             this.instances.delete(document.uri.fsPath);
@@ -41,19 +41,19 @@ export class SyntaxTree {
         return fullSyntaxTreeResponse;
     }
 
-    public findTreeNode(position: vscode.Position, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {
+    public findTreeNode(position: Position, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {
         if (!this.fullSyntaxTreeResponse || !this.fullSyntaxTreeResponse.root) {
             return undefined;
         }
         return this.findMatchingTreeResponseSymbolRecursive(position, this.fullSyntaxTreeResponse.root, searchForNodeKinds);
     }
-    private findMatchingTreeResponseSymbolRecursive(position: vscode.Position, fullSyntaxTreeNode: ALFullSyntaxTreeNode, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {
+    private findMatchingTreeResponseSymbolRecursive(position: Position, fullSyntaxTreeNode: ALFullSyntaxTreeNode, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {
         if (!fullSyntaxTreeNode.childNodes) {
             return undefined;
         }
         for (let i = 0; i < fullSyntaxTreeNode.childNodes.length; i++) {
             let cn: ALFullSyntaxTreeNode = fullSyntaxTreeNode.childNodes[i];
-            let cnRange: vscode.Range = TextRangeExt.createVSCodeRange(cn.fullSpan);
+            let cnRange: Range = TextRangeExt.createVSCodeRange(cn.fullSpan);
             if (cnRange?.start.isBeforeOrEqual(position) && cnRange.end.isAfterOrEqual(position)) {
                 let deeperResult = this.findMatchingTreeResponseSymbolRecursive(position, cn, searchForNodeKinds);
                 if (searchForNodeKinds) {

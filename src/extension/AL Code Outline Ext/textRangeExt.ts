@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
+import { Range } from 'vscode';
 import { TextPositionExt } from './textPositionExt';
 
 export class TextRangeExt {
-    public static createVSCodeRange(textRange: any): vscode.Range {
-        let vscodeRange: vscode.Range = new vscode.Range(textRange.start.line, textRange.start.character, textRange.end.line, textRange.end.character);
+    public static createVSCodeRange(textRange: any): Range {
+        let vscodeRange: Range = new Range(textRange.start.line, textRange.start.character, textRange.end.line, textRange.end.character);
         return vscodeRange;
     }
-    public static insideVsRange(textRange: any, vsRange: vscode.Range): boolean {
+    public static insideVsRange(textRange: any, vsRange: Range): boolean {
         if (!textRange.start || !textRange.end) {
             return false;
         }

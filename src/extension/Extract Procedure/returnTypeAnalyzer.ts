@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
@@ -6,22 +5,23 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { TypeDetective } from '../Utils/typeDetective';
+import { Range, TextDocument } from 'vscode';
 
 export class ReturnTypeAnalyzer {
-    private document: vscode.TextDocument;
+    private document: TextDocument;
     private treeNodeStart: ALFullSyntaxTreeNode;
     private treeNodeEnd: ALFullSyntaxTreeNode;
-    private rangeOfTreeNodes: vscode.Range;
+    private rangeOfTreeNodes: Range;
     private returnType: string | undefined;
     private addVariableToCallingPosition: boolean;
     private addVariableToExtractedRange: boolean;
-    constructor(document: vscode.TextDocument, treeNodeStart: ALFullSyntaxTreeNode, treeNodeEnd: ALFullSyntaxTreeNode) {
+    constructor(document: TextDocument, treeNodeStart: ALFullSyntaxTreeNode, treeNodeEnd: ALFullSyntaxTreeNode) {
         this.document = document;
         this.treeNodeStart = treeNodeStart;
         this.treeNodeEnd = treeNodeEnd;
-        let rangeOfTreeNodeStart: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
-        let rangeOfTreeNodeEnd: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
-        this.rangeOfTreeNodes = new vscode.Range(rangeOfTreeNodeStart.start, rangeOfTreeNodeEnd.end);
+        let rangeOfTreeNodeStart: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
+        let rangeOfTreeNodeEnd: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(treeNodeStart.fullSpan));
+        this.rangeOfTreeNodes = new Range(rangeOfTreeNodeStart.start, rangeOfTreeNodeEnd.end);
         this.addVariableToCallingPosition = false;
         this.addVariableToExtractedRange = false;
         this.returnType = undefined;
@@ -67,7 +67,7 @@ export class ReturnTypeAnalyzer {
     public getAddVariableToCallingPosition(): boolean {
         return this.addVariableToCallingPosition;
     }
-    private async getReturnValueIfInsideIfStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
+    private async getReturnValueIfInsideIfStatement(document: TextDocument, rangeExpanded: Range): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let startSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeExpanded.start);
         let endSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeExpanded.end);
@@ -88,14 +88,14 @@ export class ReturnTypeAnalyzer {
             }
         }
     }
-    private async getReturnTypeIfSelectionContainsExitStatement(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
+    private async getReturnTypeIfSelectionContainsExitStatement(document: TextDocument, rangeExpanded: Range): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let exitStatementTreeNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getExitStatement());
 
         for (let i = 0; i < exitStatementTreeNodes.length; i++) {
             let exitStatementTreeNode = exitStatementTreeNodes[i];
             if (exitStatementTreeNode.fullSpan && exitStatementTreeNode.fullSpan.start) {
-                let rangeOfExitStatement: vscode.Range = TextRangeExt.createVSCodeRange(exitStatementTreeNode.fullSpan);
+                let rangeOfExitStatement: Range = TextRangeExt.createVSCodeRange(exitStatementTreeNode.fullSpan);
                 rangeOfExitStatement = DocumentUtils.trimRange(document, rangeOfExitStatement);
                 if (rangeExpanded.contains(rangeOfExitStatement)) {
                     let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfExitStatement.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
@@ -105,7 +105,7 @@ export class ReturnTypeAnalyzer {
                         if (outReturnList.length === 1) {
                             let returnValue: ALFullSyntaxTreeNode = outReturnList[0];
                             if (returnValue.childNodes && returnValue.childNodes[returnValue.childNodes.length - 1].fullSpan) {
-                                let returnValueRange: vscode.Range = TextRangeExt.createVSCodeRange(returnValue.childNodes[returnValue.childNodes.length - 1].fullSpan);
+                                let returnValueRange: Range = TextRangeExt.createVSCodeRange(returnValue.childNodes[returnValue.childNodes.length - 1].fullSpan);
                                 return document.getText(returnValueRange).trim();
                             }
                         }

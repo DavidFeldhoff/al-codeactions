@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
+import { OutputChannel } from 'vscode';
 
-export class OwnConsole{
-    public static ownConsole: vscode.OutputChannel;
+export class OwnConsole {
+    public static ownConsole: OutputChannel;
 }
