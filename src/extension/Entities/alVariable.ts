@@ -6,6 +6,7 @@ export class ALVariable {
     public canBeVar: boolean = false;
     public procedure: string | undefined;
     public memberAttributes: string[] = [];
+    public isResultParameter: boolean = false;
     constructor(name: string, type: string);
     constructor(name: string, type: string, memberAttributes: string[]);
     constructor(name: string, type: string, procedure: string | undefined, isVar: boolean);

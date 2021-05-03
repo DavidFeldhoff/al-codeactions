@@ -11,7 +11,8 @@ All notable changes to the "al-codeactions" extension will be documented in this
   - Note: Supports AL Studio and AL Object Designer and uses the data of their research to avoid duplicate processing of files.
 - Add feature "Fix Cop AA0008 Missing Parentheses" #110
 - Add configuration ("findNewProcedureLocation"), so that you can customize where you'd like to have your new procedure placed.
-- Declare parameters of newly created publishers as 'var', if possible #63, #69
+- Add configuration ("varParameters"). The parameter names of a newly created procedure will be checked against this list and declared as var-parameter on match #63, #69
+- Add configuration ("publisherHasVarParametersOnly"). If this is set, then new publishers will be declared with var-parameters only. #63
 - Add a completionItemProvider like AL Variable Helper for parameters, Interfaces, and TestRequestPages while waiting for a fix of AL Variable Helper.
 - small bugfixes/improvements
   - #109 - thanks Tin

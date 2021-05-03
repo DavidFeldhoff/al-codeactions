@@ -6,6 +6,7 @@ import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALVariable } from "../Entities/alVariable";
+import { Config } from '../Utils/config';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { TypeDetective } from '../Utils/typeDetective';
@@ -52,6 +53,12 @@ export class ALParameterParser {
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, TextRangeExt.createVSCodeRange(argumentListTreeNode.fullSpan).start);
+        let returnVariableName: string | undefined
+        if (methodOrTriggerTreeNode) {
+            let returnValueNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getReturnValue(), true);
+            if (returnValueNode && returnValueNode.childNodes && returnValueNode.childNodes.length > 1 && returnValueNode.childNodes[0].kind == FullSyntaxTreeNodeKind.getIdentifierName())
+                returnVariableName = returnValueNode.childNodes[0].identifier
+        }
         for (let i = 0; i < argumentListTreeNode.childNodes.length; i++) {
             let typeDetective: TypeDetective = new TypeDetective(document, argumentListTreeNode.childNodes[i]);
             await typeDetective.analyzeTypeOfTreeNode();
@@ -60,6 +67,8 @@ export class ALParameterParser {
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();
             let canBeVar: boolean = typeDetective.getCanBeVar();
             let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar, canBeVar);
+            if (returnVariableName && returnVariableName.removeQuotes().toLowerCase() == name.removeQuotes().toLowerCase())
+                variable.isResultParameter = true
             if (modifyVarNames)
                 variable.sanitizeName();
             variable = ALParameterParser.getUniqueVariableName(variables, variable);
@@ -70,9 +79,13 @@ export class ALParameterParser {
     }
     public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
+        let varParameters: string[] = Config.getVarParameters(document.uri).map(param => param.toLowerCase().removeQuotes())
+
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
+            if (varParameters.includes(parameter.name.removeQuotes().toLowerCase()) || parameter.isResultParameter)
+                parameter.isVar = true
         });
         return parameters;
     }

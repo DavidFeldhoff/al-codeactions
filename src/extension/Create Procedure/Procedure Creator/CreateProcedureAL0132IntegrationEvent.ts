@@ -1,4 +1,5 @@
 import { Diagnostic, TextDocument } from "vscode";
+import { Config } from "../../Utils/config";
 import { CreateProcedureAL0132 } from "./CreateProcedureAL0132";
 import { ICreateProcedure } from "./ICreateProcedure";
 
@@ -13,7 +14,7 @@ export class CreateProcedureAL0132IntegrationEvent extends CreateProcedureAL0132
         return undefined;
     }
     isVarForced(): boolean{
-        return true;
+        return Config.getPublisherHasVarParametersOnly(this.document.uri);
     }
     getJumpToCreatedProcedure(): boolean {
         return false;

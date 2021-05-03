@@ -7,6 +7,12 @@ export class Config {
     static getFindNewProcedureLocation(uri?: Uri): FindNewProcedureLocation {
         return FindNewProcedureLocation[this.getConfig(uri).get('findNewProcedureLocation', "Sort by type, access modifier, name")]
     }
+    static getVarParameters(uri?: Uri): string[] {
+        return this.getConfig(uri).get('varParameters', ["IsHandled"]);
+    }
+    static getPublisherHasVarParametersOnly(uri?: Uri): boolean {
+        return this.getConfig(uri).get('publisherHasVarParametersOnly', false);
+    }
 }
 
 export enum FindNewProcedureLocation {
