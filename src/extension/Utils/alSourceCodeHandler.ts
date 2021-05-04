@@ -78,18 +78,22 @@ export class ALSourceCodeHandler {
         let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
         if (globalVarSection)
             methodDeclarations.push(globalVarItem)
-        let methodDeclaration: string | undefined = await window.showQuickPick(methodDeclarations,
-            {
-                ignoreFocusOut: true,
-                placeHolder: 'Select an anchor after which you want to place your new function.'
-            })
+        let methodDeclaration: string | undefined
+        if (methodDeclarations.length == 1)
+            methodDeclaration = methodDeclarations[0]
+        else
+            methodDeclaration = await window.showQuickPick(methodDeclarations,
+                {
+                    ignoreFocusOut: true,
+                    placeHolder: 'Select an anchor after which you want to place your new function.'
+                })
         if (!methodDeclaration)
             return
         if (methodDeclaration == globalVarItem && globalVarSection)
             return TextRangeExt.createVSCodeRange(globalVarSection.fullSpan).end
         else {
             let index = methodDeclarations.findIndex(declaration => methodDeclaration == declaration)!
-            return classifiedNodes[index].range.end;
+            return classifiedNodes[index].range.end.translate(1, undefined).with(undefined, 0);
         }
     }
     private classifyMethodOrTriggerNodes(methodOrTriggerNodes: ALFullSyntaxTreeNode[]): { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] {

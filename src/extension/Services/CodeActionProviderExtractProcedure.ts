@@ -17,7 +17,6 @@ import { ALVariableParser } from '../Entity Parser/alVariableParser';
 import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
-import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { ICodeActionProvider } from './ICodeActionProvider';
@@ -36,6 +35,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         if (this.document.lineAt(this.range.start).firstNonWhitespaceCharacterIndex <= 4 ||
             this.document.lineAt(this.range.end).firstNonWhitespaceCharacterIndex <= 4)
             return false;
+        if (this.document.uri.scheme == 'al-preview')
+            return false
         return true;
     }
     async createCodeActions(): Promise<CodeAction[]> {
@@ -59,13 +60,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(this.document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
-        let codeActionToCreateProcedure: CodeAction | undefined;
-        codeActionToCreateProcedure = await this.createCodeAction(this.document, procedureCallingText, procedureObject, rangeExpanded);
-        if (!codeActionToCreateProcedure) {
-            return [];
-        } else {
-            return [codeActionToCreateProcedure];
-        }
+        let codeActionToCreateProcedure: CodeAction = this.createCodeAction(this.document, procedureCallingText, procedureObject, rangeExpanded);
+        return [codeActionToCreateProcedure];
     }
     public async provideProcedureObjectForCodeAction(rangeExpanded: Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
@@ -356,104 +352,16 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         return undefined;
     }
-    private async createCodeAction(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range): Promise<CodeAction | undefined> {
-        let codeActionToCreateProcedure: CodeAction | undefined = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
-        return codeActionToCreateProcedure;
-    }
-
-    private async createFixToCreateProcedure(procedure: ALProcedure, procedureCallingText: string, document: TextDocument, rangeExpanded: Range): Promise<CodeAction | undefined> {
-        const fix = new CodeAction(`Extract to procedure`, CodeActionKind.QuickFix);
-        fix.edit = new WorkspaceEdit();
-
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
-        if (!position)
-            return
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
-        let createProcedure: CreateProcedure = new CreateProcedure();
-        let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
-        textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-        fix.edit.insert(document.uri, position, textToInsert);
-
-        await this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);
-        let linesDeleted: number = 0;
-        fix.edit.entries().filter(
-            entry => entry[1].filter(
-                textEdit => textEdit.newText == '' && textEdit.range.start.character == 0 && textEdit.range.end.character == 0).forEach(
-                    deleteEdit => linesDeleted += deleteEdit.range.end.line - deleteEdit.range.start.line));
-        fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
-        fix.command = {
-            command: Command.renameCommand,
-            arguments: [new Location(document.uri, rangeExpanded.start.translate(linesDeleted * -1, undefined))],
+    private createCodeAction(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range): CodeAction {
+        let codeAction = new CodeAction(`Extract to procedure`, CodeActionKind.QuickFix);
+        codeAction.command = {
+            command: Command.extractProcedure,
+            arguments: [currentDocument, procedureCallingText, procedureToCreate, rangeExpanded],
             title: 'Extract Method'
         };
-        return fix;
+        return codeAction;
     }
-    private async removeLocalVariables(edit: WorkspaceEdit, document: TextDocument, start: Position, variables: ALVariable[]) {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(start, [FullSyntaxTreeNodeKind.getTriggerDeclaration(), FullSyntaxTreeNodeKind.getMethodDeclaration()]);
-        if (!methodOrTriggerTreeNode)
-            return;
-        let varSection: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
-        if (!varSection)
-            return;
 
-        let allVariableDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, allVariableDeclarations);
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclarationName(), true, allVariableDeclarations);
-        if (allVariableDeclarations.length == variables.length) {
-            edit.delete(document.uri, TextRangeExt.createVSCodeRange(varSection.fullSpan));
-            return;
-        }
-
-        let variableRangesOfNormalDeclarations: { name: string, range: Range }[] = [];
-        let variableDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, variableDeclarations);
-        for (const variableDeclaration of variableDeclarations) {
-            let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclaration, false) as string;
-            let range: Range = TextRangeExt.createVSCodeRange(variableDeclaration.fullSpan);
-            variableRangesOfNormalDeclarations.push({ name: varName, range: range });
-        }
-        for (const variableRangeOfNormalDeclaration of variableRangesOfNormalDeclarations) {
-            if (variables.some(variable => variable.name.toLowerCase() == variableRangeOfNormalDeclaration.name.toLowerCase()))
-                edit.delete(document.uri, variableRangeOfNormalDeclaration.range);
-        }
-
-        let variableListDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableListDeclaration(), false, variableListDeclarations);
-        for (const variableListDeclaration of variableListDeclarations) {
-            let variableRangesOfDeclarationNames: { name: string, range: Range }[] = [];
-            let variableDeclarationNames: ALFullSyntaxTreeNode[] = [];
-            ALFullSyntaxTreeNodeExt.collectChildNodes(variableListDeclaration, FullSyntaxTreeNodeKind.getVariableDeclarationName(), false, variableDeclarationNames);
-            let deleteWholeListDeclaration: boolean = true;
-            for (let i = 0; i < variableDeclarationNames.length; i++) {
-                let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclarationNames[i], false) as string;
-                if (!variables.some(variable => variable.name.toLowerCase() == varName.toLowerCase()))
-                    deleteWholeListDeclaration = false;
-
-                let rangeToRemove: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[i].fullSpan));
-                variableRangesOfDeclarationNames.push({ name: varName, range: rangeToRemove })
-            }
-            if (deleteWholeListDeclaration) {
-                edit.delete(document.uri, TextRangeExt.createVSCodeRange(variableListDeclaration.fullSpan));
-            } else {
-                let previousOneDeleted: boolean = false;
-                for (let i = variableRangesOfDeclarationNames.length - 1; i >= 0; i--) {
-                    if (variables.some(variable => variable.name.toLowerCase() == variableRangesOfDeclarationNames[i].name.toLowerCase())) {
-                        if (i != 0)
-                            edit.delete(document.uri, new Range(variableRangesOfDeclarationNames[i - 1].range.end, variableRangesOfDeclarationNames[i].range.end));
-                        else if (i == 0 && previousOneDeleted) {
-                            edit.delete(document.uri, variableRangesOfDeclarationNames[i].range);
-                        } else if (i == 0 && !previousOneDeleted) {
-                            edit.delete(document.uri, new Range(variableRangesOfDeclarationNames[i].range.start, variableRangesOfDeclarationNames[i + 1].range.start));
-                        }
-                        previousOneDeleted = true;
-                    } else
-                        previousOneDeleted = false;
-                }
-            }
-        }
-    }
     private fixIndentation(document: TextDocument, rangeExpanded: Range, selectedText: string) {
         let firstNonWhiteSpaceCharacter = document.lineAt(rangeExpanded.start.line).firstNonWhitespaceCharacterIndex;
         let whiteSpacesSelectedText = '';

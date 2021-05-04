@@ -18,7 +18,8 @@ import { DocumentUtils } from './extension/Utils/documentUtils';
 import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
 import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
 import { ContextSetter } from './extension/Services/ContextSetter';
-import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, TextDocument, window } from 'vscode';
+import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, Range, TextDocument, window } from 'vscode';
+import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
@@ -33,13 +34,17 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		commands.registerCommand(Command.renameCommand, (location: Location) => DocumentUtils.executeRename(location))
 	);
+	context.subscriptions.push(commands.registerCommand(Command.extractProcedure,
+		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range) =>
+			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded))
+	)
 	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedCalls', () => FindRelated.exec(1)))
 	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedEventSubscriber', () => FindRelated.exec(2)))
 	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedTriggers', () => FindRelated.exec(3)))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
-		
+
 
 	context.subscriptions.push(
 		commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
