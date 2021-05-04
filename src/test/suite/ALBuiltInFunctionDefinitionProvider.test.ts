@@ -205,7 +205,7 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnInsert']);
-		// expectedDefinitions.set('ItemExt.al', ['OnInsert', 'OnBeforeInsert', 'OnAfterInsert'])
+		// expectedDefinitions.set('ItemExt.TableExt.al', ['OnInsert', 'OnBeforeInsert', 'OnAfterInsert'])
 		// expectedDefinitions.set('CodeunitWithDifferentTableNo.Codeunit.al', ['Item_OnBeforeInsertEvent']);
 		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
@@ -217,7 +217,7 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 		let expectedDefinitions: Map<string, string[]> = new Map();
 		expectedDefinitions.set('Item.dal', ['OnValidate']);
-		// expectedDefinitions.set('ItemExt.al', ['OnBeforeValidate', 'OnAfterValidate'])
+		// expectedDefinitions.set('ItemExt.TableExt.al', ['OnBeforeValidate', 'OnAfterValidate'])
 
 		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});
@@ -228,7 +228,7 @@ suite('ALBuiltInFunctionDefinitionProvider Test Suite', function () {
 		let cancellationToken: any;
 		let locations: Location[] = await new DefinitionProviderCallToTrigger().provideDefinition(vendorPageDoc, positionToExecuteDefProvider, cancellationToken)
 		let expectedDefinitions: Map<string, string[]> = new Map();
-		expectedDefinitions.set('ItemExt.al', ['OnValidate'])
+		expectedDefinitions.set('ItemExt.TableExt.al', ['OnValidate'])
 
 		await validateLocationsAndDefinitions(locations, expectedDefinitions)
 	});

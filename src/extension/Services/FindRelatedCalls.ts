@@ -34,7 +34,7 @@ export class FindRelatedCalls implements ReferenceProvider {
     }
     public static activateListener(search: BuiltInFunctions, show?: showInsertConfig) {
         FindRelatedCalls._search = search
-        if (search != BuiltInFunctions.Validate)
+        if (search != BuiltInFunctions.Validate && show === undefined)
             throw new Error('It has to be specified if only the methods with RunTrigger=true should be listed.')
         FindRelatedCalls._show = show
         FindRelatedCalls.active = true

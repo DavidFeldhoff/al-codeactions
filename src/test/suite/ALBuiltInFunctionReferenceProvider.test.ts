@@ -23,7 +23,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		await workspace.openTextDocument(fileName).then(doc => {
 			tableTriggersTableDoc = doc;
 		});
-		fileName = path.resolve(ALTestProject.dir, 'ItemExt.al');
+		fileName = path.resolve(ALTestProject.dir, 'ItemExt.TableExt.al');
 		await workspace.openTextDocument(fileName).then(doc => {
 			ItemExtDoc = doc;
 		});
@@ -78,7 +78,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		expected.set('\\CodeunitWithDifferentTableNo.Codeunit.al', 1);
 		validateLocations(expected, locations);
 	});
-	test('GetEventSubscribers_TableTriggers.Table', async () => {
+	test('GetTriggersOfTableExt_ItemExt.TableExt', async () => {
 		let textToSkip: string = 'trigger ';
 		let lineTextToSearch = 'trigger OnInsert()';
 		let rangeOfLine = getRangeOfLine(ItemExtDoc, lineTextToSearch);
@@ -88,7 +88,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let locations: Location[] = await new FindRelatedTriggersOfTableExt().provideReferences(ItemExtDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
-		expected.set('\\ItemExt.al', 3);
+		expected.set('\\ItemExt.TableExt.al', 3);
 		validateLocations(expected, locations);
 	});
 
@@ -102,7 +102,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
-		expected.set('\\ItemExt.al', 3);
+		expected.set('\\CodeunitWithDifferentTableNo.Codeunit.al', 3);
 		validateLocations(expected, locations);
 	});
 });
