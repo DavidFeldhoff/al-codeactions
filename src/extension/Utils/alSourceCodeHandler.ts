@@ -26,32 +26,19 @@ export class ALSourceCodeHandler {
         let targetObjectNode: ALFullSyntaxTreeNode | undefined = objectNodes.find(objectNode => objectNode.name?.toLowerCase().removeQuotes() == procedureToInsert.ObjectOfProcedure.name.toLowerCase().removeQuotes())
         if (!targetObjectNode)
             Err._throw('Unable to locate target object. Please file an issue on github.')
-        let methodOrTriggerNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()], true)
+        let methodOrTriggerNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()], false)
         let classifiedNodes: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] = this.classifyMethodOrTriggerNodes(methodOrTriggerNodes);
 
-        let nodesPlacedEarlier: ALFullSyntaxTreeNode[] = []
-        if (config == FindNewProcedureLocation['Sort by type, access modifier, name']) {
-            classifiedNodes = classifiedNodes.sort(this.sortByType_AccessModifier_Name)
-            let classifiedNodesPlacedEarlier = classifiedNodes.filter(node => this.filterByType_AccessModifier_Name(node, procedureToInsert))
-            nodesPlacedEarlier = classifiedNodesPlacedEarlier.map(entry => entry.node)
-        } else if (config == FindNewProcedureLocation['Sort by type, access modifier, range']) {
-            classifiedNodes = classifiedNodes.sort(this.sortByType_AccessModifier_Range)
-            let classifiedNodesPlacedEarlier = classifiedNodes.filter(node => this.filterByType_AccessModifier_Range(node, procedureToInsert))
-            nodesPlacedEarlier = classifiedNodesPlacedEarlier.map(entry => entry.node)
-        } else if (config == FindNewProcedureLocation['Always ask']) {
-            if (classifiedNodes.length > 0) {
-                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document)
-            }
-        }
+        let anchorNode: ALFullSyntaxTreeNode | undefined = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode)
 
-        if (nodesPlacedEarlier.length !== 0) {
-            let lastNodePlacedEarlier = nodesPlacedEarlier[nodesPlacedEarlier.length - 1]
-            if (lastNodePlacedEarlier.kind == FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
+        if (anchorNode) {
+            if (anchorNode.kind == FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
                 let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
                 if (globalVarSection)
-                    lastNodePlacedEarlier = globalVarSection
+                    anchorNode = globalVarSection
             }
-            return TextRangeExt.createVSCodeRange(lastNodePlacedEarlier.fullSpan).end
+            if (config == FindNewProcedureLocation['Sort by type, access modifier, name'] && anchorNode)
+                return TextRangeExt.createVSCodeRange(anchorNode.fullSpan).end
         }
         else if (classifiedNodes.length !== 0)
             return TextRangeExt.createVSCodeRange(classifiedNodes[0].node.fullSpan).start
@@ -63,7 +50,42 @@ export class ALSourceCodeHandler {
                 return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(targetObjectNode.fullSpan)).end.translate(0, -1);
         }
     }
-    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument): Promise<Position | PromiseLike<Position | undefined> | undefined> {
+    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], targetObjectNode: ALFullSyntaxTreeNode): Promise<ALFullSyntaxTreeNode | undefined> {
+        let anchorNode: ALFullSyntaxTreeNode | undefined
+        if ([FindNewProcedureLocation['Sort by type, access modifier, name'], FindNewProcedureLocation['Sort by type, access modifier, range']].includes(config)) {
+            let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
+            if (config == FindNewProcedureLocation['Sort by type, access modifier, name'])
+                anchorNode = classifiedNodes.filter(node =>
+                    this.filterBySameType_SameAccessModifier(node, procedureToInsert, procedureToInsertType))
+                    .sort(this.sortByName)
+                    .map(entry => entry.node)
+                    .pop()
+            else if (config == FindNewProcedureLocation['Sort by type, access modifier, range'])
+                anchorNode = classifiedNodes.filter(node =>
+                    this.filterBySameType_SameAccessModifier(node, procedureToInsert, procedureToInsertType))
+                    .map(entry => entry.node)
+                    .pop()
+            if (!anchorNode)
+                anchorNode = classifiedNodes.filter(node =>
+                    this.filterBySameType_HigherAccessModifier(node, procedureToInsert, procedureToInsertType))
+                    .sort(this.sortByAccessModifier)
+                    .map(entry => entry.node)
+                    .pop()
+            if (!anchorNode)
+                anchorNode = classifiedNodes.filter(node =>
+                    this.filterByType(node, procedureToInsertType))
+                    .sort(this.sortByType)
+                    .map(entry => entry.node)
+                    .pop()
+        } else if (config == FindNewProcedureLocation['Always ask']) {
+            if (classifiedNodes.length > 1)
+                anchorNode = await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document)
+            else if (classifiedNodes.length == 1)
+                anchorNode = classifiedNodes[0].node
+        }
+        return anchorNode
+    }
+    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument): Promise<ALFullSyntaxTreeNode | undefined> {
         classifiedNodes = classifiedNodes.sort((a, b) => a.range.start.compareTo(b.range.start))
         let methodDeclarations: string[] = classifiedNodes.map(entry => {
             let parameterListNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(entry.node, FullSyntaxTreeNodeKind.getParameterList(), false)!
@@ -90,10 +112,10 @@ export class ALSourceCodeHandler {
         if (!methodDeclaration)
             return
         if (methodDeclaration == globalVarItem && globalVarSection)
-            return TextRangeExt.createVSCodeRange(globalVarSection.fullSpan).end
+            return globalVarSection
         else {
             let index = methodDeclarations.findIndex(declaration => methodDeclaration == declaration)!
-            return classifiedNodes[index].range.end.translate(1, undefined).with(undefined, 0);
+            return classifiedNodes[index].node
         }
     }
     private classifyMethodOrTriggerNodes(methodOrTriggerNodes: ALFullSyntaxTreeNode[]): { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] {
@@ -160,40 +182,24 @@ export class ALSourceCodeHandler {
         }
         return false;
     }
-    private sortByType_AccessModifier_Name(a: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, b: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }) {
-        let sortByKindResult = a.type.valueOf() - b.type.valueOf()
-        if (sortByKindResult !== 0)
-            return sortByKindResult
-        let sortByAccessModifierResult = a.accessModifier.valueOf() - b.accessModifier.valueOf()
-        if (sortByAccessModifierResult !== 0)
-            return sortByAccessModifierResult
+    private sortByName(a: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, b: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }) {
         return a.node.name!.removeQuotes().toLowerCase().localeCompare(b.node.name!.removeQuotes().toLowerCase())
     }
-    private filterByType_AccessModifier_Name(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsert: ALProcedure): boolean {
-        let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
-        return node.type.valueOf() < procedureToInsertType.valueOf() || (
-            node.type.valueOf() == procedureToInsertType.valueOf() &&
-            node.accessModifier.valueOf() < procedureToInsert.accessModifier.valueOf() || (
-                node.type.valueOf() == procedureToInsertType.valueOf() &&
-                node.accessModifier.valueOf() == procedureToInsert.accessModifier.valueOf() &&
-                node.node.name!.removeQuotes().toLowerCase().localeCompare(procedureToInsert.name.removeQuotes().toLowerCase()) <= 0
-            )
-        )
+    private sortByAccessModifier(a: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, b: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }) {
+        return a.accessModifier.valueOf() - b.accessModifier.valueOf()
     }
-    private sortByType_AccessModifier_Range(a: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, b: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }) {
-        let sortByKindResult = a.type.valueOf() - b.type.valueOf()
-        if (sortByKindResult !== 0)
-            return sortByKindResult
-        let sortByAccessModifierResult = a.accessModifier.valueOf() - b.accessModifier.valueOf()
-        if (sortByAccessModifierResult !== 0)
-            return sortByAccessModifierResult
-        return a.range.start.compareTo(b.range.start)
+    private sortByType(a: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, b: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }) {
+        return a.type.valueOf() - b.type.valueOf()
     }
-    private filterByType_AccessModifier_Range(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsert: ALProcedure): boolean {
-        let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
-        return node.type.valueOf() < procedureToInsertType.valueOf() || (
-            node.type.valueOf() == procedureToInsertType.valueOf() &&
-            node.accessModifier.valueOf() <= procedureToInsert.accessModifier.valueOf()
-        )
+    private filterBySameType_SameAccessModifier(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsert: ALProcedure, procedureToInsertType: MethodType): boolean {
+        return node.type.valueOf() == procedureToInsertType.valueOf() &&
+            node.accessModifier.valueOf() == procedureToInsert.accessModifier.valueOf()
+    }
+    private filterBySameType_HigherAccessModifier(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsert: ALProcedure, procedureToInsertType: MethodType): boolean {
+        return node.type.valueOf() == procedureToInsertType.valueOf() &&
+            node.accessModifier.valueOf() < procedureToInsert.accessModifier.valueOf()
+    }
+    private filterByType(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsertType: MethodType): boolean {
+        return node.type.valueOf() < procedureToInsertType.valueOf()
     }
 }
