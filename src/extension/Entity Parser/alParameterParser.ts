@@ -80,12 +80,28 @@ export class ALParameterParser {
     public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
         let varParameters: string[] = Config.getVarParameters(document.uri).map(param => param.toLowerCase().removeQuotes())
+        let isRegex: RegExp = /^\/(?<source>.*)\/(?<flags>\w*)$/
+        let varParametersStrings: string[] = []
+        let varParametersRegex: RegExp[] = []
+        for (const varParameter of varParameters) {
+            if (isRegex.test(varParameter)) {
+                let match: RegExpMatchArray = varParameter.match(isRegex)!
+                let regex = new RegExp(match.groups!["source"], match.groups!["flags"])
+                varParametersRegex.push(regex)
+            }
+            else
+                varParametersStrings.push(varParameter)
+        }
 
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
-            if (varParameters.includes(parameter.name.removeQuotes().toLowerCase()) || parameter.isResultParameter)
-                parameter.isVar = true
+            if (parameter.isResultParameter)
+                parameter.isVar = true;
+            if (varParametersStrings.includes(parameter.name.removeQuotes().toLowerCase()))
+                parameter.isVar = true;
+            if (varParametersRegex.some(regex => regex.test(parameter.name.removeQuotes())))
+                parameter.isVar = true;
         });
         return parameters;
     }

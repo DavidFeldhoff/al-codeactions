@@ -99,7 +99,7 @@
                         "type": "array",
                         "default": ["IsHandled"],
                         "uniqueItems": true,
-                        "description": "Parameters with these names will always be declared as var-Parameters."
+                        "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag."
                     },
                     "alCodeActions.publisherHasVarParametersOnly": {
                         "type": "boolean",
