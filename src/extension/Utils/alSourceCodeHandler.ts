@@ -37,8 +37,7 @@ export class ALSourceCodeHandler {
                 if (globalVarSection)
                     anchorNode = globalVarSection
             }
-            if (config == FindNewProcedureLocation['Sort by type, access modifier, name'] && anchorNode)
-                return TextRangeExt.createVSCodeRange(anchorNode.fullSpan).end
+            return TextRangeExt.createVSCodeRange(anchorNode.fullSpan).end
         }
         else if (classifiedNodes.length !== 0)
             return TextRangeExt.createVSCodeRange(classifiedNodes[0].node.fullSpan).start

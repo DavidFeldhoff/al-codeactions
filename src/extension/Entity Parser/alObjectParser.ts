@@ -75,10 +75,10 @@ export class ALObjectParser {
     }
     private static getName(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): string {
         let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
-        if (identifierTreeNode && identifierTreeNode.fullSpan) {
-            return document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)));
-        }
-        return '';
+        if (identifierTreeNode && identifierTreeNode.identifier)
+            return identifierTreeNode.identifier
+        else
+            return '';
     }
-    
+
 }
