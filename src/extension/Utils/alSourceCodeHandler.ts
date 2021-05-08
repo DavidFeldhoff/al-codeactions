@@ -57,6 +57,7 @@ export class ALSourceCodeHandler {
                 anchorNode = classifiedNodes.filter(node =>
                     this.filterBySameType_SameAccessModifier(node, procedureToInsert, procedureToInsertType))
                     .sort(this.sortByName)
+                    .filter(node2 => this.filterByName(node2, procedureToInsert))
                     .map(entry => entry.node)
                     .pop()
             else if (config == FindNewProcedureLocation['Sort by type, access modifier, range'])
@@ -200,5 +201,8 @@ export class ALSourceCodeHandler {
     }
     private filterByType(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsertType: MethodType): boolean {
         return node.type.valueOf() < procedureToInsertType.valueOf()
+    }
+    private filterByName(node: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }, procedureToInsert: ALProcedure): boolean {
+        return node.node.name!.removeQuotes().toLowerCase().localeCompare(procedureToInsert.name.removeQuotes().toLowerCase()) <= 0
     }
 }
