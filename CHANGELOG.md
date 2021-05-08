@@ -19,6 +19,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
   - RefactorToValidate threw errors in the background (not critical, but unnecessary)
   - HandlerFunctions which were created were missing var-parameters
   - Improve "Move local var to global one" as the global variable is in the right place
+  - Range is now revealed if the procedure was created, so you directly see the newly created procedure.
 
 ## 0.2.29
 

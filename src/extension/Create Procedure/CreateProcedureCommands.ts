@@ -1,4 +1,4 @@
-import { commands, Diagnostic, Position, Selection, SnippetString, TextDocument, TextEditor, window, workspace, WorkspaceEdit } from 'vscode';
+import { commands, Diagnostic, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
@@ -85,14 +85,17 @@ export class CreateProcedureCommands {
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
             let textToInsert = createProcedure.createProcedureDefinition(procedure, false, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
+            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
             let snippetString: SnippetString = new SnippetString(textToInsert);
             let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
+            editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
             editor.insertSnippet(snippetString, position);
         } else {
             let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
             let workspaceEdit = new WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
+            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
             await workspace.applyEdit(workspaceEdit);
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
@@ -101,6 +104,7 @@ export class CreateProcedureCommands {
                     let positionToPlaceCursor: Position = new Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
                     let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
                     editor.selection = new Selection(positionToPlaceCursor, positionToPlaceCursor);
+                    editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
                 }
             }
         }
