@@ -3,11 +3,14 @@ export class ALVariable {
     public type: string;
     public isLocal: boolean = false;
     public isVar: boolean = false;
+    public canBeVar: boolean = false;
     public procedure: string | undefined;
     public memberAttributes: string[] = [];
+    public isResultParameter: boolean = false;
     constructor(name: string, type: string);
     constructor(name: string, type: string, memberAttributes: string[]);
     constructor(name: string, type: string, procedure: string | undefined, isVar: boolean);
+    constructor(name: string, type: string, procedure: string | undefined, isVar: boolean, canBeVar: boolean);
     constructor(name: string, type: string, procedure: string | undefined, isVar: boolean, memberAttributes: string[]);
     public constructor(...args: any[]) {
         this.name = args[0];
@@ -18,12 +21,15 @@ export class ALVariable {
                 break;
             case 4:
                 this.procedure = args[2]
-                this.isVar == args[3];
+                this.isVar = args[3];
                 break;
             case 5:
                 this.procedure = args[2];
                 this.isVar = args[3];
-                this.memberAttributes = args[4];
+                if (typeof (args[4]) == 'boolean')
+                    this.canBeVar = args[4];
+                else
+                    this.memberAttributes = args[4];
                 break;
             default:
                 break;

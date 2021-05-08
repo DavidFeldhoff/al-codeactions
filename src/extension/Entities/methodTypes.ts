@@ -1,0 +1,22 @@
+export enum MethodType{
+    Trigger,
+    //Test-Types
+    TestMethod,
+    ConfirmHandler,
+    FilterPageHandler,
+    HyperlinkHandler,
+    MessageHandler,
+    ModalPageHandler,
+    PageHandler,
+    ReportHandler,
+    RequestPageHandler,
+    SendNotificationHandler,
+    RecallNotificationHandler,
+    SessionSettingsHandler,
+    StrMenuHandler,
+    //Method-Types
+    Method,
+    EventSubscriber,
+    BusinessEventPublisher,
+    IntegrationEventPublisher
+}

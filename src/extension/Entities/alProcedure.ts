@@ -2,8 +2,9 @@ import { ALVariable } from './alVariable';
 import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { ALObject } from "./alObject";
 import { AccessModifier } from "./accessModifier";
+import { IALMethod } from './IALMethod';
 
-export class ALProcedure {
+export class ALProcedure implements IALMethod {
     public name: string;
     public parameters: ALVariable[];
     public variables: ALVariable[];
@@ -27,6 +28,7 @@ export class ALProcedure {
         this.containsSnippet = containsSnippet;
         this.ObjectOfProcedure = ALObject;
         this.returnTypeRequired = returnTypeRequired
+        
     }
     public getMemberAttributes(): string[] {
         return this.memberAttributes;

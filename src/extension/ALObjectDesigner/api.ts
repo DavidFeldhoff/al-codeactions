@@ -277,6 +277,8 @@ export interface CollectorItem {
     Name: string;
     TargetObject?: string;
     TargetObjectType?: string;
+    TargetEventName?: string;
+    TargetElementName?: string;
     Publisher: string;
     Application: string;
     Version: string;

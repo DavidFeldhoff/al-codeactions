@@ -142,17 +142,20 @@ export class WorkspaceEditUtils {
                 lastIndexOfSameType = i;
             } else {
                 let indexCurrentType: number = typePriorities.indexOf(currentType);
-                if (indexCurrentType >= 0 && indexVariable >= 0 && indexCurrentType < indexVariable)
+                if (indexCurrentType >= 0 && (indexCurrentType < indexVariable || indexVariable == -1))
                     lastIndexOfTypeWithHigherPriority = i;
             }
         }
         let positionToAdd: Position;
-        if (lastIndexOfSameType) {
+        if (lastIndexOfSameType !== undefined) {
             let rangeOfNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(categorizedVariableNodes[lastIndexOfSameType].node.fullSpan))
             positionToAdd = new Position(rangeOfNode.end.line + 1, 0);
-        } else if (lastIndexOfTypeWithHigherPriority) {
+        } else if (lastIndexOfTypeWithHigherPriority !== undefined) {
             let rangeOfNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(categorizedVariableNodes[lastIndexOfTypeWithHigherPriority].node.fullSpan))
             positionToAdd = new Position(rangeOfNode.end.line + 1, 0);
+        } else if (variableDeclarationNodes.length > 0) {
+            let rangeOfFirstNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(varSection.childNodes![0].fullSpan))
+            positionToAdd = new Position(rangeOfFirstNode.start.line, 0);
         } else {
             let rangeOfVarSection: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(varSection.fullSpan));
             positionToAdd = new Position(rangeOfVarSection.end.line + 1, 0);

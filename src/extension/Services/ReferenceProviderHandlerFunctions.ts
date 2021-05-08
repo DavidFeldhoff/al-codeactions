@@ -1,15 +1,14 @@
-import * as vscode from "vscode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
-import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
+import { ReferenceProvider, TextDocument, Position, ReferenceContext, CancellationToken, Location, Range } from "vscode";
 
-export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvider {
+export class ReferenceProviderHandlerFunctions implements ReferenceProvider {
 
-    async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
-        let locationsReferenced: vscode.Location[] = [];
+    async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[] | undefined> {
+        let locationsReferenced: Location[] = [];
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let methodIdentifierTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position);
         if (methodIdentifierTreeNode && methodIdentifierTreeNode.parentNode && methodIdentifierTreeNode.parentNode.kind && methodIdentifierTreeNode.parentNode.kind === FullSyntaxTreeNodeKind.getMethodDeclaration()) {
@@ -25,19 +24,19 @@ export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvid
         return locationsReferenced;
     }
 
-    private getReferenceLocations(syntaxTree: SyntaxTree, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location[] {
-        let locationsReferenced: vscode.Location[] = [];
+    private getReferenceLocations(syntaxTree: SyntaxTree, document: TextDocument, handlerFunctionName: string): Location[] {
+        let locationsReferenced: Location[] = [];
         locationsReferenced = locationsReferenced.concat(
             this.getReferenceLocationsInSameDocument(syntaxTree, document, handlerFunctionName)
         );
         return locationsReferenced;
     }
 
-    private getReferenceLocationsInSameDocument(syntaxTree: SyntaxTree, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location[] {
-        let locationsReferenced: vscode.Location[] = [];
+    private getReferenceLocationsInSameDocument(syntaxTree: SyntaxTree, document: TextDocument, handlerFunctionName: string): Location[] {
+        let locationsReferenced: Location[] = [];
         let allmethods: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getMethodDeclaration());
         for (let i = 0; i < allmethods.length; i++) {
-            let location: vscode.Location | undefined = this.getReferenceLocationOfMethod(allmethods[i], document, handlerFunctionName);
+            let location: Location | undefined = this.getReferenceLocationOfMethod(allmethods[i], document, handlerFunctionName);
             if (location) {
                 locationsReferenced.push(location);
             }
@@ -45,23 +44,23 @@ export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvid
         return locationsReferenced;
     }
 
-    private getReferenceLocationOfMethod(method: ALFullSyntaxTreeNode, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location | undefined {
+    private getReferenceLocationOfMethod(method: ALFullSyntaxTreeNode, document: TextDocument, handlerFunctionName: string): Location | undefined {
         let memberAttributes: ALFullSyntaxTreeNode[] = [];
         ALFullSyntaxTreeNodeExt.collectChildNodes(method, FullSyntaxTreeNodeKind.getMemberAttribute(), false, memberAttributes);
         for (let i = 0; i < memberAttributes.length; i++) {
-            let location: vscode.Location | undefined = this.getReferenceLocationOfMemberAttribute(memberAttributes[i], document, handlerFunctionName);
+            let location: Location | undefined = this.getReferenceLocationOfMemberAttribute(memberAttributes[i], document, handlerFunctionName);
             if (location) {
                 return location;
             }
         }
         return undefined;
     }
-    private getReferenceLocationOfMemberAttribute(memberAttribute: ALFullSyntaxTreeNode, document: vscode.TextDocument, handlerFunctionName: string): vscode.Location | undefined {
+    private getReferenceLocationOfMemberAttribute(memberAttribute: ALFullSyntaxTreeNode, document: TextDocument, handlerFunctionName: string): Location | undefined {
         let memberIdentifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(memberAttribute, FullSyntaxTreeNodeKind.getIdentifierName(), false);
         if (!memberIdentifierTreeNode) {
             return undefined;
         }
-        let range: vscode.Range = TextRangeExt.createVSCodeRange(memberIdentifierTreeNode.fullSpan);
+        let range: Range = TextRangeExt.createVSCodeRange(memberIdentifierTreeNode.fullSpan);
         let identifier: string = document.getText(range);
         if (identifier.toLowerCase() !== 'handlerfunctions') {
             return undefined;
@@ -69,7 +68,7 @@ export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvid
 
         let handlerFunctionsTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(memberAttribute, FullSyntaxTreeNodeKind.getLiteralAttributeArgument(), true);
         if (handlerFunctionsTreeNode) {
-            let rangeOfFunctions: vscode.Range = TextRangeExt.createVSCodeRange(handlerFunctionsTreeNode.fullSpan);
+            let rangeOfFunctions: Range = TextRangeExt.createVSCodeRange(handlerFunctionsTreeNode.fullSpan);
             let startCharacter: number = rangeOfFunctions.start.character;
             let handlerFunctionsString: string = document.getText(rangeOfFunctions);
             if (handlerFunctionsString.trim() !== '') {
@@ -78,9 +77,9 @@ export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvid
                 let handlerFunctionsArr = handlerFunctionsString.split(',');
                 for (let i = 0; i < handlerFunctionsArr.length; i++) {
                     if (handlerFunctionsArr[i].toLowerCase() === handlerFunctionName.toLowerCase()) {
-                        let wordRange: vscode.Range | undefined = document.getWordRangeAtPosition(new vscode.Position(rangeOfFunctions.start.line, startCharacter));
+                        let wordRange: Range | undefined = document.getWordRangeAtPosition(new Position(rangeOfFunctions.start.line, startCharacter));
                         if (wordRange) {
-                            return new vscode.Location(document.uri, wordRange);
+                            return new Location(document.uri, wordRange);
                         }
                     }
                     startCharacter += handlerFunctionsArr[i].length + 1; // due to the removed , by split
@@ -90,7 +89,7 @@ export class ReferenceProviderHandlerFunctions implements vscode.ReferenceProvid
         return undefined;
     }
 
-    private isHandlerFunction(methodTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument) {
+    private isHandlerFunction(methodTreeNode: ALFullSyntaxTreeNode, document: TextDocument) {
         let validHandlerFunctions: string[] = [
             'confirmhandler',
             'filterpagehandler',

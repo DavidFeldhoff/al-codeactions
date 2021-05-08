@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { Position } from 'vscode';
 
 export class TextPosition {
     line : number;
@@ -18,7 +18,7 @@ export class TextPosition {
         return val;
     }
 
-    public compareVsPosition(position : vscode.Position) : number {
+    public compareVsPosition(position : Position) : number {
         if (position.line == this.line)
             return (this.character - position.character);
         else

@@ -46,6 +46,7 @@ export class MyTerminal {
             if (errorLogContent.trim().length == 0)
                 return
             if (errorLogContent.trim() != 'failed') {
+                errorLogContent = errorLogContent.replace(/\r\n/g, ' ')
                 let json: ErrorLog.Log = JSON.parse(errorLogContent)
                 callback(json.issues)
             }

@@ -1,74 +1,152 @@
 {
-	"name": "al-codeactions",
-	"displayName": "AL CodeActions",
-	"description": "Adds codeactions to the AL language",
-	"version": "0.2.29",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/DavidFeldhoff/al-codeactions"
-	},
-	"bugs": {
-		"email": "david.feldhoff@web.de",
-		"url": "https://github.com/DavidFeldhoff/al-codeactions/issues"
-	},
-	"publisher": "davidfeldhoff",
-	"author": {
-		"name": "David Feldhoff",
-		"email": "david.feldhoff@web.de"
-	},
-	"icon": "images/bulb.png",
-	"categories": [
-		"Other"
-	],
-	"keywords": [
-		"AL",
-		"AL Extensions",
-		"Business Central",
-		"CSIDE",
-		"Dynamics NAV"
-	],
-	"engines": {
-		"vscode": "^1.40.0"
-	},
-	"main": "./out/extension.js",
-	"activationEvents": [
-		"onCommand:alcodeactions.fixCop",
-		"onLanguage:al"
-	],
-	"contributes": {
-		"commands": [
-			{
-				"category": "AL Code Actions",
-				"command": "alcodeactions.fixCop",
-				"title": "Fix Cop warnings.."
-			}
-		],
-		"configuration": []
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"test": "npm run compile && node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.7",
-		"@types/node": "^12.12.42",
-		"@types/vscode": "^1.40.0",
-		"copyfiles": "^2.2.0",
-		"glob": "^7.1.5",
-		"minimist": ">=0.2.1",
-		"mocha": "^6.2.3",
-		"tslint": "^5.20.1",
-		"typescript": "^3.9.3",
-		"vscode-test": "^1.3.0"
-	},
-	"dependencies": {
-		"jsonc-parser": "^3.0.0"
-	},
-	"extensionDependencies": [
-		"andrzejzwierzchowski.al-code-outline"
-	]
+    "name": "al-codeactions",
+    "displayName": "AL CodeActions",
+    "description": "Adds codeactions to the AL language",
+    "version": "1.0.0",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DavidFeldhoff/al-codeactions"
+    },
+    "bugs": {
+        "email": "david.feldhoff@web.de",
+        "url": "https://github.com/DavidFeldhoff/al-codeactions/issues"
+    },
+    "publisher": "davidfeldhoff",
+    "author": {
+        "name": "David Feldhoff",
+        "email": "david.feldhoff@web.de"
+    },
+    "icon": "images/bulb.png",
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "AL",
+        "AL Extensions",
+        "Business Central",
+        "CSIDE",
+        "Dynamics NAV"
+    ],
+    "engines": {
+        "vscode": "^1.40.0"
+    },
+    "main": "./out/extension.js",
+    "activationEvents": [
+        "onCommand:alCodeActions.fixCop",
+        "onLanguage:al"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "category": "AL Code Actions",
+                "command": "alCodeActions.fixCop",
+                "title": "Fix Cop warnings.."
+            },
+            {
+                "category": "AL Code Actions",
+                "command": "alCodeActions.findRelatedCalls",
+                "title": "Find related method calls (e.g. Rec.Insert)",
+                "enablement": "editorLangId == al && resourceExtname != .dal && alCodeActions.findRelated"
+            },
+            {
+                "category": "AL Code Actions",
+                "command": "alCodeActions.findRelatedEventSubscriber",
+                "title": "Find related event subscribers",
+                "enablement": "editorLangId == al && alCodeActions.findRelated"
+            },
+            {
+                "category": "AL Code Actions",
+                "command": "alCodeActions.findRelatedTriggers",
+                "title": "Find related triggers",
+                "enablement": "editorLangId == al && alCodeActions.findRelated"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "submenu": "alCodeAction.findRelated",
+                    "group": "0_navigation@10",
+                    "when": "editorLangId == al && alCodeActions.findRelated"
+                }
+            ],
+            "alCodeAction.findRelated": [
+                {
+                    "command": "alCodeActions.findRelatedCalls"
+                },
+                {
+                    "command": "alCodeActions.findRelatedEventSubscriber"
+                },
+                {
+                    "command": "alCodeActions.findRelatedTriggers"
+                }
+            ]
+        },
+        "submenus": [
+            {
+                "id": "alCodeAction.findRelated",
+                "label": "Find Related (AL CodeActions)"
+            }
+        ],
+        "configuration": [
+            {
+                "title": "AL CodeActions",
+                "properties": {
+                    "alCodeActions.findNewProcedureLocation": {
+                        "type": "string",
+                        "default": "Sort by type, access modifier, range",
+                        "enum": [
+                            "Sort by type, access modifier, name",
+                            "Sort by type, access modifier, range",
+                            "Always ask"
+                        ],
+                        "enumDescriptions": [
+                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally the sort by name is self-explanatory.",
+                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.",
+                            "You are always asked where to place the procedure in the document"
+                        ],
+                        "description": "Specifies the search criteria to find an anchor to add the new procedure in the document."
+                    },
+                    "alCodeActions.varParameters": {
+                        "type": "array",
+                        "default": [
+                            "IsHandled"
+                        ],
+                        "uniqueItems": true,
+                        "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag."
+                    },
+                    "alCodeActions.publisherHasVarParametersOnly": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "All parameters of new publishers will be declared as var-parameters."
+                    }
+                }
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "test": "npm run compile && node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^12.12.42",
+        "@types/vscode": "^1.40.0",
+        "copyfiles": "^2.2.0",
+        "glob": "^7.1.5",
+        "minimist": ">=0.2.1",
+        "mocha": "^6.2.3",
+        "tslint": "^5.20.1",
+        "typescript": "^3.9.3",
+        "vscode-test": "^1.3.0"
+    },
+    "dependencies": {
+        "jsonc-parser": "^3.0.0"
+    },
+    "extensionDependencies": [
+        "andrzejzwierzchowski.al-code-outline"
+    ]
 }

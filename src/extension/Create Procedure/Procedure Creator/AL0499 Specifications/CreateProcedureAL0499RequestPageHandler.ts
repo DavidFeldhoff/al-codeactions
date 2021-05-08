@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
+import { Diagnostic, TextDocument } from 'vscode';
 import { ALVariable } from '../../../Entities/alVariable';
 import { CreateProcedureAL0499 } from '../CreateProcedureAL0499';
 
 export class CreateProcedureAL0499RequestPageHandler extends CreateProcedureAL0499 {
-    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
+    constructor(document: TextDocument, diagnostic: Diagnostic) {
         super(document, diagnostic);
     }
     getMemberAttributes(): string[] {
@@ -11,7 +11,7 @@ export class CreateProcedureAL0499RequestPageHandler extends CreateProcedureAL04
     }
     async getParameters(): Promise<ALVariable[]> {
         return [
-            new ALVariable('${0:RequestPageToHandle}', 'TestRequestPage ${0:RequestPageToHandle}', this.procedureName, true)
+            new ALVariable('${0:v}', 'TestRequestPage ${1}', this.procedureName, true)
         ];
     }
     containsSnippet(): boolean {

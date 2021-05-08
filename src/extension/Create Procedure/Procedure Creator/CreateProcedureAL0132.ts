@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { ICreateProcedure } from "./ICreateProcedure";
 import { SyntaxTree } from "../../AL Code Outline/syntaxTree";
 import { ALObject } from "../../Entities/alObject";
@@ -15,13 +14,14 @@ import { ALObjectParser } from "../../Entity Parser/alObjectParser";
 import { OwnConsole } from "../../console";
 import { AccessModifier } from "../../Entities/accessModifier";
 import { Err } from "../../Utils/Err";
+import { commands, Diagnostic, Location, Position, Range, TextDocument, workspace } from "vscode";
 
 export class CreateProcedureAL0132 implements ICreateProcedure {
     syntaxTree: SyntaxTree | undefined;
-    document: vscode.TextDocument;
-    diagnostic: vscode.Diagnostic;
+    document: TextDocument;
+    diagnostic: Diagnostic;
     objectOfNewProcedure: ALObject | undefined;
-    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
+    constructor(document: TextDocument, diagnostic: Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
     }
@@ -48,12 +48,18 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
 
         let argumentList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(invocationExpressionTreeNode, FullSyntaxTreeNodeKind.getArgumentList(), false) as ALFullSyntaxTreeNode;
-        return await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range), true);
+        let parameters: ALVariable[] = await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, this.document.getText(this.diagnostic.range), true);
+        if (this.isVarForced())
+            parameters.forEach(parameter => { if (parameter.canBeVar) { parameter.isVar = true } })
+        return parameters;
+    }
+    isVarForced(): boolean {
+        return false;
     }
     async getReturnType(): Promise<string | undefined> {
         if (!this.syntaxTree) { return undefined; }
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
-        let invocationExpressionRange: vscode.Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
+        let invocationExpressionRange: Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
         invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
 
         let returnType: string | undefined = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
@@ -63,20 +69,20 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         if (this.objectOfNewProcedure) {
             return this.objectOfNewProcedure;
         }
-        let locations: vscode.Location[] | undefined;
-        let checkPagePart: { isPagePart: boolean, PagePartSourceRange: vscode.Range } | undefined = await this.isPagePartCall(this.document, this.diagnostic.range.start);
+        let locations: Location[] | undefined;
+        let checkPagePart: { isPagePart: boolean, PagePartSourceRange: Range } | undefined = await this.isPagePartCall(this.document, this.diagnostic.range.start);
         if (checkPagePart && checkPagePart.isPagePart) {
-            locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, checkPagePart.PagePartSourceRange.start);
+            locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, checkPagePart.PagePartSourceRange.start);
         } else {
             let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
-            locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
+            locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
             if (locations && locations.length > 0) {
-                let positionOfVariableDeclaration: vscode.Position = locations[0].range.start;
-                locations = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+                let positionOfVariableDeclaration: Position = locations[0].range.start;
+                locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
             }
         }
         if (locations && locations.length > 0) {
-            let otherDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(locations[0].uri);
+            let otherDoc: TextDocument = await workspace.openTextDocument(locations[0].uri);
             let otherDocSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(otherDoc);
             let otherObjectTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getObjectTreeNode(otherDocSyntaxTree, locations[0].range.start);
             if (otherObjectTreeNode) {
@@ -97,7 +103,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     }
 
 
-    private async isPagePartCall(document: vscode.TextDocument, positionOfMissingProcedure: vscode.Position): Promise<{ isPagePart: boolean, PagePartSourceRange: vscode.Range } | undefined> {
+    private async isPagePartCall(document: TextDocument, positionOfMissingProcedure: Position): Promise<{ isPagePart: boolean, PagePartSourceRange: Range } | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         //Level 1: [0] MemberAccessExpression, [1] Identifier: MissingProcedure, 
         //Level 2: [0] MemberAccessExpression, [1] Identifier: Page,
@@ -118,7 +124,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
                             pagePart.childNodes[0].kind == FullSyntaxTreeNodeKind.getIdentifierName() &&
                             document.getText(TextRangeExt.createVSCodeRange(pagePart.childNodes[0].fullSpan)).toLowerCase() == pagePartName);
                         if (pagePart && pagePart.childNodes && pagePart.childNodes.length >= 2) {
-                            let rangeOfObjectReference: vscode.Range = TextRangeExt.createVSCodeRange(pagePart.childNodes[1].fullSpan);
+                            let rangeOfObjectReference: Range = TextRangeExt.createVSCodeRange(pagePart.childNodes[1].fullSpan);
                             return { isPagePart: true, PagePartSourceRange: rangeOfObjectReference };
                         }
                     }

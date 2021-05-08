@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { Range, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -6,6 +6,7 @@ import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALVariable } from "../Entities/alVariable";
+import { Config } from '../Utils/config';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { TypeDetective } from '../Utils/typeDetective';
@@ -21,20 +22,20 @@ export class ALParameterParser {
         }
         return parameterString;
     }
-    static async parseParameterTreeNodeToALVariable(document: vscode.TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
+    static async parseParameterTreeNodeToALVariable(document: TextDocument, parameterTreeNode: ALFullSyntaxTreeNode, modifyVarName: boolean): Promise<ALVariable> {
         if (!parameterTreeNode.kind || parameterTreeNode.kind !== FullSyntaxTreeNodeKind.getParameter()) {
             Err._throw('That\'s not a parameter tree node.');
         }
         if (parameterTreeNode.childNodes) {
             let identifierTreeNode: ALFullSyntaxTreeNode = parameterTreeNode.childNodes[0];
-            let rangeOfName: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
+            let rangeOfName: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
             let identifierName = document.getText(rangeOfName);
             let typeTreeNode: ALFullSyntaxTreeNode = parameterTreeNode.childNodes[1];
-            let rangeOfType: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
+            let rangeOfType: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(typeTreeNode.fullSpan));
             let type = document.getText(rangeOfType);
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
             let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeOfType.start);
-            let rangeOfFullDeclaration: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
+            let rangeOfFullDeclaration: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(parameterTreeNode.fullSpan));
             let isVar: boolean = document.getText(rangeOfFullDeclaration).toLowerCase().startsWith('var');
             let variable: ALVariable = new ALVariable(identifierName, type, methodOrTriggerTreeNode?.name, isVar);
             if (modifyVarName)
@@ -44,7 +45,7 @@ export class ALParameterParser {
             Err._throw('Variable declaration has no child nodes.');
         }
     }
-    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: vscode.TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {
+    public static async createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode: ALFullSyntaxTreeNode, document: TextDocument, modifyVarNames: boolean): Promise<ALVariable[]> {
         let variables: ALVariable[] = [];
         if (!argumentListTreeNode.childNodes) {
             return variables;
@@ -52,13 +53,22 @@ export class ALParameterParser {
 
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, TextRangeExt.createVSCodeRange(argumentListTreeNode.fullSpan).start);
+        let returnVariableName: string | undefined
+        if (methodOrTriggerTreeNode) {
+            let returnValueNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getReturnValue(), true);
+            if (returnValueNode && returnValueNode.childNodes && returnValueNode.childNodes.length > 1 && returnValueNode.childNodes[0].kind == FullSyntaxTreeNodeKind.getIdentifierName())
+                returnVariableName = returnValueNode.childNodes[0].identifier
+        }
         for (let i = 0; i < argumentListTreeNode.childNodes.length; i++) {
             let typeDetective: TypeDetective = new TypeDetective(document, argumentListTreeNode.childNodes[i]);
             await typeDetective.analyzeTypeOfTreeNode();
             let type: string = typeDetective.getType();
             let name: string = typeDetective.getName();
             let isVar: boolean = typeDetective.getIsVar() || typeDetective.getIsTemporary();
-            let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar);
+            let canBeVar: boolean = typeDetective.getCanBeVar();
+            let variable: ALVariable = new ALVariable(name, type, methodOrTriggerTreeNode?.name, isVar, canBeVar);
+            if (returnVariableName && returnVariableName.removeQuotes().toLowerCase() == name.removeQuotes().toLowerCase())
+                variable.isResultParameter = true
             if (modifyVarNames)
                 variable.sanitizeName();
             variable = ALParameterParser.getUniqueVariableName(variables, variable);
@@ -67,17 +77,37 @@ export class ALParameterParser {
 
         return variables;
     }
-    public static async createParametersOutOfArgumentListTreeNode(document: vscode.TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
+    public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
         let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
+        let varParameters: string[] = Config.getVarParameters(document.uri).map(param => param.toLowerCase().removeQuotes())
+        let isRegex: RegExp = /^\/(?<source>.*)\/(?<flags>\w*)$/
+        let varParametersStrings: string[] = []
+        let varParametersRegex: RegExp[] = []
+        for (const varParameter of varParameters) {
+            if (isRegex.test(varParameter)) {
+                let match: RegExpMatchArray = varParameter.match(isRegex)!
+                let regex = new RegExp(match.groups!["source"], match.groups!["flags"])
+                varParametersRegex.push(regex)
+            }
+            else
+                varParametersStrings.push(varParameter)
+        }
+
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
+            if (parameter.isResultParameter)
+                parameter.isVar = true;
+            if (varParametersStrings.includes(parameter.name.removeQuotes().toLowerCase()))
+                parameter.isVar = true;
+            if (varParametersRegex.some(regex => regex.test(parameter.name.removeQuotes())))
+                parameter.isVar = true;
         });
         return parameters;
     }
 
-    static async getArgumentRangeArrayOutOfArgumentListRange(document: vscode.TextDocument, rangeOfParameterCall: vscode.Range): Promise<vscode.Range[]> {
-        let vscodeRangeArr: vscode.Range[] = [];
+    static async getArgumentRangeArrayOutOfArgumentListRange(document: TextDocument, rangeOfParameterCall: Range): Promise<Range[]> {
+        let vscodeRangeArr: Range[] = [];
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let invocationExpression: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(rangeOfParameterCall.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
         if (invocationExpression) {

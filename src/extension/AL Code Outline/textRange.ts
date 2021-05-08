@@ -1,5 +1,4 @@
-
-import * as vscode from 'vscode';
+import { Range } from 'vscode';
 import { TextPosition } from "./textPosition";
 
 export class TextRange {
@@ -26,7 +25,7 @@ export class TextRange {
         return val;
     }
 
-    public intersectVsRange(range: vscode.Range): boolean {
+    public intersectVsRange(range: Range): boolean {
         if (!this.start || !this.end) {
             return false;
         }
@@ -34,7 +33,7 @@ export class TextRange {
             (this.end.compareVsPosition(range.start) >= 0));
     }
 
-    public equalsVsRange(range: vscode.Range): boolean {
+    public equalsVsRange(range: Range): boolean {
         if (!this.start || !this.end) {
             return false;
         }
@@ -42,17 +41,17 @@ export class TextRange {
             (this.end.character === range.end.character) && (this.end.line === range.end.line));
     }
 
-    public insideVsRange(range: vscode.Range): boolean {
+    public insideVsRange(range: Range): boolean {
         if (!this.start || !this.end) {
             return false;
         }
         return ((this.start.compareVsPosition(range.start) <= 0) &&
             (this.end.compareVsPosition(range.end) >= 0));
     }
-    public createVSCodeRange(): vscode.Range | undefined {
+    public createVSCodeRange(): Range | undefined {
         if (!this.start || !this.end) {
             return undefined;
         }
-        return new vscode.Range(this.start.line, this.start.character, this.end.line, this.end.character);
+        return new Range(this.start.line, this.start.character, this.end.line, this.end.character);
     }
 }

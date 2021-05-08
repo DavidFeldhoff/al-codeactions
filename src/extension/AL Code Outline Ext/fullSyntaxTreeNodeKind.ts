@@ -272,4 +272,21 @@ export class FullSyntaxTreeNodeKind {
             FullSyntaxTreeNodeKind.getExpressionStatement()
         ];
     }
+    public static getAllObjectKinds(): string[]{
+        return [
+            FullSyntaxTreeNodeKind.getTableObject(),
+            FullSyntaxTreeNodeKind.getTableExtensionObject(),
+            FullSyntaxTreeNodeKind.getPageObject(),
+            FullSyntaxTreeNodeKind.getPageExtensionObject(),
+            FullSyntaxTreeNodeKind.getPageCustomizationObject(),
+            FullSyntaxTreeNodeKind.getCodeunitObject(),
+            FullSyntaxTreeNodeKind.getReportObject(),
+            //reportextension
+            FullSyntaxTreeNodeKind.getXmlPortObject(),
+            FullSyntaxTreeNodeKind.getQueryObject(),
+            FullSyntaxTreeNodeKind.getEnumType(),
+            FullSyntaxTreeNodeKind.getEnumExtensionType(),
+            FullSyntaxTreeNodeKind.getInterface()
+        ];
+    }
 }

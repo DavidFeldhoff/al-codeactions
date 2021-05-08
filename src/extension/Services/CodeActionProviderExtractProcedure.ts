@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { TextDocument, Range, CodeAction, Position, Location, commands, CodeActionKind, WorkspaceEdit } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -17,15 +17,14 @@ import { ALVariableParser } from '../Entity Parser/alVariableParser';
 import { RangeAnalyzer } from '../Extract Procedure/rangeAnalyzer';
 import { ReturnTypeAnalyzer } from '../Extract Procedure/returnTypeAnalyzer';
 import { RenameMgt } from '../renameMgt';
-import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { ICodeActionProvider } from './ICodeActionProvider';
 
 export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
-    document: vscode.TextDocument;
-    range: vscode.Range;
-    constructor(document: vscode.TextDocument, range: vscode.Range) {
+    document: TextDocument;
+    range: Range;
+    constructor(document: TextDocument, range: Range) {
         this.document = document;
         this.range = range;
     }
@@ -36,15 +35,17 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         if (this.document.lineAt(this.range.start).firstNonWhitespaceCharacterIndex <= 4 ||
             this.document.lineAt(this.range.end).firstNonWhitespaceCharacterIndex <= 4)
             return false;
+        if (this.document.uri.scheme == 'al-preview')
+            return false
         return true;
     }
-    async createCodeActions(): Promise<vscode.CodeAction[]> {
+    async createCodeActions(): Promise<CodeAction[]> {
         let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(this.document, this.range);
         await rangeAnalyzer.analyze();
         if (!rangeAnalyzer.isValidToExtract()) {
             return [];
         }
-        let rangeExpanded: vscode.Range = rangeAnalyzer.getExpandedRange();
+        let rangeExpanded: Range = rangeAnalyzer.getExpandedRange();
         let treeNodeStart: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractStart();
         let treeNodeEnd: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractEnd();
 
@@ -59,15 +60,10 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(this.document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
-        let codeActionToCreateProcedure: vscode.CodeAction | undefined;
-        codeActionToCreateProcedure = await this.createCodeAction(this.document, procedureCallingText, procedureObject, rangeExpanded);
-        if (!codeActionToCreateProcedure) {
-            return [];
-        } else {
-            return [codeActionToCreateProcedure];
-        }
+        let codeActionToCreateProcedure: CodeAction = this.createCodeAction(this.document, procedureCallingText, procedureObject, rangeExpanded);
+        return [codeActionToCreateProcedure];
     }
-    public async provideProcedureObjectForCodeAction(rangeExpanded: vscode.Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
+    public async provideProcedureObjectForCodeAction(rangeExpanded: Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
         if (!procedureOrTriggerTreeNode) {
@@ -109,7 +105,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         return returnVariableTreeNode;
     }
 
-    async createProcedureObject(document: vscode.TextDocument, rangeExpanded: vscode.Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
+    async createProcedureObject(document: TextDocument, rangeExpanded: Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let procedure: ALProcedure;
         let parameters: ALVariable[] = [];
         let variables: ALVariable[] = [];
@@ -179,7 +175,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     getVariablesWhichBecomeNormalParameters(): any[] {
         return [];
     }
-    async getVariablesWhichBecomeVarParameters(variablesNeeded: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeSelected: vscode.Range): Promise<ALFullSyntaxTreeNode[]> {
+    async getVariablesWhichBecomeVarParameters(variablesNeeded: ALFullSyntaxTreeNode[], document: TextDocument, rangeSelected: Range): Promise<ALFullSyntaxTreeNode[]> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeSelected.start);
         if (!methodOrTriggerTreeNode)
@@ -189,9 +185,9 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             return variablesNeeded;
         }
 
-        let bodyRangeOfProcedure: vscode.Range = TextRangeExt.createVSCodeRange(bodyTreeNode.fullSpan);
-        let rangeBeforeSelection: vscode.Range = new vscode.Range(bodyRangeOfProcedure.start, rangeSelected.start);
-        let rangeAfterSelection: vscode.Range = new vscode.Range(rangeSelected.end, bodyRangeOfProcedure.end);
+        let bodyRangeOfProcedure: Range = TextRangeExt.createVSCodeRange(bodyTreeNode.fullSpan);
+        let rangeBeforeSelection: Range = new Range(bodyRangeOfProcedure.start, rangeSelected.start);
+        let rangeAfterSelection: Range = new Range(rangeSelected.end, bodyRangeOfProcedure.end);
 
         let variablesBecomingVarParameters: any[] = [];
         for (let i = 0; i < variablesNeeded.length; i++) {
@@ -202,7 +198,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             let isUsedOutsideSelectedRange: boolean = false;
 
             //variableDeclaration and variableDeclarationName behave the same here
-            let positionOfVariableDeclaration: vscode.Position = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variable.fullSpan)).start;
+            let positionOfVariableDeclaration: Position = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variable.fullSpan)).start;
             if (await this.isOneOfReferencesInRange(document, positionOfVariableDeclaration, rangeBeforeSelection)) {
                 isUsedOutsideSelectedRange = true;
             } else if (await this.isOneOfReferencesInRange(document, positionOfVariableDeclaration, rangeAfterSelection)) {
@@ -223,7 +219,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     getParametersWhichBecomeVarParameters(parametersNeeded: ALFullSyntaxTreeNode[]): ALFullSyntaxTreeNode[] {
         return parametersNeeded;
     }
-    private async getSourceTableTypeOfCodeunitOnRunTrigger(document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<string | undefined> {
+    private async getSourceTableTypeOfCodeunitOnRunTrigger(document: TextDocument, rangeExpanded: Range): Promise<string | undefined> {
         let textOfSelectedRange: string = document.getText(rangeExpanded);
         if (textOfSelectedRange.match(/\bRec\b/) || textOfSelectedRange.match(/\bxRec\b/)) {
             let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
@@ -236,7 +232,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
                         let cuObject: ALFullSyntaxTreeNode = cuObjects[0];
                         let valueOfPropertyTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getValueOfPropertyName(document, cuObject, 'TableNo');
                         if (valueOfPropertyTreeNode) {
-                            let rangeOfTableNo: vscode.Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
+                            let rangeOfTableNo: Range = TextRangeExt.createVSCodeRange(valueOfPropertyTreeNode.fullSpan);
                             let type = 'Record ' + document.getText(rangeOfTableNo);
                             return type;
                         }
@@ -252,7 +248,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         return false;
     }
 
-    async getParametersNeededInNewProcedure(parameters: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeSelected: vscode.Range): Promise<ALFullSyntaxTreeNode[]> {
+    async getParametersNeededInNewProcedure(parameters: ALFullSyntaxTreeNode[], document: TextDocument, rangeSelected: Range): Promise<ALFullSyntaxTreeNode[]> {
         let parametersNeeded: ALFullSyntaxTreeNode[] = [];
         for (let i = 0; i < parameters.length; i++) {
             let parameterTreeNode: ALFullSyntaxTreeNode = parameters[i];
@@ -260,14 +256,14 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             if (!identifierTreeNode) {
                 continue;
             }
-            let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
+            let range: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
             if (await this.isOneOfReferencesInRange(document, range.start, rangeSelected)) {
                 parametersNeeded.push(parameterTreeNode);
             }
         }
         return parametersNeeded;
     }
-    async getALVariablesNeededInNewProcedure(localVariableTreeNodes: ALFullSyntaxTreeNode[], document: vscode.TextDocument, rangeSelected: vscode.Range): Promise<ALFullSyntaxTreeNode[]> {
+    async getALVariablesNeededInNewProcedure(localVariableTreeNodes: ALFullSyntaxTreeNode[], document: TextDocument, rangeSelected: Range): Promise<ALFullSyntaxTreeNode[]> {
         let variablesNeeded: ALFullSyntaxTreeNode[] = [];
         for (let i = 0; i < localVariableTreeNodes.length; i++) {
             let localVariable: ALFullSyntaxTreeNode = localVariableTreeNodes[i];
@@ -275,7 +271,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
 
             switch (localVariable.kind) {
                 case FullSyntaxTreeNodeKind.getVariableDeclaration():
-                    let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(localVariable.fullSpan));
+                    let range: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(localVariable.fullSpan));
                     if (await this.isOneOfReferencesInRange(document, range.start, rangeSelected)) {
                         variablesNeeded.push(localVariable);
                     }
@@ -284,7 +280,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
                     let variableDeclarationNames: ALFullSyntaxTreeNode[] = [];
                     ALFullSyntaxTreeNodeExt.collectChildNodes(localVariable, FullSyntaxTreeNodeKind.getVariableDeclarationName(), false, variableDeclarationNames);
                     for (let x = 0; x < variableDeclarationNames.length; x++) {
-                        let range: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[x].fullSpan));
+                        let range: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[x].fullSpan));
                         if (await this.isOneOfReferencesInRange(document, range.start, rangeSelected)) {
                             variablesNeeded.push(variableDeclarationNames[x]);
                         }
@@ -294,7 +290,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         return variablesNeeded;
     }
-    async getReturnVariableNeeded(returnVariableTreeNode: ALFullSyntaxTreeNode | undefined, document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<ALFullSyntaxTreeNode | undefined> {
+    async getReturnVariableNeeded(returnVariableTreeNode: ALFullSyntaxTreeNode | undefined, document: TextDocument, rangeExpanded: Range): Promise<ALFullSyntaxTreeNode | undefined> {
         if (returnVariableTreeNode && returnVariableTreeNode.childNodes) {
             let rangeOfIdentifier = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(returnVariableTreeNode.childNodes[0].fullSpan));
             if (await this.isOneOfReferencesInRange(document, rangeOfIdentifier.start, rangeExpanded)) {
@@ -303,8 +299,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         return undefined;
     }
-    private async isOneOfReferencesInRange(document: vscode.TextDocument, positionToCallReference: vscode.Position, rangeToCheck: vscode.Range): Promise<boolean> {
-        let references: vscode.Location[] | undefined = await vscode.commands.executeCommand('vscode.executeReferenceProvider', document.uri, positionToCallReference);
+    private async isOneOfReferencesInRange(document: TextDocument, positionToCallReference: Position, rangeToCheck: Range): Promise<boolean> {
+        let references: Location[] | undefined = await commands.executeCommand('vscode.executeReferenceProvider', document.uri, positionToCallReference);
         if (references && references.length > 0) {
             for (let reference of references) {
                 if (rangeToCheck.contains(reference.range)) {
@@ -356,104 +352,17 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         return undefined;
     }
-    private async createCodeAction(currentDocument: vscode.TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: vscode.Range): Promise<vscode.CodeAction | undefined> {
-        let codeActionToCreateProcedure: vscode.CodeAction = await this.createFixToCreateProcedure(procedureToCreate, procedureCallingText, currentDocument, rangeExpanded);
-
-        return codeActionToCreateProcedure;
-    }
-
-    private async createFixToCreateProcedure(procedure: ALProcedure, procedureCallingText: string, document: vscode.TextDocument, rangeExpanded: vscode.Range): Promise<vscode.CodeAction> {
-        const fix = new vscode.CodeAction(`Extract to procedure`, vscode.CodeActionKind.QuickFix);
-        fix.edit = new vscode.WorkspaceEdit();
-
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(rangeExpanded.end.line, procedure);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
-        let createProcedure: CreateProcedure = new CreateProcedure();
-        let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
-        textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-        fix.edit.insert(document.uri, position, textToInsert);
-
-        await this.removeLocalVariables(fix.edit, document, rangeExpanded.start, procedure.variables);
-        let linesDeleted: number = 0;
-        fix.edit.entries().filter(
-            entry => entry[1].filter(
-                textEdit => textEdit.newText == '' && textEdit.range.start.character == 0 && textEdit.range.end.character == 0).forEach(
-                    deleteEdit => linesDeleted += deleteEdit.range.end.line - deleteEdit.range.start.line));
-        fix.edit.replace(document.uri, rangeExpanded, procedureCallingText);
-        fix.command = {
-            command: Command.renameCommand,
-            arguments: [new vscode.Location(document.uri, rangeExpanded.start.translate(linesDeleted * -1, undefined))],
+    private createCodeAction(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range): CodeAction {
+        let codeAction = new CodeAction(`Extract to procedure`, CodeActionKind.QuickFix);
+        codeAction.command = {
+            command: Command.extractProcedure,
+            arguments: [currentDocument, procedureCallingText, procedureToCreate, rangeExpanded],
             title: 'Extract Method'
         };
-        return fix;
+        return codeAction;
     }
-    private async removeLocalVariables(edit: vscode.WorkspaceEdit, document: vscode.TextDocument, start: vscode.Position, variables: ALVariable[]) {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(start, [FullSyntaxTreeNodeKind.getTriggerDeclaration(), FullSyntaxTreeNodeKind.getMethodDeclaration()]);
-        if (!methodOrTriggerTreeNode)
-            return;
-        let varSection: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
-        if (!varSection)
-            return;
 
-        let allVariableDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, allVariableDeclarations);
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclarationName(), true, allVariableDeclarations);
-        if (allVariableDeclarations.length == variables.length) {
-            edit.delete(document.uri, TextRangeExt.createVSCodeRange(varSection.fullSpan));
-            return;
-        }
-
-        let variableRangesOfNormalDeclarations: { name: string, range: vscode.Range }[] = [];
-        let variableDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableDeclaration(), false, variableDeclarations);
-        for (const variableDeclaration of variableDeclarations) {
-            let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclaration, false) as string;
-            let range: vscode.Range = TextRangeExt.createVSCodeRange(variableDeclaration.fullSpan);
-            variableRangesOfNormalDeclarations.push({ name: varName, range: range });
-        }
-        for (const variableRangeOfNormalDeclaration of variableRangesOfNormalDeclarations) {
-            if (variables.some(variable => variable.name.toLowerCase() == variableRangeOfNormalDeclaration.name.toLowerCase()))
-                edit.delete(document.uri, variableRangeOfNormalDeclaration.range);
-        }
-
-        let variableListDeclarations: ALFullSyntaxTreeNode[] = [];
-        ALFullSyntaxTreeNodeExt.collectChildNodes(varSection, FullSyntaxTreeNodeKind.getVariableListDeclaration(), false, variableListDeclarations);
-        for (const variableListDeclaration of variableListDeclarations) {
-            let variableRangesOfDeclarationNames: { name: string, range: vscode.Range }[] = [];
-            let variableDeclarationNames: ALFullSyntaxTreeNode[] = [];
-            ALFullSyntaxTreeNodeExt.collectChildNodes(variableListDeclaration, FullSyntaxTreeNodeKind.getVariableDeclarationName(), false, variableDeclarationNames);
-            let deleteWholeListDeclaration: boolean = true;
-            for (let i = 0; i < variableDeclarationNames.length; i++) {
-                let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclarationNames[i], false) as string;
-                if (!variables.some(variable => variable.name.toLowerCase() == varName.toLowerCase()))
-                    deleteWholeListDeclaration = false;
-
-                let rangeToRemove: vscode.Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[i].fullSpan));
-                variableRangesOfDeclarationNames.push({ name: varName, range: rangeToRemove })
-            }
-            if (deleteWholeListDeclaration) {
-                edit.delete(document.uri, TextRangeExt.createVSCodeRange(variableListDeclaration.fullSpan));
-            } else {
-                let previousOneDeleted: boolean = false;
-                for (let i = variableRangesOfDeclarationNames.length - 1; i >= 0; i--) {
-                    if (variables.some(variable => variable.name.toLowerCase() == variableRangesOfDeclarationNames[i].name.toLowerCase())) {
-                        if (i != 0)
-                            edit.delete(document.uri, new vscode.Range(variableRangesOfDeclarationNames[i - 1].range.end, variableRangesOfDeclarationNames[i].range.end));
-                        else if (i == 0 && previousOneDeleted) {
-                            edit.delete(document.uri, variableRangesOfDeclarationNames[i].range);
-                        } else if (i == 0 && !previousOneDeleted) {
-                            edit.delete(document.uri, new vscode.Range(variableRangesOfDeclarationNames[i].range.start, variableRangesOfDeclarationNames[i + 1].range.start));
-                        }
-                        previousOneDeleted = true;
-                    } else
-                        previousOneDeleted = false;
-                }
-            }
-        }
-    }
-    private fixIndentation(document: vscode.TextDocument, rangeExpanded: vscode.Range, selectedText: string) {
+    private fixIndentation(document: TextDocument, rangeExpanded: Range, selectedText: string) {
         let firstNonWhiteSpaceCharacter = document.lineAt(rangeExpanded.start.line).firstNonWhitespaceCharacterIndex;
         let whiteSpacesSelectedText = '';
         for (let i = 0; i < firstNonWhiteSpaceCharacter; i++) {

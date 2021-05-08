@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
+import { Diagnostic, TextDocument } from 'vscode';
 import { ALVariable } from '../../../Entities/alVariable';
 import { CreateProcedureAL0499 } from '../CreateProcedureAL0499';
 
 export class CreateProcedureAL0499RecallNotificationHandler extends CreateProcedureAL0499 {
-    constructor(document: vscode.TextDocument, diagnostic: vscode.Diagnostic) {
+    constructor(document: TextDocument, diagnostic: Diagnostic) {
         super(document, diagnostic);
     }
     getMemberAttributes(): string[] {

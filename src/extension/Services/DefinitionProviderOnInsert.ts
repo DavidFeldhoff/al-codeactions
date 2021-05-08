@@ -1,8 +1,9 @@
 import { CancellationToken, DefinitionProvider, Location, Position, Range, TextDocument } from 'vscode';
 import { BuiltInFieldFunctionDefinition } from '../DefinitionsOnInsert/BuiltInFieldFunctionDefinition';
 import { BuiltInFunctionDefinitionInterface } from '../DefinitionsOnInsert/BuiltInFunctionDefinitionInterface';
+import { BuiltInFunctions } from '../DefinitionsOnInsert/BuiltInFunctions';
 import { BuiltInTableDefinitionReference } from '../DefinitionsOnInsert/BuiltInTableFunctionDefinition';
-export class DefinitionProviderOnInsert implements DefinitionProvider {
+export class DefinitionProviderCallToTrigger implements DefinitionProvider {
 
     async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location[]> {
         let wordRange: Range | undefined = document.getWordRangeAtPosition(position);
@@ -13,9 +14,10 @@ export class DefinitionProviderOnInsert implements DefinitionProvider {
         let builtInFunctionReferenceProvider: BuiltInFunctionDefinitionInterface[] = [new BuiltInTableDefinitionReference(), new BuiltInFieldFunctionDefinition()]
         for (let i = 0; i < builtInFunctionReferenceProvider.length; i++) {
             let refProvider: BuiltInFunctionDefinitionInterface = builtInFunctionReferenceProvider[i];
-            if (!refProvider.getBuiltInFunctionsSupported().includes(word.toLowerCase()))
+            let builtInFunction: BuiltInFunctions = word.toLowerCase() as BuiltInFunctions;
+            if (!refProvider.getBuiltInFunctionsSupported().includes(builtInFunction))
                 continue;
-            refProvider.setBuiltInFunction(word);
+            refProvider.setBuiltInFunction(builtInFunction);
             if (await refProvider.findLocation(document, wordRange)) {
                 let locationOfTrigger: Location[] = await this.getLocationsOfTriggeredFunctions(refProvider);
                 if (locationOfTrigger.length > 0)

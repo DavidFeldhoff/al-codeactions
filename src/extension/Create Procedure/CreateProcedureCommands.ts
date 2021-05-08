@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { commands, Diagnostic, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
@@ -26,20 +26,20 @@ export class CreateProcedureCommands {
     public static createProcedureCommand: string = 'alcodeactions.createProcedure';
     public static createHandlerCommand: string = 'alcodeactions.createHandler';
 
-    static async addHandler(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): Promise<any> {
+    static async addHandler(document: TextDocument, diagnostic: Diagnostic): Promise<any> {
         let supportedHandlers: string[] = [];
         for (var enumMember in SupportedHandlers) {
             supportedHandlers.push(enumMember.toString());
         }
-        let handlerToAdd: string | undefined = await vscode.window.showQuickPick(supportedHandlers);
+        let handlerToAdd: string | undefined = await window.showQuickPick(supportedHandlers);
         if (!handlerToAdd) {
             return;
         }
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
-        vscode.commands.executeCommand(this.createProcedureCommand, document, diagnostic, procedure);
+        commands.executeCommand(this.createProcedureCommand, document, procedure);
     }
-    private static getCreateProcedureImplementation(handlerToAdd: string, document: vscode.TextDocument, diagnostic: vscode.Diagnostic): ICreateProcedure {
+    private static getCreateProcedureImplementation(handlerToAdd: string, document: TextDocument, diagnostic: Diagnostic): ICreateProcedure {
         switch (handlerToAdd) {
             case SupportedHandlers.ConfirmHandler:
                 return new CreateProcedureAL0499ConfirmHandler(document, diagnostic);
@@ -70,9 +70,10 @@ export class CreateProcedureCommands {
         }
     }
 
-    public static async addProcedureToSourceCode(document: vscode.TextDocument, diagnostic: vscode.Diagnostic, procedure: ALProcedure) {
-        let lineNo: number | undefined = diagnostic.code?.toString() === SupportedDiagnosticCodes.AL0132.toString() ? undefined : diagnostic.range.start.line;
-        let position: vscode.Position = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(lineNo, procedure);
+    public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure) {
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
+        if (!position)
+            return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
 
         if (procedure.isReturnTypeRequired()) {
@@ -84,29 +85,33 @@ export class CreateProcedureCommands {
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
             let textToInsert = createProcedure.createProcedureDefinition(procedure, false, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            let snippetString: vscode.SnippetString = new vscode.SnippetString(textToInsert);
-            let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);
+            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
+            let snippetString: SnippetString = new SnippetString(textToInsert);
+            let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
+            editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
             editor.insertSnippet(snippetString, position);
         } else {
             let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            let workspaceEdit = new vscode.WorkspaceEdit();
+            let workspaceEdit = new WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
-            await vscode.workspace.applyEdit(workspaceEdit);
+            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
+            await workspace.applyEdit(workspaceEdit);
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
                 if (lineOfBodyStart !== undefined) {
                     let lineToPlaceCursor: number = lineOfBodyStart + position.line;
-                    let positionToPlaceCursor: vscode.Position = new vscode.Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
-                    let editor: vscode.TextEditor = await CreateProcedureCommands.getEditor(document);
-                    editor.selection = new vscode.Selection(positionToPlaceCursor, positionToPlaceCursor);
+                    let positionToPlaceCursor: Position = new Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
+                    let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
+                    editor.selection = new Selection(positionToPlaceCursor, positionToPlaceCursor);
+                    editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
                 }
             }
         }
     }
 
     private static async askUserForMandatoryReturnType(): Promise<string | undefined> {
-        let returnType: string | undefined = await vscode.window.showQuickPick(
+        let returnType: string | undefined = await window.showQuickPick(
             [
                 'Text',
                 'Decimal',
@@ -132,7 +137,7 @@ export class CreateProcedureCommands {
             switch (returnType) {
                 case 'Text':
                 case 'Code':
-                    let length: string | undefined = await vscode.window.showInputBox({
+                    let length: string | undefined = await window.showInputBox({
                         placeHolder: 'Specify the length',
                         validateInput: CreateProcedureCommands.checkNumbersOnly
                     })
@@ -143,7 +148,7 @@ export class CreateProcedureCommands {
                     let api: any = (await ALCodeOutlineExtension.getInstance()).getAPI()
                     let enums: string[] = await api.alLangProxy.getEnumList(undefined)
                     if (enums.length > 0) {
-                        let chosenEnum: string | undefined = await vscode.window.showQuickPick(
+                        let chosenEnum: string | undefined = await window.showQuickPick(
                             enums,
                             {
                                 placeHolder: 'Choose the enum type'
@@ -164,13 +169,13 @@ export class CreateProcedureCommands {
             return ''
     }
 
-    private static async getEditor(document: vscode.TextDocument) {
-        let editor: vscode.TextEditor;
-        if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document === document) {
-            editor = vscode.window.activeTextEditor;
+    private static async getEditor(document: TextDocument) {
+        let editor: TextEditor;
+        if (window.activeTextEditor && window.activeTextEditor.document === document) {
+            editor = window.activeTextEditor;
         }
         else {
-            editor = await vscode.window.showTextDocument(document.uri);
+            editor = await window.showTextDocument(document.uri);
         }
         return editor;
     }

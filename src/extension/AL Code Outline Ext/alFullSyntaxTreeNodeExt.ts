@@ -19,6 +19,12 @@ export class ALFullSyntaxTreeNodeExt {
             }
         }
     }
+    public static collectChildNodesOfKinds(treeNode: ALFullSyntaxTreeNode, searchForNodeKinds: string[], searchAllLevels: boolean): ALFullSyntaxTreeNode[] {
+        let outList: ALFullSyntaxTreeNode[] = [];
+        for (let searchForNodeKind of searchForNodeKinds)
+            ALFullSyntaxTreeNodeExt.collectChildNodes(treeNode, searchForNodeKind, searchAllLevels, outList);
+        return outList;
+    }
     public static getFirstChildNodeOfKind(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean): ALFullSyntaxTreeNode | undefined {
         let outList: ALFullSyntaxTreeNode[] = [];
         this.collectChildNodes(treeNode, kindOfSyntaxTreeNode, searchAllLevels, outList);
@@ -35,7 +41,7 @@ export class ALFullSyntaxTreeNodeExt {
 
         let objectNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
         if (removeQuotes)
-            return objectNameWithQuotes.replace(/^"(.*)"$/, '$1');
+            return objectNameWithQuotes.removeQuotes()
         else
             return objectNameWithQuotes;
     }

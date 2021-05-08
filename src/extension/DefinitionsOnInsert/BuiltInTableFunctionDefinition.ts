@@ -1,22 +1,23 @@
-import { commands, Location, Position, Range, TextDocument, Uri, workspace } from "vscode";
+import { commands, Location, Position, Range, TextDocument } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import * as ALObjectDesigner from '../ALObjectDesigner/api';
-import { ObjectDesignerExt } from "../ALObjectDesigner/ObjectDesignerExt";
+import { ALObject } from "../Entities/alObject";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { BuiltInFunctionDefinitionInterface } from "./BuiltInFunctionDefinitionInterface";
+import { BuiltInFunctions } from "./BuiltInFunctions";
 
 export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitionInterface {
     location: Location | undefined;
-    builtInFunction: string = '';
-    getBuiltInFunctionsSupported(): string[] {
-        return ['insert', 'modify', 'delete', 'rename'];
+    builtInFunction: BuiltInFunctions | undefined
+
+    getBuiltInFunctionsSupported(): BuiltInFunctions[] {
+        return [BuiltInFunctions.Insert, BuiltInFunctions.Modify, BuiltInFunctions.Delete, BuiltInFunctions.Rename];
     }
-    setBuiltInFunction(builtInFunction: string) {
+    setBuiltInFunction(builtInFunction: BuiltInFunctions) {
         this.builtInFunction = builtInFunction;
     }
     async findLocation(document: TextDocument, wordRange: Range): Promise<boolean> {
@@ -36,20 +37,30 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
             return [];
         let locations: Location[] = [];
 
-        let tableName: string | undefined = await this.getTableName(this.location);
-        if (tableName) {
-            let eventSubscribersNodes: Location[] = await this.getEventSubscriberNodes(tableName);
-            locations = locations.concat(eventSubscribersNodes);
-
-            let tableExtensionTriggers: Location[] = await this.getTriggersOfTableExtensions(tableName);
-            locations = locations.concat(tableExtensionTriggers);
-        }
+        // let tableName: string | undefined = await this.getTableName(this.location);
+        // if (tableName) {
+            // let tableExtensionTriggers: Location[] = await this.getTriggersOfTableExtensions(tableName);
+            // locations = locations.concat(tableExtensionTriggers);
+        // }
 
         let triggerOfBaseTable: Location | undefined = await this.getTriggerOfBaseTable(this.location);
         if (triggerOfBaseTable)
             locations.push(triggerOfBaseTable);
 
         return locations;
+    }
+    async getTableName(location: Location): Promise<string | undefined> {
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(location.uri.fsPath);
+        let objectTreeNode = SyntaxTreeExt.getObjectTreeNode(syntaxTree, location.range.start);
+        if (objectTreeNode) {
+            switch (objectTreeNode.kind) {
+                case FullSyntaxTreeNodeKind.getTableObject():
+                    return objectTreeNode.name;
+                case FullSyntaxTreeNodeKind.getTableExtensionObject():
+                    break;
+            }
+        }
+        return undefined;
     }
     async existsExplicitWith(document: TextDocument, wordRange: Range): Promise<boolean> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
@@ -125,104 +136,8 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
         }
         return undefined;
     }
-    async getTriggersOfTableExtensions(tableName: string): Promise<Location[]> {
-        let documents: TextDocument[] = await ObjectDesignerExt.getTableExtensions(tableName);
-        let tableExtensionTriggerLocations: Location[] = [];
-        for (const document of documents) {
-            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-            let triggerTreeNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getTriggerDeclaration());
-            for (let n = 0; n < triggerTreeNodes.length; n++) {
-                let identifierTreeNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(triggerTreeNodes[n], FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
-                let identifierRange: Range = TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan);
-                let triggerName: string = document.getText(identifierRange);
-                let validTriggers: string[] = [
-                    'on' + this.builtInFunction.toLowerCase(),
-                    'onbefore' + this.builtInFunction.toLowerCase(),
-                    'onafter' + this.builtInFunction.toLowerCase()
-                ]
-                if (validTriggers.includes(triggerName.toLowerCase()))
-                    tableExtensionTriggerLocations.push(new Location(document.uri, identifierRange))
-            }
-        }
-        return tableExtensionTriggerLocations;
-    }
     async getTriggerOfBaseTable(location: Location): Promise<Location | undefined> {
-        let document: TextDocument = await workspace.openTextDocument(location.uri);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let triggerTreeNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getTriggerDeclaration());
-        for (let i = 0; i < triggerTreeNodes.length; i++) {
-            let identifierTreeNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(triggerTreeNodes[i], FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
-            let identifierRange: Range = TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan);
-            let triggerName: string = document.getText(identifierRange);
-            if (triggerName.toLowerCase() == 'on' + this.builtInFunction.toLowerCase())
-                return new Location(document.uri, identifierRange);
-        }
-        return undefined;
-    }
-    async getTableName(location: Location): Promise<string | undefined> {
-        let document: TextDocument = await workspace.openTextDocument(location.uri);
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-        let tableTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(location.range.start, [FullSyntaxTreeNodeKind.getTableObject()]);
-        if (tableTreeNode)
-            return ALFullSyntaxTreeNodeExt.getIdentifierValue(document, tableTreeNode, true);
-    }
-    async getEventSubscriberNodes(tableNameToSearch: string): Promise<Location[]> {
-        if (!ALObjectDesigner.ALObjectDesigner.isInstalled())
-            return [];
-        let api: ALObjectDesigner.ALObjectDesignerAPI = await ALObjectDesigner.ALObjectDesigner.getApi();
-        let eventList: ALObjectDesigner.CollectorItem[] | undefined = api.ALPanel.eventList;
-        if (!eventList)
-            return [];
-
-        let allEventSubscribersOfTable: ALObjectDesigner.CollectorItem[] = eventList.filter(object =>
-            !object.EventPublisher &&
-            object.EventType && object.EventType.toLowerCase() == 'eventsubscriber' &&
-            object.TargetObjectType && object.TargetObjectType.toLowerCase() == 'table' &&
-            object.TargetObject && object.TargetObject.trim().replace(/^"?([^"]+)"?$/, '$1').toLowerCase() == tableNameToSearch.toLowerCase()
-            //&& object.EventPublisherName
-        );
-        let validEventSubscribers: Location[] = [];
-        for (let i = 0; i < allEventSubscribersOfTable.length; i++) {
-            let document: TextDocument;
-            if (allEventSubscribersOfTable[i].FsPath == '') {
-                try {
-                    let objectRow: ALObjectDesigner.CollectorItem = allEventSubscribersOfTable[i];
-                    let uri = Uri.parse(`alObjectDesignerDal://symbol/${objectRow.Type}${objectRow.Id > 0 ? ` ${objectRow.Id} ` : ''}${objectRow.Name.replace(/\//g, "_")} - ${objectRow.Application.replace(/[^\w]/g, "_")}.al#${JSON.stringify({ Type: objectRow.Type, Name: objectRow.Name })}`);
-                    document = await workspace.openTextDocument(uri);
-                } catch {
-                    continue;
-                }
-            } else
-                document = await workspace.openTextDocument(allEventSubscribersOfTable[i].FsPath);
-
-            let validEventSubscriberIdentifier: ALFullSyntaxTreeNode | undefined = await this.checkIfOnBefore_OnAfterEventSubscriber(document, allEventSubscribersOfTable[i].EventName);
-            if (validEventSubscriberIdentifier)
-                validEventSubscribers.push(new Location(document.uri, DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(validEventSubscriberIdentifier.fullSpan))));
-        }
-        return validEventSubscribers;
-    }
-
-
-    private async checkIfOnBefore_OnAfterEventSubscriber(doc: TextDocument, eventSubscriberName: string): Promise<ALFullSyntaxTreeNode | undefined> {
-        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(doc);
-        let methodNodes: ALFullSyntaxTreeNode[] = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getMethodDeclaration());
-        for (let m = 0; m < methodNodes.length; m++) {
-            let identifierNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNodes[m], FullSyntaxTreeNodeKind.getIdentifierName(), false) as ALFullSyntaxTreeNode;
-            if (doc.getText(TextRangeExt.createVSCodeRange(identifierNode.fullSpan)).toLowerCase() == eventSubscriberName.toLowerCase()) {
-                let memberAttributeNodes: ALFullSyntaxTreeNode[] = [];
-                ALFullSyntaxTreeNodeExt.collectChildNodes(methodNodes[m], FullSyntaxTreeNodeKind.getMemberAttribute(), false, memberAttributeNodes);
-                let eventSubscriberNode: ALFullSyntaxTreeNode | undefined = memberAttributeNodes.find(attr => attr.childNodes && doc.getText(TextRangeExt.createVSCodeRange(attr.childNodes[0].fullSpan)).toLowerCase() == 'eventsubscriber');
-                if (eventSubscriberNode) {
-                    let argumentList: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(eventSubscriberNode, FullSyntaxTreeNodeKind.getAttributeArgumentList(), false);
-                    if (argumentList && argumentList.childNodes) {
-                        let validEvents: string[] = ['onbefore' + this.builtInFunction?.toLowerCase() + 'event', 'onafter' + this.builtInFunction?.toLowerCase() + 'event'];
-                        let eventName: string = doc.getText(TextRangeExt.createVSCodeRange(argumentList.childNodes[2].fullSpan)).toLowerCase().replace(/'(\w+)'/, '$1');
-                        if (validEvents.includes(eventName))
-                            return identifierNode;
-                    }
-                }
-            }
-        }
-        return undefined;
+        let locations: Location[] = await new ALObject('dummyname', 'table', 0, location.uri).getTriggers(['on' + this.builtInFunction!.toLowerCase()])
+        return locations.length == 1 ? locations[0] : undefined
     }
 }

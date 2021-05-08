@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { Range, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -7,15 +7,15 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 export class RangeAnalyzer {
-    private document: vscode.TextDocument;
-    private selectedRange: vscode.Range;
-    private expandedRange: vscode.Range | undefined;
+    private document: TextDocument;
+    private selectedRange: Range;
+    private expandedRange: Range | undefined;
     private analyzed: boolean;
     private validToExtractAsStandalone: boolean | undefined;
     private validToExtractOnlyWithReturnType: boolean | undefined;
     private treeNodeToExtractStart: ALFullSyntaxTreeNode | undefined;
     private treeNodeToExtractEnd: ALFullSyntaxTreeNode | undefined;
-    constructor(document: vscode.TextDocument, selectedRange: vscode.Range) {
+    constructor(document: TextDocument, selectedRange: Range) {
         this.document = document;
         this.selectedRange = selectedRange;
         this.analyzed = false;
@@ -66,9 +66,9 @@ export class RangeAnalyzer {
         // check if start and end kinds are valid
         this.checkNodesAreValidToExtract(this.treeNodeToExtractStart, this.treeNodeToExtractEnd);
         if (this.isValidToExtract()) {
-            let startRange: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractStart.fullSpan));
-            let endRange: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractEnd.fullSpan));
-            this.expandedRange = new vscode.Range(startRange.start, endRange.end);
+            let startRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractStart.fullSpan));
+            let endRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractEnd.fullSpan));
+            this.expandedRange = new Range(startRange.start, endRange.end);
             return;
         }
         return;
@@ -88,14 +88,14 @@ export class RangeAnalyzer {
         }
     }
 
-    isWholeTreeNodeWithChildsSelected(treeNodeToExtract: ALFullSyntaxTreeNode, selectedRange: vscode.Range): boolean {
+    isWholeTreeNodeWithChildsSelected(treeNodeToExtract: ALFullSyntaxTreeNode, selectedRange: Range): boolean {
         if (!treeNodeToExtract.childNodes) {
             return false;
         } else {
             let firstChildTreeNode: ALFullSyntaxTreeNode = treeNodeToExtract.childNodes[0];
             let lastChildTreeNode: ALFullSyntaxTreeNode = treeNodeToExtract.childNodes[treeNodeToExtract.childNodes.length - 1];
-            let rangeOfFirstChildNode: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(firstChildTreeNode.fullSpan));
-            let rangeOfLastChildNode: vscode.Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(lastChildTreeNode.fullSpan));
+            let rangeOfFirstChildNode: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(firstChildTreeNode.fullSpan));
+            let rangeOfLastChildNode: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(lastChildTreeNode.fullSpan));
             if (!selectedRange.contains(rangeOfFirstChildNode) || !selectedRange.contains(rangeOfLastChildNode)) {
                 return false;
             }
@@ -169,11 +169,11 @@ export class RangeAnalyzer {
         return this.treeNodeToExtractEnd;
     }
 
-    public getExpandedRange(): vscode.Range {
+    public getExpandedRange(): Range {
         if (!this.analyzed) {
             Err._throw('Please analyze the range before using it');
         }
-        let rangeToReturn: vscode.Range;
+        let rangeToReturn: Range;
         if (this.expandedRange) {
             rangeToReturn = this.expandedRange;
         } else {
