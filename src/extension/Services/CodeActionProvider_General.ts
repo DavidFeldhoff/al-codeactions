@@ -30,6 +30,8 @@ export class CodeActionProvider_General implements CodeActionProvider {
                 let newActions: CodeAction[] = await myCodeActionProviderToExecute.createCodeActions();
                 codeActions = codeActions.concat(newActions);
             }
+            for(const codeAction of codeActions)
+                codeAction.title += ' (AL CodeActions)';
         }
         return codeActions;
     }
