@@ -77,7 +77,7 @@
         "submenus": [
             {
                 "id": "alCodeAction.findRelated",
-                "label": "Find Related"
+                "label": "Find Related (AL CodeActions)"
             }
         ],
         "configuration": [
