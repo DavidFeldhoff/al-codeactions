@@ -86,7 +86,7 @@
                 "properties": {
                     "alCodeActions.findNewProcedureLocation": {
                         "type": "string",
-                        "default": "Sort by type, access modifier, name",
+                        "default": "Sort by type, access modifier, range",
                         "enum": [
                             "Sort by type, access modifier, name", "Sort by type, access modifier, range", "Always ask"
                         ],

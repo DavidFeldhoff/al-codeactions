@@ -5,7 +5,7 @@ export class Config {
         return workspace.getConfiguration('alCodeActions', uri);
     }
     static getFindNewProcedureLocation(uri?: Uri): FindNewProcedureLocation {
-        return FindNewProcedureLocation[this.getConfig(uri).get('findNewProcedureLocation', "Sort by type, access modifier, name")]
+        return FindNewProcedureLocation[this.getConfig(uri).get('findNewProcedureLocation', "Sort by type, access modifier, range")]
     }
     static getVarParameters(uri?: Uri): string[] {
         return this.getConfig(uri).get('varParameters', ["IsHandled"]);
