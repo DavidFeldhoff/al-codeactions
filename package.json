@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "0.2.29",
+    "version": "1.0.0",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -18,7 +18,9 @@
         "email": "david.feldhoff@web.de"
     },
     "icon": "images/bulb.png",
-    "categories": ["Other"],
+    "categories": [
+        "Other"
+    ],
     "keywords": [
         "AL",
         "AL Extensions",
@@ -31,7 +33,8 @@
     },
     "main": "./out/extension.js",
     "activationEvents": [
-        "onCommand:alCodeActions.fixCop", "onLanguage:al"
+        "onCommand:alCodeActions.fixCop",
+        "onLanguage:al"
     ],
     "contributes": {
         "commands": [
@@ -39,17 +42,20 @@
                 "category": "AL Code Actions",
                 "command": "alCodeActions.fixCop",
                 "title": "Fix Cop warnings.."
-            }, {
+            },
+            {
                 "category": "AL Code Actions",
                 "command": "alCodeActions.findRelatedCalls",
                 "title": "Find related method calls (e.g. Rec.Insert)",
                 "enablement": "editorLangId == al && resourceExtname != .dal && alCodeActions.findRelated"
-            }, {
+            },
+            {
                 "category": "AL Code Actions",
                 "command": "alCodeActions.findRelatedEventSubscriber",
                 "title": "Find related event subscribers",
                 "enablement": "editorLangId == al && alCodeActions.findRelated"
-            }, {
+            },
+            {
                 "category": "AL Code Actions",
                 "command": "alCodeActions.findRelatedTriggers",
                 "title": "Find related triggers",
@@ -67,9 +73,11 @@
             "alCodeAction.findRelated": [
                 {
                     "command": "alCodeActions.findRelatedCalls"
-                }, {
+                },
+                {
                     "command": "alCodeActions.findRelatedEventSubscriber"
-                }, {
+                },
+                {
                     "command": "alCodeActions.findRelatedTriggers"
                 }
             ]
@@ -88,16 +96,22 @@
                         "type": "string",
                         "default": "Sort by type, access modifier, range",
                         "enum": [
-                            "Sort by type, access modifier, name", "Sort by type, access modifier, range", "Always ask"
+                            "Sort by type, access modifier, name",
+                            "Sort by type, access modifier, range",
+                            "Always ask"
                         ],
                         "enumDescriptions": [
-                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally the sort by name is self-explanatory.", "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.", "You are always asked where to place the procedure in the document"
+                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally the sort by name is self-explanatory.",
+                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.",
+                            "You are always asked where to place the procedure in the document"
                         ],
                         "description": "Specifies the search criteria to find an anchor to add the new procedure in the document."
                     },
                     "alCodeActions.varParameters": {
                         "type": "array",
-                        "default": ["IsHandled"],
+                        "default": [
+                            "IsHandled"
+                        ],
                         "uniqueItems": true,
                         "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag."
                     },
@@ -132,5 +146,7 @@
     "dependencies": {
         "jsonc-parser": "^3.0.0"
     },
-    "extensionDependencies": ["andrzejzwierzchowski.al-code-outline"]
+    "extensionDependencies": [
+        "andrzejzwierzchowski.al-code-outline"
+    ]
 }

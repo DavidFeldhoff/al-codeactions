@@ -2,7 +2,7 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
-## 0.2.30
+## 1.0.0
 
 - Add feature "Find related" in the context menu of onInsert/Modify/Delete/Validate triggers: #86, #94
   - Find related calls (with RunTrigger=true only or all calls)
