@@ -1,4 +1,4 @@
-import { Position, Range, TextDocument, window } from 'vscode';
+import { Position, Range, TextDocument, TextEditorRevealType, window } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -32,7 +32,7 @@ export class ALSourceCodeHandler {
         let result: { anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode)
         if (result.userCanceled)
             return undefined
-            
+
         if (result.anchorNode) {
             if (result.anchorNode.kind == FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
                 let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
@@ -89,38 +89,29 @@ export class ALSourceCodeHandler {
     }
     async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
         classifiedNodes = classifiedNodes.sort((a, b) => a.range.start.compareTo(b.range.start))
-        let methodDeclarations: string[] = classifiedNodes.map(entry => {
-            let parameterListNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(entry.node, FullSyntaxTreeNodeKind.getParameterList(), false)!
-            let parameterListRange: Range = TextRangeExt.createVSCodeRange(parameterListNode.fullSpan)
-            let parameterText = document.getText(parameterListRange).replace(/(\r\n|\s+)/g, ' ')
-            let methodIdentifierNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(entry.node, FullSyntaxTreeNodeKind.getIdentifierName(), false)!
-            let methodIdentifierRange = TextRangeExt.createVSCodeRange(methodIdentifierNode.fullSpan)
-            let declarationLineStart = document.getText(new Range(methodIdentifierRange.start.line, 0, methodIdentifierRange.end.line, methodIdentifierRange.end.character)).trimLeft()
-            return declarationLineStart + parameterText
+        interface ownQuickPickItem { label: string, detail?: string, range: Range, node: ALFullSyntaxTreeNode }
+        let methodQPItems: ownQuickPickItem[] = classifiedNodes.map(entry => {
+            let detail: string = document.getText(DocumentUtils.trimRange(document, entry.range)).replace(/\r\n/g, '')
+            let label = entry.node.name!
+            return { label, detail, range: entry.range, node: entry.node }
         })
         let globalVarItem = 'Global variable section'
         let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
         if (globalVarSection)
-            methodDeclarations.push(globalVarItem)
-        let methodDeclaration: string | undefined
-        if (methodDeclarations.length == 1)
-            methodDeclaration = methodDeclarations[0]
-        else
-            methodDeclaration = await window.showQuickPick(methodDeclarations,
-                {
-                    ignoreFocusOut: true,
-                    placeHolder: 'Select an anchor after which you want to place your new function.'
-                })
-        if (!methodDeclaration)
+            methodQPItems.push({ label: globalVarItem, range: TextRangeExt.createVSCodeRange(globalVarSection.fullSpan), node: globalVarSection })
+        let itemChosen: ownQuickPickItem | undefined = await window.showQuickPick(methodQPItems,
+            {
+                placeHolder: 'Select an anchor after which you want to place your new function.',
+                ignoreFocusOut: true,
+                matchOnDetail: true,
+                onDidSelectItem: (item: ownQuickPickItem) => {
+                    window.activeTextEditor?.revealRange(item.range, TextEditorRevealType.InCenter)
+                }
+            })
+        if (!itemChosen)
             return { anchorNode: undefined, userCanceled: true };
-        let anchorNode: ALFullSyntaxTreeNode
-        if (methodDeclaration == globalVarItem && globalVarSection)
-            anchorNode = globalVarSection
-        else {
-            let index = methodDeclarations.findIndex(declaration => methodDeclaration == declaration)!
-            anchorNode = classifiedNodes[index].node
-        }
-        return { anchorNode, userCanceled: false }
+        else
+            return { anchorNode: itemChosen.node, userCanceled: false }
     }
     private classifyMethodOrTriggerNodes(methodOrTriggerNodes: ALFullSyntaxTreeNode[]): { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] {
         let classifiedNodes: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] = []
