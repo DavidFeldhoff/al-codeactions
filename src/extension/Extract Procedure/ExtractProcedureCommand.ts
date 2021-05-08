@@ -37,7 +37,7 @@ export class ExtractProcedureCommand {
         await workspace.applyEdit(workspaceEdit);
 
         if (callRename)
-            ExtractProcedureCommand.callRename(workspaceEdit, rangeExpanded, document);
+            ExtractProcedureCommand.callRename(document);
     }
     private static async askForNewName(procedureCallingText: string, procedure: ALProcedure) {
         let newName: string | undefined = await window.showInputBox({ prompt: 'Enter the name for the new method.', placeHolder: RenameMgt.newProcedureName });
@@ -50,13 +50,11 @@ export class ExtractProcedureCommand {
         return procedureCallingText;
     }
 
-    private static callRename(workspaceEdit: WorkspaceEdit, rangeExpanded: Range, document: TextDocument) {
-        let linesDeleted: number = 0;
-        workspaceEdit.entries().filter(
-            entry => entry[1].filter(
-                textEdit => textEdit.newText == '' && textEdit.range.start.character == 0 && textEdit.range.end.character == 0).forEach(
-                    deleteEdit => linesDeleted += deleteEdit.range.end.line - deleteEdit.range.start.line));
-        let executeRenameAt: Position = rangeExpanded.start.translate(linesDeleted * -1, undefined);
+    private static callRename(document: TextDocument) {
+        let wordRange: Range | undefined = document.getWordRangeAtPosition(window.activeTextEditor!.selection.start)
+        if (!wordRange)
+            return
+        let executeRenameAt: Position = wordRange.start
 
         commands.executeCommand(Command.renameCommand, new Location(document.uri, executeRenameAt));
     }
