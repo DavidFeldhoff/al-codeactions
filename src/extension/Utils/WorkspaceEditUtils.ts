@@ -147,10 +147,10 @@ export class WorkspaceEditUtils {
             }
         }
         let positionToAdd: Position;
-        if (lastIndexOfSameType) {
+        if (lastIndexOfSameType !== undefined) {
             let rangeOfNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(categorizedVariableNodes[lastIndexOfSameType].node.fullSpan))
             positionToAdd = new Position(rangeOfNode.end.line + 1, 0);
-        } else if (lastIndexOfTypeWithHigherPriority) {
+        } else if (lastIndexOfTypeWithHigherPriority !== undefined) {
             let rangeOfNode: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(categorizedVariableNodes[lastIndexOfTypeWithHigherPriority].node.fullSpan))
             positionToAdd = new Position(rangeOfNode.end.line + 1, 0);
         } else if (variableDeclarationNodes.length > 0) {
