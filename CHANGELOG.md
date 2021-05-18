@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.1
+
+- small bugfix: Integration Events were not placed correctly in the document
+
 ## 1.0.0
 
 - Add feature "Find related" in the context menu of onInsert/Modify/Delete/Validate triggers: #86, #94
