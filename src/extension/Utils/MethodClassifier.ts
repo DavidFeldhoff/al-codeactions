@@ -21,7 +21,7 @@ export class MethodClassifier {
         keyValuePairs.set('BusinessEvent', MethodType.BusinessEventPublisher);
         keyValuePairs.set('IntegrationEvent', MethodType.IntegrationEventPublisher);
         for (const keyValuePair of keyValuePairs.entries())
-            if (method.getMemberAttributes().find(memberAttribute => memberAttribute.toLowerCase().trim() == keyValuePair[0].toLowerCase().trim()))
+            if (method.getMemberAttributes().find(memberAttribute => memberAttribute.toLowerCase().trim().startsWith(keyValuePair[0].toLowerCase().trim())))
                 return keyValuePair[1]
         return MethodType.Method
     }
