@@ -119,6 +119,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "All parameters of new publishers will be declared as var-parameters."
+                    },
+                    "alCodeActions.labelsCreateComments": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Extracted labels should include a comment."
                     }
                 }
             }
