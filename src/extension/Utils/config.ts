@@ -13,6 +13,9 @@ export class Config {
     static getPublisherHasVarParametersOnly(uri?: Uri): boolean {
         return this.getConfig(uri).get('publisherHasVarParametersOnly', false);
     }
+    static getExtractToLabelCreatesComment(uri?: Uri): boolean {
+        return this.getConfig(uri).get('extractToLabelCreatesComment', false);
+    }
 }
 
 export enum FindNewProcedureLocation {
