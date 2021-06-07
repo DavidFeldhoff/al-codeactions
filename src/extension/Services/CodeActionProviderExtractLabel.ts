@@ -8,6 +8,8 @@ import { Command } from '../Entities/Command';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { ALVariable } from '../Entities/alVariable';
 import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
+import { Config } from '../Utils/config';
+import { config } from "process";
 
 export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     range: Range;
@@ -31,18 +33,20 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
 
-        let placeHolderArray = [...new Set(this.document.getText(stringLiteralRange).match(/%[0-9]/g))]
         let commentText: string = ''
-        if (placeHolderArray.length > 0) {
-            commentText = ', comment=\''
+        if (Config.getExtractToLabelCreatesComment()) {
+            let placeHolderArray = [...new Set(this.document.getText(stringLiteralRange).match(/%[0-9]+/g))]
+            if (placeHolderArray.length > 0) {
+                commentText = ', comment=\''
 
-            placeHolderArray.forEach((placeHolder: string, indexNumber: number) => {
-                if (indexNumber > 0)
-                    commentText += ', '
-                commentText += placeHolder + '= '
-            })
+                placeHolderArray.forEach((placeHolder: string, indexNumber: number) => {
+                    if (indexNumber > 0)
+                        commentText += ', '
+                    commentText += placeHolder + '= '
+                })
 
-            commentText += '\''
+                commentText += '\''
+            }
         }
 
         let variable: ALVariable = new ALVariable('newLabel', 'Label ' + this.document.getText(stringLiteralRange) + commentText);

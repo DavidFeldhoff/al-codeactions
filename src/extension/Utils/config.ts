@@ -19,6 +19,9 @@ export class Config {
     static getCommentsContainTranslations(uri?: Uri): boolean {
         return this.getConfig(uri).get('commentsContainTranslations', true);
     }
+    static getExtractToLabelCreatesComment(uri?: Uri): boolean {
+        return this.getConfig(uri).get('extractToLabelCreatesComment', false);
+    }
 }
 
 export enum FindNewProcedureLocation {
