@@ -40,6 +40,11 @@ export class ALVariable {
         let declarationString = indent;
         for (const memberAttribute of this.memberAttributes)
             declarationString += memberAttribute + '\r\n' + indent;
+        declarationString += this.name + ": " + this.type;
+        return declarationString;
+    }
+    public getParameterDeclarationString(indent: string = ''): string {
+        let declarationString = indent;
         if (this.isVar) {
             declarationString = "var ";
         }

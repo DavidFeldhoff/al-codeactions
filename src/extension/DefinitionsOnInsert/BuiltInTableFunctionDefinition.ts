@@ -37,12 +37,6 @@ export class BuiltInTableDefinitionReference implements BuiltInFunctionDefinitio
             return [];
         let locations: Location[] = [];
 
-        // let tableName: string | undefined = await this.getTableName(this.location);
-        // if (tableName) {
-            // let tableExtensionTriggers: Location[] = await this.getTriggersOfTableExtensions(tableName);
-            // locations = locations.concat(tableExtensionTriggers);
-        // }
-
         let triggerOfBaseTable: Location | undefined = await this.getTriggerOfBaseTable(this.location);
         if (triggerOfBaseTable)
             locations.push(triggerOfBaseTable);

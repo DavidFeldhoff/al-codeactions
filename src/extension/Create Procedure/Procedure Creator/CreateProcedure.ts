@@ -43,7 +43,7 @@ export class CreateProcedure {
 
         let memberAttributes: string[] = procedure.getMemberAttributes();
         let procedureDefinition = "";
-        let tab = '    ';
+        let tab = ''.padStart(4, ' ');
         for (const memberAttribute of memberAttributes)
             procedureDefinition += (withIndent ? tab : "") + "[" + memberAttribute + "]\r\n"
         let prefixAccessModifier: string;
