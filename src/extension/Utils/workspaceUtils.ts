@@ -7,12 +7,23 @@ import { ObjectCollectionImpl } from '../ObjectCollection/ObjectCollectionImpl';
 import { ObjectCollectionInterface } from '../ObjectCollection/ObjectCollectionInterface';
 
 export class WorkspaceUtils {
+    public static async findAppJson(uri: Uri): Promise<any | undefined> {
+        let workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
+        if (workspaceFolder) {
+            let appJsonFile: Uri[] | undefined = await workspace.findFiles(new RelativePattern(workspaceFolder, 'app.json'));
+            if (appJsonFile && appJsonFile.length == 1) {
+                let jsoncContent = readFileSync(appJsonFile[0].fsPath, { encoding: 'utf8' })
+                return parse(jsoncContent);
+            }
+        }
+        return
+    }
     public static async findValidAppSourcePrefixes(uri: Uri): Promise<string[] | undefined> {
         let workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
         if (workspaceFolder) {
-            let appsourcecopfile: Uri[] | undefined = await workspace.findFiles(new RelativePattern(workspaceFolder, 'AppSourceCop.json'));
-            if (appsourcecopfile && appsourcecopfile.length == 1) {
-                let jsoncContent = readFileSync(appsourcecopfile[0].fsPath, { encoding: 'utf8' })
+            let appSourceCopFile: Uri[] | undefined = await workspace.findFiles(new RelativePattern(workspaceFolder, 'AppSourceCop.json'));
+            if (appSourceCopFile && appSourceCopFile.length == 1) {
+                let jsoncContent = readFileSync(appSourceCopFile[0].fsPath, { encoding: 'utf8' })
                 let jsonObject = parse(jsoncContent);
                 let validPrefixList: string[] = [];
                 if (jsonObject.mandatoryPrefix)

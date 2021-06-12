@@ -4,11 +4,11 @@ import { ALSourceCodeHandler } from "../Utils/alSourceCodeHandler";
 import { CreateProcedureAL0118 } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118';
 import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 import { ALProcedure } from '../Entities/alProcedure';
-import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureCommands';
 import { CreateProcedureAL0118IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118IntegrationEvent';
 import { CreateProcedureAL0118BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118BusinessEvent';
 import { WorkspaceUtils } from '../Utils/workspaceUtils';
 import { TextDocument, Diagnostic, CodeAction, CodeActionKind } from "vscode";
+import { Command } from "../Entities/Command";
 
 export class CodeActionProviderAL0118 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -57,7 +57,7 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
     private async createCodeAction(procedure: ALProcedure, msg: string, document: TextDocument): Promise<CodeAction> {
         const codeAction = new CodeAction(msg, CodeActionKind.QuickFix);
         codeAction.command = {
-            command: CreateProcedureCommands.createProcedureCommand,
+            command: Command.createProcedureCommand,
             title: 'Create Procedure',
             arguments: [document, procedure]
         };

@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.2
+
+- Add feature "Add parameter": If there is an existing procedure with one parameter, but you call that with multiple, you can add these additional variables as parameter [Demo](README.md#add-parameters)
+- Add feature "Create overload": If there is an existing procedure with one parameter, but you call that with multiple, you can create an overload and optionally obsolete the old procedure. [Demo](README.md#create-overload)
+
 ## 1.0.1
 
 - small bugfix: Integration Events were not placed correctly in the document

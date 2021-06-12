@@ -20,6 +20,9 @@ import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedT
 import { ContextSetter } from './extension/Services/ContextSetter';
 import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, Range, TextDocument, window } from 'vscode';
 import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
+import { ALFullSyntaxTreeNode } from './extension/AL Code Outline/alFullSyntaxTreeNode';
+import { ALVariable } from './extension/Entities/alVariable';
+import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
@@ -38,27 +41,30 @@ export function activate(context: ExtensionContext) {
 		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range) =>
 			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded))
 	)
-	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedCalls', () => FindRelated.exec(1)))
-	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedEventSubscriber', () => FindRelated.exec(2)))
-	context.subscriptions.push(commands.registerCommand('alCodeActions.findRelatedTriggers', () => FindRelated.exec(3)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls, () => FindRelated.exec(1)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber, () => FindRelated.exec(2)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers, () => FindRelated.exec(3)))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
 
 
 	context.subscriptions.push(
-		commands.registerCommand(CreateProcedureCommands.createProcedureCommand,
+		commands.registerCommand(Command.createProcedureCommand,
 			(document: TextDocument, procedure: ALProcedure) =>
 				CreateProcedureCommands.addProcedureToSourceCode(document, procedure))
 	);
 	context.subscriptions.push(
-		commands.registerCommand(CreateProcedureCommands.createHandlerCommand,
+		commands.registerCommand(Command.createHandlerCommand,
 			(document: TextDocument, diagnostic: Diagnostic) =>
 				CreateProcedureCommands.addHandler(document, diagnostic))
 	);
-	context.subscriptions.push(
-		commands.registerCommand('alCodeActions.fixCop', () => new FixCop().resolve())
-	)
+	context.subscriptions.push(commands.registerCommand(Command.fixCop, () => new FixCop().resolve()))
+	context.subscriptions.push(commands.registerCommand(Command.addParametersToProcedure,
+		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) => CommandModifyProcedure.addParametersToProcedure(doc, methodNode, missingParameters)))
+	context.subscriptions.push(commands.registerCommand(Command.createOverloadOfProcedure,
+		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) => CommandModifyProcedure.createOverloadOfProcedure(doc, methodNode, missingParameters)))
+
 
 	context.subscriptions.push(
 		languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())

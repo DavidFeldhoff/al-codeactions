@@ -10,7 +10,14 @@ import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 
 export class ALVariableParser {
-
+    public static simpleDataTypesAndDefaultValues: Map<string, string> = new Map([
+        ['boolean', 'false'],
+        ['integer', '0'],
+        ['decimal', '0'],
+        ['text', ''],
+        ['code', ''],
+        ['char', '']
+    ])
     static parseVariableTreeNodeArrayToALVariableArray(document: TextDocument, variableTreeNodes: ALFullSyntaxTreeNode[], sanitizeName: boolean): ALVariable[] {
         let alVariables: ALVariable[] = [];
         for (let i = 0; i < variableTreeNodes.length; i++) {
