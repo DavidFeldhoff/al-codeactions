@@ -3,6 +3,7 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { ALProcedure } from '../Entities/alProcedure';
+import { Command } from '../Entities/Command';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { Err } from '../Utils/Err';
 import { CreateProcedureAL0499ConfirmHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ConfirmHandler';
@@ -20,11 +21,7 @@ import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 
 import { SupportedHandlers } from './Procedure Creator/AL0499 Specifications/supportedHandlers';
 import { CreateProcedure } from './Procedure Creator/CreateProcedure';
 import { ICreateProcedure } from './Procedure Creator/ICreateProcedure';
-import { SupportedDiagnosticCodes } from './supportedDiagnosticCodes';
 export class CreateProcedureCommands {
-
-    public static createProcedureCommand: string = 'alcodeactions.createProcedure';
-    public static createHandlerCommand: string = 'alcodeactions.createHandler';
 
     static async addHandler(document: TextDocument, diagnostic: Diagnostic): Promise<any> {
         let supportedHandlers: string[] = [];
@@ -37,7 +34,7 @@ export class CreateProcedureCommands {
         }
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
-        commands.executeCommand(this.createProcedureCommand, document, procedure);
+        commands.executeCommand(Command.createProcedureCommand, document, procedure);
     }
     private static getCreateProcedureImplementation(handlerToAdd: string, document: TextDocument, diagnostic: Diagnostic): ICreateProcedure {
         switch (handlerToAdd) {

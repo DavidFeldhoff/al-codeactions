@@ -43,8 +43,9 @@ export class CreateProcedure {
 
         let memberAttributes: string[] = procedure.getMemberAttributes();
         let procedureDefinition = "";
+        let tab = ''.padStart(4, ' ');
         for (const memberAttribute of memberAttributes)
-            procedureDefinition += (withIndent ? "\t" : "") + "[" + memberAttribute + "]\r\n"
+            procedureDefinition += (withIndent ? tab : "") + "[" + memberAttribute + "]\r\n"
         let prefixAccessModifier: string;
         switch (procedure.accessModifier) {
             case AccessModifier.local:
@@ -60,24 +61,24 @@ export class CreateProcedure {
                 prefixAccessModifier = '';
                 break;
         }
-        procedureDefinition += (withIndent ? "\t" : "") + prefixAccessModifier + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
+        procedureDefinition += (withIndent ? tab : "") + prefixAccessModifier + "procedure " + procedure.name + "(" + procedure.getParametersAsString() + ")" + returnString;
         if (declarationOnly) {
             this.lineOfBodyStart = 0 as number;
             return procedureDefinition + ';';
         }
         procedureDefinition += "\r\n";
         if (procedure.variables && procedure.variables.length > 0) {
-            procedureDefinition += (withIndent ? "\t" : "") + "var\r\n";
+            procedureDefinition += (withIndent ? tab : "") + "var\r\n";
             procedure.variables.forEach(variable =>
-                procedureDefinition += (withIndent ? "\t" : "") + "\t" + variable.getVariableDeclarationString() + ";\r\n"
+                procedureDefinition += (withIndent ? tab : "") + tab + variable.getVariableDeclarationString() + ";\r\n"
             );
         }
-        procedureDefinition += (withIndent ? "\t" : "") + "begin\r\n";
+        procedureDefinition += (withIndent ? tab : "") + "begin\r\n";
         if (!this.skipBody(procedure)) {
             this.lineOfBodyStart = procedureDefinition.match(/\r\n/g)?.length as number;
-            procedureDefinition += (withIndent ? "\t" : "") + "\t" + procedure.getBody() + "\r\n";
+            procedureDefinition += (withIndent ? tab : "") + tab + procedure.getBody() + "\r\n";
         }
-        procedureDefinition += (withIndent ? "\t" : "") + "end;";
+        procedureDefinition += (withIndent ? tab : "") + "end;";
         return procedureDefinition;
     }
     private skipBody(procedure: ALProcedure): boolean {

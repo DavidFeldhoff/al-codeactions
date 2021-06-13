@@ -2,7 +2,6 @@ import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { ALObject } from '../Entities/alObject';
 import { ALProcedure } from '../Entities/alProcedure';
 import { ALSourceCodeHandler } from "../Utils/alSourceCodeHandler";
-import { CreateProcedureCommands } from '../Create Procedure/CreateProcedureCommands';
 import { CreateProcedure } from '../Create Procedure/Procedure Creator/CreateProcedure';
 import { CreateProcedureAL0132 } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132';
 import { ICodeActionProvider } from "./ICodeActionProvider";
@@ -11,6 +10,7 @@ import { CreateProcedureAL0132IntegrationEvent } from '../Create Procedure/Proce
 import { CreateProcedureAL0132BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132BusinessEvent';
 import { Err } from '../Utils/Err';
 import { TextDocument, Diagnostic, CodeAction, workspace, CodeActionKind } from "vscode";
+import { Command } from "../Entities/Command";
 
 export class CodeActionProviderAL0132 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -86,7 +86,7 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
     private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: TextDocument): CodeAction {
         const codeAction = new CodeAction(msg, CodeActionKind.QuickFix);
         codeAction.command = {
-            command: CreateProcedureCommands.createProcedureCommand,
+            command: Command.createProcedureCommand,
             title: 'Create Procedure',
             arguments: [document, procedure]
         };

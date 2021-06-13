@@ -18,7 +18,7 @@ export class ALParameterParser {
             if (parameterString !== "") {
                 parameterString += '; ';
             }
-            parameterString += variableArray[i].getVariableDeclarationString();
+            parameterString += variableArray[i].getParameterDeclarationString();
         }
         return parameterString;
     }

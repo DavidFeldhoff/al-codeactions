@@ -9,6 +9,8 @@ You can support me here:
 |Feature  |Description  |
 |---------|---------|
 |**Create Procedure / Publisher / HandlerFunction**     | There are code actions to create a missing procedure inside the same object or even of another object. The return type is identified in most cases directly if it's used as a parameter of another procedure call as example. If the procedure name starts with 'On', then you can also create an Integration Event instead (AppSourceCopPrefix could be placed before that 'On'). Furthermore it's possible to create missing handler functions. If you want your procedures placed at specific positions in your document, check out the findNewProcedureLocation-setting. Demos: [Create Procedure](#create-procedure), [Create Publisher Events](#create-publisher-events), [Create Handler Functions](#create-handler-functions-and-use-references)       |
+|**Add Parameter(s) to existing procedure**|If there is an existing procedure with one parameter, but you call that with more variables, then you can now declare these variables as parameters of that existing procedure. [Demo](#add-parameters) |
+|**Create overload of existing procedure**|If there is an existing procedure with one parameter, but you call that with more variables, then you can create an overload of that procedure and you're asked if you directly want to obsolete the old one. [Demo](#create-overload)|
 |**Extract Procedure**     |Select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hands them over as parameter or adds them as local variables. For the moment the parameters are always var-Parameters, but I'm considering to improve it to check if the "var" is necessary. After the new procedure is created you can rename it directly. And I have to admit that this feature is currently not working with report dataitems because I don't recognize them as parameters yet. Before showing this feature in action in the demo section at the end of this file I would like to thank Andrzej for his support. [Demo](#extract-procedure) |
 |**Extract to Label**|If you're inside a method or trigger and there's a string literal you can extract that one directly to a label. [Demo](#extract-to-label)|
 |**Refactor to Validate**|You can refactor a single assignment statement to a validate statement by selecting the '`:=`' operator or by selecting the range of the assignment statement. And you can refactor multiple assignment statements to validate statements if all assignments are underneath each other. [Demo](#refactor-to-validate) |
@@ -48,7 +50,15 @@ You can support me here:
 
 ![demo Handler Functions](images/HandlerFunctions.gif)
 
-## Create Publisher Events
+### Add Parameters
+
+![demo Add Parameters](images/AddParameters.gif)
+
+### Create Overload
+
+![demo Create Overload](images/CreateOverload.gif)
+
+### Create Publisher Events
 
 ![demo Publisher Events](images/CreateIntegrationEvents2.gif)
 

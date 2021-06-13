@@ -13,6 +13,9 @@ export class Config {
     static getPublisherHasVarParametersOnly(uri?: Uri): boolean {
         return this.getConfig(uri).get('publisherHasVarParametersOnly', false);
     }
+    static setPublisherHasVarParametersOnly(uri: Uri | undefined, newValue: boolean | undefined) {
+        this.getConfig(uri).update('publisherHasVarParametersOnly', newValue);
+    }
     static getExtractToLabelCreatesComment(uri?: Uri): boolean {
         return this.getConfig(uri).get('extractToLabelCreatesComment', false);
     }
