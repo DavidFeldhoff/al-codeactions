@@ -238,6 +238,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
+	test('getProcedureToCreate_InsideValidate', async () => {
+		let procedureName = 'MissingProcedureInsideValidate';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document, diagnostic));
+		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.strictEqual(alProcedure.name, procedureName);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
+		assert.notStrictEqual(alProcedure.returnType, undefined);
+		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
+		assert.strictEqual(alProcedure.parameters.length, 0);
+	});
 	test('getProcedureToCreate_DotInVariableName', async () => {
 		let procedureName = 'MissingProcedureWithDotInVariableName';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);

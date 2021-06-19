@@ -316,6 +316,11 @@ export class TypeDetective {
                         break;
                 }
                 if (procedureName) {
+                    if (procedureName.toLowerCase() == 'validate' && parentNode.childNodes!.length == 2 && argumentNo[0] == 1) {
+                        let typeDetective: TypeDetective = new TypeDetective(document, parentNode.childNodes![0]);
+                        await typeDetective.analyzeTypeOfTreeNode();
+                        return typeDetective.getType();
+                    }
                     let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
                     let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
                     let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);
