@@ -174,6 +174,53 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(textEdits![0].newText, '; MyBool: Boolean')
 		assert.strictEqual(textEdits![1].newText, "\r\n    [Obsolete('Please use the overload with 2 parameters.', 'v1.0.0.0')]\r\n    local procedure LocalProcedureOneParam(Customer: Record Customer)\r\n    begin\r\n        LocalProcedureOneParam(Customer, false);\r\n    end;\r\n")
 	})
+	test('addParameter_SameCodeunit_ObsoleteOldOne_Text', async () => {
+		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyText);';
+		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
+		let codeActionProvider = new CodeActionProviderModifyProcedure(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
+		let consider: boolean = await codeActionProvider.considerLine();
+		assert.strictEqual(consider, true, 'Code action should be considered');
+		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
+		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
+		let addParamCA = codeActions.find(entry => entry.command?.command == Command.addParametersToProcedure)
+		assert.notStrictEqual(addParamCA, undefined)
+		let args: any[] = addParamCA!.command!.arguments!
+		let doc: TextDocument = args[0];
+		let methodNode: ALFullSyntaxTreeNode = args[1];
+		let methodRange: Range = DocumentUtils.trimRange(doc, TextRangeExt.createVSCodeRange(methodNode.fullSpan));
+		let missingParameters: ALVariable[] = args[2];
+		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
+		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
+		assert.strictEqual(missingParameters.length, 1)
+		assert.strictEqual(missingParameters[0].name, 'MyText')
+		assert.strictEqual(missingParameters[0].isVar, false)
+		assert.strictEqual(missingParameters[0].getTypeShort(), 'Text');
+
+		let textEdits: TextEdit[] | undefined = CommandModifyProcedure.getTextEditsToAddParametersToProcedure(args[0], args[1], args[2]);
+		assert.notStrictEqual(textEdits, undefined)
+		assert.strictEqual(textEdits!.length, 1)
+		assert.strictEqual(textEdits![0].newText, '; MyText: Text')
+
+		let createOverloadCA = codeActions.find(entry => entry.command?.command == Command.createOverloadOfProcedure);
+		assert.notStrictEqual(createOverloadCA, undefined)
+		args = addParamCA!.command!.arguments!
+		doc = args[0];
+		methodNode = args[1];
+		methodRange = DocumentUtils.trimRange(doc, TextRangeExt.createVSCodeRange(methodNode.fullSpan));
+		missingParameters = args[2];
+		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
+		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
+		assert.strictEqual(missingParameters.length, 1)
+		assert.strictEqual(missingParameters[0].name, 'MyText')
+		assert.strictEqual(missingParameters[0].isVar, false)
+		assert.strictEqual(missingParameters[0].getTypeShort(), 'Text');
+
+		textEdits = await CommandModifyProcedure.getTextEditsToCreateOverloadOfProcedure(args[0], args[1], args[2], true);
+		assert.notStrictEqual(textEdits, undefined)
+		assert.strictEqual(textEdits!.length, 2)
+		assert.strictEqual(textEdits![0].newText, '; MyText: Text')
+		assert.strictEqual(textEdits![1].newText, "\r\n    [Obsolete('Please use the overload with 2 parameters.', 'v1.0.0.0')]\r\n    local procedure LocalProcedureOneParam(Customer: Record Customer)\r\n    begin\r\n        LocalProcedureOneParam(Customer, '');\r\n    end;\r\n")
+	})
 
 	test('addParameter_SameCodeunit_ComplexType', async () => {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyBool, Vendor);';

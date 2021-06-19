@@ -2,6 +2,12 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.3
+
+- Minor changes
+  - Create procedure in argument list even if the procedure does not exist yet
+  - Create overload of procedure: fix if the new parameter is a text variable
+
 ## 1.0.2
 
 - Add feature "Add parameter": If there is an existing procedure with one parameter, but you call that with multiple, you can add these additional variables as parameter [Demo](README.md#add-parameters)
