@@ -21,9 +21,11 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     document: TextDocument;
     diagnostic: Diagnostic;
     objectOfNewProcedure: ALObject | undefined;
+    private returnType: { analyzed: boolean, type: string | undefined }
     constructor(document: TextDocument, diagnostic: Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
+        this.returnType = { analyzed: false, type: undefined }
     }
     async initialize() {
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
@@ -57,13 +59,16 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         return false;
     }
     async getReturnType(): Promise<string | undefined> {
+        if(this.returnType.analyzed)
+            return this.returnType.type
         if (!this.syntaxTree) { return undefined; }
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
         let invocationExpressionRange: Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
         invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
 
-        let returnType: string | undefined = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
-        return returnType;
+        this.returnType.type = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
+        this.returnType.analyzed = true
+        return this.returnType.type;
     }
     async getObject(): Promise<ALObject> {
         if (this.objectOfNewProcedure) {
@@ -133,11 +138,14 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         }
         return undefined;
     }
-    isReturnTypeRequired(): boolean {
+    async isReturnTypeRequired(): Promise<boolean> {
         let invocationNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree?.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
-        if (invocationNode)
+        if (invocationNode) {
             if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getPageField())
                 return true
+            if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getArgumentList() && (await this.getReturnType()) === undefined)
+                return true
+        }
         return false
     }
 }

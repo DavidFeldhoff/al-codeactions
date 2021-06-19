@@ -57,7 +57,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     containsSnippet(): boolean {
         Err._throw("Method not implemented.");
     }
-    isReturnTypeRequired(): boolean {
+    async isReturnTypeRequired(): Promise<boolean> {
         return false;
     }
 }

@@ -31,8 +31,8 @@ export class TypeDetective {
     public getIsVar(): boolean {
         return this.isVar ? this.isVar : false;
     }
-    public getCanBeVar(): boolean{
-        return this.canBeVar ? this.canBeVar: false
+    public getCanBeVar(): boolean {
+        return this.canBeVar ? this.canBeVar : false
     }
     public getIsTemporary(): boolean {
         return this.isTemporary ? this.isTemporary : false;
@@ -301,7 +301,7 @@ export class TypeDetective {
     static async getReturnTypeIfInArgumentList(treeNode: ALFullSyntaxTreeNode, document: TextDocument, parentNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
         let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(parentNode, treeNode);
         let signatureHelp: SignatureHelp | undefined = await commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
-        if (signatureHelp) {
+        if (signatureHelp && signatureHelp.signatures[0].parameters.length > argumentNo[0]) {
             let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
             let procedureDeclarationLine = signatureHelp.signatures[0].label;
             let parentInvocation: ALFullSyntaxTreeNode | undefined = parentNode.parentNode;
