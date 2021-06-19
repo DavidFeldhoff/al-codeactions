@@ -10,6 +10,7 @@ import { ALVariable } from '../Entities/alVariable';
 import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
 import { Config } from '../Utils/config';
 import { config } from "process";
+import { LabelComment } from "../Utils/labelComment";
 
 export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     range: Range;
@@ -33,21 +34,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
 
-        let commentText: string = ''
-        if (Config.getExtractToLabelCreatesComment()) {
-            let placeHolderArray = [...new Set(this.document.getText(stringLiteralRange).match(/%[0-9]+/g))]
-            if (placeHolderArray.length > 0) {
-                commentText = ', comment=\''
-
-                placeHolderArray.forEach((placeHolder: string, indexNumber: number) => {
-                    if (indexNumber > 0)
-                        commentText += ', '
-                    commentText += placeHolder + '= '
-                })
-
-                commentText += '\''
-            }
-        }
+        let commentText: string = LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
 
         let variable: ALVariable = new ALVariable('newLabel', 'Label ' + this.document.getText(stringLiteralRange) + commentText);
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
