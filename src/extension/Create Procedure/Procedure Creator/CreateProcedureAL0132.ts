@@ -59,7 +59,7 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         return false;
     }
     async getReturnType(): Promise<string | undefined> {
-        if(this.returnType.analyzed)
+        if (this.returnType.analyzed)
             return this.returnType.type
         if (!this.syntaxTree) { return undefined; }
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
@@ -79,11 +79,18 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         if (checkPagePart && checkPagePart.isPagePart) {
             locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, checkPagePart.PagePartSourceRange.start);
         } else {
-            let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
-            locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
-            if (locations && locations.length > 0) {
-                let positionOfVariableDeclaration: Position = locations[0].range.start;
-                locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+            let member: string = ''
+            if (this.diagnostic.range.start.character > 2)
+                member = this.document.getText(this.document.getWordRangeAtPosition(this.diagnostic.range.start.translate(0, -2)))
+            if (member.toLowerCase() == 'rec') {
+                locations = [{ uri: this.document.uri, range: this.diagnostic.range }]
+            } else {
+                let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
+                locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
+                if (locations && locations.length > 0) {
+                    let positionOfVariableDeclaration: Position = locations[0].range.start;
+                    locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+                }
             }
         }
         if (locations && locations.length > 0) {

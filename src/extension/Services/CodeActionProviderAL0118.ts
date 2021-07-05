@@ -9,6 +9,7 @@ import { CreateProcedureAL0118BusinessEvent } from '../Create Procedure/Procedur
 import { WorkspaceUtils } from '../Utils/workspaceUtils';
 import { TextDocument, Diagnostic, CodeAction, CodeActionKind } from "vscode";
 import { Command } from "../Entities/Command";
+import { CodeActionProviderAL0132 } from "./CodeActionProviderAL0132";
 
 export class CodeActionProviderAL0118 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -30,7 +31,13 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         let codeActions: CodeAction[] = [];
         let createprocedureAL0118: CreateProcedureAL0118 = new CreateProcedureAL0118(this.document, this.diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
-        let codeActionProcedure: CodeAction = await this.createCodeAction(procedure, 'Create Procedure ' + procedure.name, this.document);
+        let codeActionProcedure: CodeAction = await this.createCodeAction(procedure, 'Create procedure ' + procedure.name, this.document);
+
+        if (procedure.ObjectOfProcedure.type.toLowerCase() == 'page') {
+            let codeActionSourceTable: CodeAction | undefined = await new CodeActionProviderAL0132(this.document, this.diagnostic).createCodeActionSourceRec(procedure)
+            if (codeActionSourceTable)
+                codeActions.push(codeActionSourceTable);
+        }
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
         let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
