@@ -65,9 +65,10 @@ export class CodeActionProviderModifyProcedure implements ICodeActionProvider {
             let matches = 0
             let parameterList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(candidateNode, FullSyntaxTreeNodeKind.getParameterList(), false)!
             let parameters: ALVariable[] = []
-            for (let i = 0; i < parameterList.childNodes!.length; i++) {
-                parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(destDocument, parameterList.childNodes![i], true))
-            }
+            if (parameterList.childNodes)
+                for (let i = 0; i < parameterList.childNodes!.length; i++) {
+                    parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(destDocument, parameterList.childNodes![i], true))
+                }
             if (!(parameters.length < variablesUsed.length))
                 continue
             for (let i = 0; i < parameters.length; i++) {
