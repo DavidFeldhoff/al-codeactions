@@ -21,9 +21,11 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     document: TextDocument;
     diagnostic: Diagnostic;
     objectOfNewProcedure: ALObject | undefined;
+    private returnType: { analyzed: boolean, type: string | undefined }
     constructor(document: TextDocument, diagnostic: Diagnostic) {
         this.document = document;
         this.diagnostic = diagnostic;
+        this.returnType = { analyzed: false, type: undefined }
     }
     async initialize() {
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
@@ -57,13 +59,16 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         return false;
     }
     async getReturnType(): Promise<string | undefined> {
+        if (this.returnType.analyzed)
+            return this.returnType.type
         if (!this.syntaxTree) { return undefined; }
         let invocationExpressionTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]) as ALFullSyntaxTreeNode;
         let invocationExpressionRange: Range = TextRangeExt.createVSCodeRange(invocationExpressionTreeNode.fullSpan);
         invocationExpressionRange = DocumentUtils.trimRange(this.document, invocationExpressionRange);
 
-        let returnType: string | undefined = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
-        return returnType;
+        this.returnType.type = await TypeDetective.findReturnTypeOfInvocationAtPosition(this.document, invocationExpressionRange.start);
+        this.returnType.analyzed = true
+        return this.returnType.type;
     }
     async getObject(): Promise<ALObject> {
         if (this.objectOfNewProcedure) {
@@ -74,11 +79,18 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         if (checkPagePart && checkPagePart.isPagePart) {
             locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, checkPagePart.PagePartSourceRange.start);
         } else {
-            let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
-            locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
-            if (locations && locations.length > 0) {
-                let positionOfVariableDeclaration: Position = locations[0].range.start;
-                locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+            let member: string = ''
+            if (this.diagnostic.range.start.character > 2)
+                member = this.document.getText(this.document.getWordRangeAtPosition(this.diagnostic.range.start.translate(0, -2)))
+            if (member.toLowerCase() == 'rec') {
+                locations = [{ uri: this.document.uri, range: this.diagnostic.range }]
+            } else {
+                let positionOfCalledObject = this.diagnostic.range.start.translate(0, -2);
+                locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfCalledObject);
+                if (locations && locations.length > 0) {
+                    let positionOfVariableDeclaration: Position = locations[0].range.start;
+                    locations = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, positionOfVariableDeclaration);
+                }
             }
         }
         if (locations && locations.length > 0) {
@@ -133,11 +145,14 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
         }
         return undefined;
     }
-    isReturnTypeRequired(): boolean {
+    async isReturnTypeRequired(): Promise<boolean> {
         let invocationNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree?.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
-        if (invocationNode)
+        if (invocationNode) {
             if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getPageField())
                 return true
+            if (invocationNode.parentNode!.kind == FullSyntaxTreeNodeKind.getArgumentList() && (await this.getReturnType()) === undefined)
+                return true
+        }
         return false
     }
 }

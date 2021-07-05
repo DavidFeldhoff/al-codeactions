@@ -31,8 +31,8 @@ export class TypeDetective {
     public getIsVar(): boolean {
         return this.isVar ? this.isVar : false;
     }
-    public getCanBeVar(): boolean{
-        return this.canBeVar ? this.canBeVar: false
+    public getCanBeVar(): boolean {
+        return this.canBeVar ? this.canBeVar : false
     }
     public getIsTemporary(): boolean {
         return this.isTemporary ? this.isTemporary : false;
@@ -301,7 +301,7 @@ export class TypeDetective {
     static async getReturnTypeIfInArgumentList(treeNode: ALFullSyntaxTreeNode, document: TextDocument, parentNode: ALFullSyntaxTreeNode): Promise<string | undefined> {
         let argumentNo: number[] = ALFullSyntaxTreeNodeExt.getPathToTreeNode(parentNode, treeNode);
         let signatureHelp: SignatureHelp | undefined = await commands.executeCommand('vscode.executeSignatureHelpProvider', document.uri, TextRangeExt.createVSCodeRange(treeNode.span).start, ',');
-        if (signatureHelp) {
+        if (signatureHelp && signatureHelp.signatures[0].parameters.length > argumentNo[0]) {
             let parameterName = signatureHelp.signatures[0].parameters[argumentNo[0]].label;
             let procedureDeclarationLine = signatureHelp.signatures[0].label;
             let parentInvocation: ALFullSyntaxTreeNode | undefined = parentNode.parentNode;
@@ -316,6 +316,11 @@ export class TypeDetective {
                         break;
                 }
                 if (procedureName) {
+                    if (procedureName.toLowerCase() == 'validate' && parentNode.childNodes!.length == 2 && argumentNo[0] == 1) {
+                        let typeDetective: TypeDetective = new TypeDetective(document, parentNode.childNodes![0]);
+                        await typeDetective.analyzeTypeOfTreeNode();
+                        return typeDetective.getType();
+                    }
                     let declarationLineWithoutProcedureName: string = procedureDeclarationLine.substring(procedureDeclarationLine.indexOf(procedureName) + procedureName.length);
                     let regExp: RegExp = new RegExp('(?:[(]|,\\s)' + parameterName + '\\s*:\\s*(?<type>[^,)]+)');
                     let matcher: RegExpMatchArray | null = declarationLineWithoutProcedureName.match(regExp);

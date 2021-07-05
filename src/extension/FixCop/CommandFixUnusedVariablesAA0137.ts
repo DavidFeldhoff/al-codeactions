@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Position, ProgressLocation, Range, TextDocument, window, workspace } from "vscode";
+import { Position, ProgressLocation, Range, Uri, window } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
@@ -7,17 +7,14 @@ import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { OwnConsole } from "../console";
-import { MyTerminal } from "../Terminal/terminal";
 import { ErrorLogUtils } from "../Terminal/ErrorLogUtils";
+import { MyTerminal } from "../Terminal/terminal";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { Err } from "../Utils/Err";
 import { IFixCop } from "./IFixCop";
 
 export class CommandFixUnusedVariablesAA0137 implements IFixCop {
-    private variablesRemovedInTotal: number;
-    constructor() {
-        this.variablesRemovedInTotal = 0
-    }
+    constructor() { }
     resolve(preScript?: string[]): void {
         let keepWarnings: string[] = ['AA0137']
         if (!preScript)
@@ -27,11 +24,11 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
         let errorLogIssuesAA0137: ErrorLog.Issue[] = errorLogIssues.filter(errorLogIssue => errorLogIssue.ruleId == 'AA0137')
-        // let buildOutputLinesAA0137: string[] = buildOutputLines.filter(buildOutputLine => buildOutputLine.includes('AA0137'));
 
         let analyzedBuildOutputLines: { filePath: string; range: Range; variableName: string; }[] = this.analyzeAndSortBuildOutputLines(errorLogIssuesAA0137);
         let analyzedOutputLinesMappedToFile: Map<string, { range: Range; variableName: string; }[]> = this.getAnalyzedOutputLinesMappedToFile(analyzedBuildOutputLines);
         let variablesRemoved: number = 0
+        let skippedNodesWithLocations: { uri: Uri, nodes: ALFullSyntaxTreeNode[] }[] = []
         if (analyzedBuildOutputLines.length != 0)
             await window.withProgress(
                 {
@@ -62,9 +59,11 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                         ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false, varSections)
                         ALFullSyntaxTreeNodeExt.collectChildNodes(objectTreeNode, FullSyntaxTreeNodeKind.getVarSection(), true, varSections)
                         let analyzedOutputLinesPerVarSections: { node: ALFullSyntaxTreeNode; analyzedOutputLines: { range: Range; variableName: string; }[]; }[] = this.getAnalyzedOutputLinesPerVarSections(varSections, filteredAnalyzedOutputLinesOfFile);
-                        let analyzedOutputLinesOfReturnValues: { range: Range; variableName: string; }[] = this.getAnalyzedOutputLinesNotInVarSections(filteredAnalyzedOutputLinesOfFile, analyzedOutputLinesPerVarSections, syntaxTree)
+                        let analyzedOutputLinesNotInVarSection: { returnOutputLines: { range: Range; variableName: string; }[]; skippedNodes: ALFullSyntaxTreeNode[] } = this.getAnalyzedOutputLinesNotInVarSections(filteredAnalyzedOutputLinesOfFile, analyzedOutputLinesPerVarSections, syntaxTree)
+                        if (analyzedOutputLinesNotInVarSection.skippedNodes.length > 0)
+                            skippedNodesWithLocations.push({ uri: Uri.file(filePath), nodes: analyzedOutputLinesNotInVarSection.skippedNodes })
 
-                        for (const analyzedOutputLineOfReturnValue of analyzedOutputLinesOfReturnValues) {
+                        for (const analyzedOutputLineOfReturnValue of analyzedOutputLinesNotInVarSection.returnOutputLines) {
                             let identifierNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(analyzedOutputLineOfReturnValue.range.start.translate(0, 1), [FullSyntaxTreeNodeKind.getIdentifierName()])
                             if (identifierNode) {
                                 variablesRemoved++
@@ -84,20 +83,20 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                     }
                 }
             )
-        this.variablesRemovedInTotal += variablesRemoved
 
-        let clearedMax: boolean = variablesRemoved == 0
-        if (!clearedMax) {
-            this.resolve([MyTerminal.createPSStatusLine("Removed " + variablesRemoved + " variable(s)", "Start again to check if there remain some warnings.")])
-        } else {
-            window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
-            OwnConsole.ownConsole.clear();
-            OwnConsole.ownConsole.show();
-            OwnConsole.ownConsole.appendLine('Finished. Successfully removed variables: ' + this.variablesRemovedInTotal)
-            OwnConsole.ownConsole.appendLine('Please note that unused parameters are also taken into account with CodeCop AA0137, but these are not removed.')
+        window.showInformationMessage('Done! See the result in the Output -> "AL Code Actions" window.')
+        OwnConsole.ownConsole.clear();
+        OwnConsole.ownConsole.show();
+        OwnConsole.ownConsole.appendLine('Finished. Successfully removed variables: ' + variablesRemoved)
+        if (skippedNodesWithLocations.length > 0) {
+            OwnConsole.ownConsole.appendLine(`Please note that unused parameters are also taken into account with CodeCop AA0137, but these are not removed. There are ${skippedNodesWithLocations.map(entry => entry.nodes.length).reduce((sum, current) => sum + current, 0)} of them. You can inspect them here:`)
+            for (const skippedNodesWithLocation of skippedNodesWithLocations)
+                for (const skippedNode of skippedNodesWithLocation.nodes)
+                    OwnConsole.ownConsole.appendLine(ErrorLogUtils.buildCompileLineBasedOnNode(skippedNodesWithLocation.uri, skippedNode))
         }
     }
-    private getAnalyzedOutputLinesNotInVarSections(analyzedOutputLinesOfFile: { range: Range; variableName: string; }[], analyzedOutputLinesPerVarSections: { node: ALFullSyntaxTreeNode; analyzedOutputLines: { range: Range; variableName: string; }[]; }[], syntaxTree: SyntaxTree): { range: Range; variableName: string; }[] {
+    private getAnalyzedOutputLinesNotInVarSections(analyzedOutputLinesOfFile: { range: Range; variableName: string; }[], analyzedOutputLinesPerVarSections: { node: ALFullSyntaxTreeNode; analyzedOutputLines: { range: Range; variableName: string; }[]; }[], syntaxTree: SyntaxTree): { returnOutputLines: { range: Range; variableName: string; }[]; skippedNodes: ALFullSyntaxTreeNode[] } {
+        let nodesSkipped: ALFullSyntaxTreeNode[] = []
         let linesNotInVarSection: { range: Range; variableName: string; }[] =
             analyzedOutputLinesOfFile
                 .filter(analyzedLineOfFile => !analyzedOutputLinesPerVarSections
@@ -112,10 +111,11 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
             if (!node) {
                 linesNotInVarSection.splice(i--, 1)
                 let skippedNode: ALFullSyntaxTreeNode = syntaxTree.findTreeNode(pos)!
+                nodesSkipped.push(skippedNode);
                 console.log('Skipped node: ' + skippedNode.kind + ', parent: ' + skippedNode.parentNode!.kind + ', parentsParent: ' + skippedNode.parentNode!.parentNode!.kind)
             }
         }
-        return linesNotInVarSection
+        return { returnOutputLines: linesNotInVarSection, skippedNodes: nodesSkipped }
     }
     private analyzeAndSortBuildOutputLines(errorLogIssuesAA0137: ErrorLog.Issue[]) {
         let analyzedBuildOutputLines: { filePath: string; range: Range; variableName: string }[] = [];

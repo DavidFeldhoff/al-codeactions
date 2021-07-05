@@ -14,9 +14,9 @@ export class ALVariableParser {
         ['boolean', 'false'],
         ['integer', '0'],
         ['decimal', '0'],
-        ['text', ''],
-        ['code', ''],
-        ['char', '']
+        ['text', '\'\''],
+        ['code', '\'\''],
+        ['char', '\'\'']
     ])
     static parseVariableTreeNodeArrayToALVariableArray(document: TextDocument, variableTreeNodes: ALFullSyntaxTreeNode[], sanitizeName: boolean): ALVariable[] {
         let alVariables: ALVariable[] = [];

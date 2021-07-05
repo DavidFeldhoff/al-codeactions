@@ -24,7 +24,7 @@ export class CreateProcedure {
             procedureCreator.getJumpToCreatedProcedure(),
             procedureCreator.containsSnippet(),
             await procedureCreator.getObject(),
-            procedureCreator.isReturnTypeRequired()
+            await procedureCreator.isReturnTypeRequired()
         );
         let body = procedureCreator.getBody();
         if (body) {

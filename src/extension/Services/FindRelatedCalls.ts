@@ -109,9 +109,9 @@ export class FindRelatedCalls implements ReferenceProvider {
         return locations
     }
     private getTableVariableNamesAndRanges(doc: Document, tableReferenceRange: Range): { name: string; range: Range; }[] {
-        let lineTextOfLocation: string = doc.fileLines[tableReferenceRange.start.line]
-        let regexVariableListDeclaration: RegExp = /("[^"]+"|\w+)\s*,\s*("[^"]+"|\w+)\s*:\s*Record/ig;
-        let regexVariableDeclaration: RegExp = /("[^"]+"|\w+)\s*:\s*Record/i;
+        let lineTextOfLocation: string = doc.fileLines[tableReferenceRange.start.line].substring(0, tableReferenceRange.start.character).trimRight();
+        let regexVariableListDeclaration: RegExp = /("[^"]+"|\w+)\s*,\s*("[^"]+"|\w+)\s*:\s*Record$/ig;
+        let regexVariableDeclaration: RegExp = /("[^"]+"|\w+)\s*:\s*Record$/i;
         let variableNameAndRanges: { name: string; range: Range }[] = []
         if (regexVariableListDeclaration.test(lineTextOfLocation)) {
             let variableNamesOnly: string = lineTextOfLocation.substring(0, lineTextOfLocation.lastIndexOf(':'));

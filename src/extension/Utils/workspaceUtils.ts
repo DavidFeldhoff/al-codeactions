@@ -7,16 +7,29 @@ import { ObjectCollectionImpl } from '../ObjectCollection/ObjectCollectionImpl';
 import { ObjectCollectionInterface } from '../ObjectCollection/ObjectCollectionInterface';
 
 export class WorkspaceUtils {
+    public static onAppJsonFound?: (json: any) => any
     public static async findAppJson(uri: Uri): Promise<any | undefined> {
         let workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
         if (workspaceFolder) {
             let appJsonFile: Uri[] | undefined = await workspace.findFiles(new RelativePattern(workspaceFolder, 'app.json'));
             if (appJsonFile && appJsonFile.length == 1) {
                 let jsoncContent = readFileSync(appJsonFile[0].fsPath, { encoding: 'utf8' })
-                return parse(jsoncContent);
+                let json: any = parse(jsoncContent);
+                if (WorkspaceUtils.onAppJsonFound)
+                    json = WorkspaceUtils.onAppJsonFound(json);
+                return json;
             }
         }
         return
+    }
+    public static addNoImplicitWithToAppJson() {
+        WorkspaceUtils.onAppJsonFound = (json) => {
+            if (!json.features)
+                json.features = []
+            if (!json.features.includes('NoImplicitWith'))
+                json.features.push('NoImplicitWith')
+            return json
+        }
     }
     public static async findValidAppSourcePrefixes(uri: Uri): Promise<string[] | undefined> {
         let workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
