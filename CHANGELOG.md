@@ -2,6 +2,17 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.3
+
+- Minor changes
+  - Create procedure in argument list even if the procedure does not exist yet
+  - Create procedure in Validate Statement
+  - Create overload of procedure: fix if the new parameter is a text variable
+  - Create overload of procedure/Add parameters: fix if the original procedure had no parameters.
+  - Create procedure: Add procedure on source table if you're on a page #66
+  - Remove unused variables (Fix Cop-Command): Show locations of unused parameters which were not removed to be able to fix them manually.
+  - Find related Insert-Calls: If the record to search for was a parameter, then there was a chance it was identified false positive which is fixed now.
+
 ## 1.0.2
 
 - Add feature "Add parameter": If there is an existing procedure with one parameter, but you call that with multiple, you can add these additional variables as parameter [Demo](README.md#add-parameters)

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { TextDocument, workspace, window, Diagnostic, Range } from 'vscode';
+import { TextDocument, workspace, window, Diagnostic, Range, CodeAction, Uri } from 'vscode';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
@@ -9,6 +9,10 @@ import { CreateProcedureAL0132 } from '../../extension/Create Procedure/Procedur
 import { SupportedDiagnosticCodes } from '../../extension/Create Procedure/supportedDiagnosticCodes';
 import { AccessModifier } from '../../extension/Entities/accessModifier';
 import { ALProcedure } from '../../extension/Entities/alProcedure';
+import { Command } from '../../extension/Entities/Command';
+import { CodeActionProviderAL0118 } from '../../extension/Services/CodeActionProviderAL0118';
+import { CodeActionProviderAL0132 } from '../../extension/Services/CodeActionProviderAL0132';
+import { WorkspaceUtils } from '../../extension/Utils/workspaceUtils';
 import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
 
@@ -19,6 +23,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 	let testcodeunitDocument: TextDocument;
 	let tableDocument: TextDocument;
 	let pageDocument: TextDocument;
+	let myPage2Document: TextDocument;
 	let mainPageDocument: TextDocument;
 	this.timeout(0);
 	this.beforeAll('beforeTests', async function () {
@@ -41,6 +46,10 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		fileName = path.resolve(ALTestProject.dir, 'MyPage.al');
 		await workspace.openTextDocument(fileName).then(document => {
 			pageDocument = document;
+		});
+		fileName = path.resolve(ALTestProject.dir, 'MyPage2.al');
+		await workspace.openTextDocument(fileName).then(document => {
+			myPage2Document = document;
 		});
 		fileName = path.resolve(ALTestProject.dir, 'MainPage.al');
 		await workspace.openTextDocument(fileName).then(document => {
@@ -238,6 +247,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
+	test('getProcedureToCreate_InsideValidate', async () => {
+		let procedureName = 'MissingProcedureInsideValidate';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document, diagnostic));
+		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.strictEqual(alProcedure.name, procedureName);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
+		assert.notStrictEqual(alProcedure.returnType, undefined);
+		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
+		assert.strictEqual(alProcedure.parameters.length, 0);
+	});
 	test('getProcedureToCreate_DotInVariableName', async () => {
 		let procedureName = 'MissingProcedureWithDotInVariableName';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
@@ -373,6 +396,20 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 		assert.strictEqual(alProcedure.parameters[1].name, 'myInteger');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Integer');
+	});
+	test('getProcedureToCreate_MissingProcedureInNonExistingOverload', async () => {
+		let procedureName = 'MissingProcedureInNonExistingOverload';
+		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);
+		let diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = SupportedDiagnosticCodes.AL0118.toString();
+		let alProcedure = await CreateProcedure.createProcedure(new CreateProcedureAL0118(codeunit1Document, diagnostic));
+		assert.notStrictEqual(alProcedure, undefined, 'Procedure should be created');
+		alProcedure = alProcedure as ALProcedure;
+		assert.strictEqual(alProcedure.name, procedureName);
+		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
+		assert.strictEqual(alProcedure.returnType, undefined);
+		assert.strictEqual(alProcedure.parameters.length, 0);
+		assert.strictEqual(alProcedure.isReturnTypeRequired(), true, 'return type required')
 	});
 	test('getProcedureToCreate_ReturnValueDirectlyUsed', async () => {
 		let procedureName = 'MissingProcedureWithDirectlyUsedReturnValue';
@@ -901,6 +938,75 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[0].type, 'Record Vendor');
 		assert.strictEqual(alProcedure.parameters[1].name, 'xRec');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Record Vendor');
+	});
+	test('getProcedureToCreate_ImplicitWithSourceTable', async function () {
+		let procedureName = 'testproc';
+		let rangeOfProcedureName = getRangeOfProcedureName(myPage2Document, procedureName);
+		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = 'AL0118';
+		let codeActionProvider = new CodeActionProviderAL0118(myPage2Document, diagnostic);
+		let consider: boolean = await codeActionProvider.considerLine();
+		assert.strictEqual(consider, true, 'Code action should be considered');
+		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
+		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
+		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[0].title, 'Create procedure testproc on source table');
+		let document: TextDocument = codeActions[0].command.arguments![0]
+		let procedure: ALProcedure = codeActions[0].command.arguments![1]
+		assert.strictEqual(document.uri.fsPath.endsWith('MyTable.al'), true)
+		assert.strictEqual(procedure.accessModifier, AccessModifier.internal)
+		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyTable')
+		assert.strictEqual(procedure.ObjectOfProcedure.type, 'Table')
+
+		assert.strictEqual(codeActions[1].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[1].title, 'Create procedure testproc');
+		document = codeActions[1].command.arguments![0]
+		procedure = codeActions[1].command.arguments![1]
+		assert.strictEqual(document.uri.fsPath.endsWith('MyPage2.al'), true)
+		assert.strictEqual(procedure.accessModifier, AccessModifier.local)
+		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyPage2')
+		assert.strictEqual(procedure.ObjectOfProcedure.type, 'Page')
+	});
+	test('getProcedureToCreate_Rec_SourceTable', async function () {
+		let procedureName = 'testproc2';
+		let rangeOfProcedureName = getRangeOfProcedureName(myPage2Document, procedureName);
+		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = 'AL0132';
+		let codeActionProvider = new CodeActionProviderAL0132(myPage2Document, diagnostic);
+		let consider: boolean = await codeActionProvider.considerLine();
+		assert.strictEqual(consider, true, 'Code action should be considered');
+		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
+		assert.strictEqual(codeActions.length, 1, 'Code action should be created');
+		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[0].title, 'Create procedure testproc2 on source table');
+		let document: TextDocument = codeActions[0].command.arguments![0]
+		let procedure: ALProcedure = codeActions[0].command.arguments![1]
+		assert.strictEqual(document.uri.fsPath.endsWith('MyTable.al'), true)
+		assert.strictEqual(procedure.accessModifier, AccessModifier.internal)
+		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyTable')
+		assert.strictEqual(procedure.ObjectOfProcedure.type, 'Table')
+	});
+	test('getProcedureToCreate_ImplicitButNoImplicitWith', async function () {
+		let procedureName = 'testproc';
+		let rangeOfProcedureName = getRangeOfProcedureName(myPage2Document, procedureName);
+		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
+		diagnostic.code = 'AL0118';
+		let codeActionProvider = new CodeActionProviderAL0118(myPage2Document, diagnostic);
+		let consider: boolean = await codeActionProvider.considerLine();
+		assert.strictEqual(consider, true, 'Code action should be considered');
+		WorkspaceUtils.addNoImplicitWithToAppJson();
+		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
+		WorkspaceUtils.onAppJsonFound = undefined
+		assert.strictEqual(codeActions.length, 1, 'Code action should be created');
+
+		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[0].title, 'Create procedure testproc');
+		let document: TextDocument = codeActions[0].command.arguments![0]
+		let procedure: ALProcedure = codeActions[0].command.arguments![1]
+		assert.strictEqual(document.uri.fsPath.endsWith('MyPage2.al'), true)
+		assert.strictEqual(procedure.accessModifier, AccessModifier.local)
+		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyPage2')
+		assert.strictEqual(procedure.ObjectOfProcedure.type, 'Page')
 	});
 
 

@@ -1,4 +1,6 @@
-import { Range } from "vscode"
+import { Range, Uri } from "vscode"
+import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
+import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { Err } from "../Utils/Err";
 
 export class ErrorLogUtils {
@@ -29,5 +31,9 @@ export class ErrorLogUtils {
         let uri = this.getUri(issue);
         let range = this.getRange(issue);
         return uri + '(' + (range.start.line + 1) + ',' + (range.start.character + 1) + '): ' + issue.properties.severity + ' ' + issue.ruleId + ': ' + issue.shortMessage
+    }
+    public static buildCompileLineBasedOnNode(uri: Uri, node: ALFullSyntaxTreeNode) {
+        let range = TextRangeExt.createVSCodeRange(node.fullSpan)
+        return uri.fsPath + '(' + (range.start.line + 1) + ',' + (range.start.character + 1) + ')';
     }
 }

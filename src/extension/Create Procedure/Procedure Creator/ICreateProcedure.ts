@@ -14,5 +14,5 @@ export interface ICreateProcedure {
     getMemberAttributes(): string[];
     getJumpToCreatedProcedure(): boolean;
     containsSnippet(): boolean;
-    isReturnTypeRequired(): boolean;
+    isReturnTypeRequired(): Promise<boolean>;
 }
