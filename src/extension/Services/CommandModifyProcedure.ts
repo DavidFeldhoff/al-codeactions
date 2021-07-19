@@ -60,6 +60,16 @@ export class CommandModifyProcedure {
         let endNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(methodNode, [FullSyntaxTreeNodeKind.getVarSection(), FullSyntaxTreeNodeKind.getBlock()], false).shift()
         if (!endNode)
             return
+
+        let returnValue: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNode, FullSyntaxTreeNodeKind.getReturnValue(), false)
+        let returnVariable: { name: string | undefined, exists: boolean } = { name: undefined, exists: false }
+        if (returnValue && returnValue.childNodes) {
+            if (returnValue.childNodes.length == 1)
+                returnVariable = { exists: true, name: undefined }
+            else
+                returnVariable = { exists: true, name: document.getText(TextRangeExt.createVSCodeRange(returnValue.childNodes[0].fullSpan)).trim() }
+        }
+
         let rangeToCopy: Range = DocumentUtils.trimRange(document, new Range(methodRange.start, TextRangeExt.createVSCodeRange(endNode.fullSpan).start));
         let indent = document.lineAt(endNode.fullSpan!.start!.line).firstNonWhitespaceCharacterIndex;
         let indentText = ''.padStart(indent, ' ')
@@ -68,7 +78,7 @@ export class CommandModifyProcedure {
         if (obsoleteOldOne) {
             let json: any | undefined = await WorkspaceUtils.findAppJson(document.uri)
             let obsoletedInVersion = ''
-            if(json && json.version)
+            if (json && json.version)
                 obsoletedInVersion = `v${json.version}`
             textToAdd += `\r\n${indentText}[Obsolete('Please use the overload with ${parameterIdentifiers.length + missingParameters.length} parameters.', '${obsoletedInVersion}')]`
         }
@@ -87,9 +97,17 @@ export class CommandModifyProcedure {
                 parameterIdentifiers.push(missingParameter.name)
             }
         }
-        textToAdd += indentText + 'begin\r\n' +
-            indentText + tab + methodName + '(' + parameterIdentifiers.join(', ') + ');\r\n' +
-            indentText + 'end;\r\n';
+        textToAdd += indentText + 'begin\r\n';
+
+        let methodCall: string = methodName + '(' + parameterIdentifiers.join(', ') + ')';
+        if (returnVariable.exists) {
+            if (!returnVariable.name)
+                textToAdd += indentText + tab + 'exit(' + methodCall + ')' + ';\r\n';
+            else
+                textToAdd += indentText + tab + returnVariable.name + ' := ' + methodCall + ';\r\n';
+        } else
+            textToAdd += indentText + tab + methodCall + ';\r\n';
+        textToAdd += indentText + 'end;\r\n';
 
         let textEdits = []
         let textEditsParameter: TextEdit[] | undefined = this.getTextEditsToAddParametersToProcedure(document, methodNode, missingParameters);
