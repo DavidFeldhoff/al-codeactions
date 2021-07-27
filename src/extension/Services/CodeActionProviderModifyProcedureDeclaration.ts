@@ -12,7 +12,7 @@ import { Config } from "../Utils/config";
 import { MethodClassifier } from "../Utils/MethodClassifier";
 import { ICodeActionProvider } from "./ICodeActionProvider";
 
-export class CodeActionProviderModifyProcedure implements ICodeActionProvider {
+export class CodeActionProviderModifyProcedureDeclaration implements ICodeActionProvider {
     document: TextDocument;
     range: Range;
     candidateLocations!: Location[]
