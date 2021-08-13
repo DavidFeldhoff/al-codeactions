@@ -1,6 +1,6 @@
 # AL CodeActions
 
-[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/DavidFeldhoff/al-codeactions)
+[![Open in Visual Studio Code](images/open-in-vscode.png)](https://open.vscode.dev/DavidFeldhoff/al-codeactions)
 
 You can support me here:
 
