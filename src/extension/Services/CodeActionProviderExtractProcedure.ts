@@ -139,8 +139,10 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         });
         if (returnVariableWhichBecomesVarParameter) {
             let alVariable: ALVariable = await ALVariableParser.parseReturnValueTreeNodeToALVariable(document, returnVariableWhichBecomesVarParameter, false);
-            alVariable.isVar = true;
-            parameters.push(alVariable);
+            if (alVariable.name != undefined) { //not possible that this variable was used in the extracted code
+                alVariable.isVar = true;
+                parameters.push(alVariable);
+            }
         }
 
         let returnType: string | undefined = returnTypeAnalyzer.getReturnType();
@@ -292,9 +294,11 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     }
     async getReturnVariableNeeded(returnVariableTreeNode: ALFullSyntaxTreeNode | undefined, document: TextDocument, rangeExpanded: Range): Promise<ALFullSyntaxTreeNode | undefined> {
         if (returnVariableTreeNode && returnVariableTreeNode.childNodes) {
-            let rangeOfIdentifier = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(returnVariableTreeNode.childNodes[0].fullSpan));
-            if (await this.isOneOfReferencesInRange(document, rangeOfIdentifier.start, rangeExpanded)) {
-                return returnVariableTreeNode;
+            if (returnVariableTreeNode.childNodes.length == 2) {
+                let rangeOfIdentifier = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(returnVariableTreeNode.childNodes[0].fullSpan));
+                if (await this.isOneOfReferencesInRange(document, rangeOfIdentifier.start, rangeExpanded)) {
+                    return returnVariableTreeNode;
+                }
             }
         }
         return undefined;

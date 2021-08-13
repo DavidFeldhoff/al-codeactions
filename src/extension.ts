@@ -18,11 +18,12 @@ import { DocumentUtils } from './extension/Utils/documentUtils';
 import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
 import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
 import { ContextSetter } from './extension/Services/ContextSetter';
-import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, Range, TextDocument, window } from 'vscode';
+import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, Range, TextDocument, window, WorkspaceEdit } from 'vscode';
 import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
 import { ALFullSyntaxTreeNode } from './extension/AL Code Outline/alFullSyntaxTreeNode';
 import { ALVariable } from './extension/Entities/alVariable';
 import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
+import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
@@ -87,6 +88,9 @@ export function activate(context: ExtensionContext) {
 		languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable())
 	)
 	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
+	context.subscriptions.push(commands.registerCommand(Command.showError, (message: string) => window.showInformationMessage(message)))
+	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent, (document: TextDocument, range: Range, publisherToAdd: PublisherToAdd) => 
+		new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd)))
 }
 
 

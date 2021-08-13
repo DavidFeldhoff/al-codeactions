@@ -49,7 +49,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -68,7 +68,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -97,7 +97,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'IsHandled')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'IsHandled')
 		assert.strictEqual(missingParameters[0].isVar, true)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -116,7 +116,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'IsHandled')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'IsHandled')
 		assert.strictEqual(missingParameters[0].isVar, true)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -145,7 +145,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -164,7 +164,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -192,7 +192,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyText')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyText')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Text');
 
@@ -211,7 +211,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyText')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyText')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Text');
 
@@ -240,10 +240,10 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 2)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].type, 'Boolean');
-		assert.strictEqual(missingParameters[1].name, 'Vendor')
+		assert.strictEqual(missingParameters[1].getNameOrEmpty(), 'Vendor')
 		assert.strictEqual(missingParameters[1].isVar, false)
 		assert.strictEqual(missingParameters[1].type, 'Record Vendor');
 
@@ -262,10 +262,10 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure LocalProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 2)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
-		assert.strictEqual(missingParameters[1].name, 'Vendor')
+		assert.strictEqual(missingParameters[1].getNameOrEmpty(), 'Vendor')
 		assert.strictEqual(missingParameters[1].isVar, false)
 		assert.strictEqual(missingParameters[1].type, 'Record Vendor');
 
@@ -294,7 +294,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure ReturnSomething(): Integer')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].type, 'Boolean');
 
@@ -313,7 +313,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure ReturnSomething(): Integer')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -341,7 +341,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure ReturnSomethingNamed() returnedInt: Integer')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].type, 'Boolean');
 
@@ -360,7 +360,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitInternal.uri.fsPath, 'Should be in same document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'local procedure ReturnSomethingNamed() returnedInt: Integer')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -389,7 +389,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -408,7 +408,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -437,7 +437,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -456,7 +456,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
 
@@ -485,10 +485,10 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 2)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].type, 'Boolean');
-		assert.strictEqual(missingParameters[1].name, 'Vendor')
+		assert.strictEqual(missingParameters[1].getNameOrEmpty(), 'Vendor')
 		assert.strictEqual(missingParameters[1].isVar, false)
 		assert.strictEqual(missingParameters[1].type, 'Record Vendor');
 
@@ -507,10 +507,10 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.uri.fsPath, codeunitPublic.uri.fsPath, 'Should be in different document')
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), 'procedure PublicProcedureOneParam(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 2)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, false)
 		assert.strictEqual(missingParameters[0].getTypeShort(), 'Boolean');
-		assert.strictEqual(missingParameters[1].name, 'Vendor')
+		assert.strictEqual(missingParameters[1].getNameOrEmpty(), 'Vendor')
 		assert.strictEqual(missingParameters[1].isVar, false)
 		assert.strictEqual(missingParameters[1].type, 'Record Vendor');
 
@@ -542,7 +542,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		assert.strictEqual(doc.lineAt(methodRange.start).text.trimLeft(), '[IntegrationEvent(false, false)]')
 		assert.strictEqual(doc.lineAt(methodRange.start.line + 1).text.trimLeft(), 'local procedure OnPost(Customer: Record Customer)')
 		assert.strictEqual(missingParameters.length, 1)
-		assert.strictEqual(missingParameters[0].name, 'MyBool')
+		assert.strictEqual(missingParameters[0].getNameOrEmpty(), 'MyBool')
 		assert.strictEqual(missingParameters[0].isVar, true)
 		assert.strictEqual(missingParameters[0].type, 'Boolean');
 

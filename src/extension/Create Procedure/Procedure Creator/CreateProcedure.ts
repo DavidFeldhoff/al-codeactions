@@ -105,7 +105,7 @@ export class CreateProcedure {
             if (i > 0) {
                 procedureCall += ', ';
             }
-            procedureCall += parameters[i].name;
+            procedureCall += parameters[i].getNameOrEmpty();
         }
         procedureCall += ')';
 

@@ -1,5 +1,5 @@
 export class ALVariable {
-    public name: string;
+    public name: string | undefined;
     public type: string;
     public isLocal: boolean = false;
     public isVar: boolean = false;
@@ -7,11 +7,11 @@ export class ALVariable {
     public procedure: string | undefined;
     public memberAttributes: string[] = [];
     public isResultParameter: boolean = false;
-    constructor(name: string, type: string);
-    constructor(name: string, type: string, memberAttributes: string[]);
-    constructor(name: string, type: string, procedure: string | undefined, isVar: boolean);
-    constructor(name: string, type: string, procedure: string | undefined, isVar: boolean, canBeVar: boolean);
-    constructor(name: string, type: string, procedure: string | undefined, isVar: boolean, memberAttributes: string[]);
+    constructor(name: string | undefined, type: string);
+    constructor(name: string | undefined, type: string, memberAttributes: string[]);
+    constructor(name: string | undefined, type: string, procedure: string | undefined, isVar: boolean);
+    constructor(name: string | undefined, type: string, procedure: string | undefined, isVar: boolean, canBeVar: boolean);
+    constructor(name: string | undefined, type: string, procedure: string | undefined, isVar: boolean, memberAttributes: string[]);
     public constructor(...args: any[]) {
         this.name = args[0];
         this.type = args[1];
@@ -34,6 +34,7 @@ export class ALVariable {
             default:
                 break;
         }
+        this.isLocal = this.procedure !== undefined
     }
 
     public getVariableDeclarationString(indent: string = ''): string {
@@ -54,7 +55,12 @@ export class ALVariable {
     public getTypeShort(): string {
         return this.type.split(' ')[0].split('[')[0]
     }
+    public getNameOrEmpty(): string {
+        return this.name == undefined ? "" : this.name
+    }
     public sanitizeName(): ALVariable {
+        if (this.name == undefined)
+            return this
         this.name = this.name.trim();
         this.name = this.name.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
         this.name = this.name.replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue');
