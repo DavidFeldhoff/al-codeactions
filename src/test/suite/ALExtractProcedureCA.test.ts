@@ -55,13 +55,13 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'integer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'result');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'result');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 2);
         assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'integer');
-        assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'start');
+        assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'start');
         assert.strictEqual(alProcedure.variables[1].type.toLowerCase(), 'integer');
-        assert.strictEqual(alProcedure.variables[1].name.toLowerCase(), 'addend');
+        assert.strictEqual(alProcedure.variables[1].getNameOrEmpty().toLowerCase(), 'addend');
     });
     test('Before_ProcedureWithOneParameterByValue', async () => {
         let procedureName = 'testProcedureWithOneParameterByValue';
@@ -80,14 +80,14 @@ suite('ALExtractProcedureCA Test Suite', function () {
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
         // assert.strictEqual(alProcedure.parameters.length, 0);
         // assert.strictEqual(alProcedure.variables.length, 1);
         // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithTwoParametersByValue', async () => {
         let procedureName = 'testProcedureWithTwoParametersByValue';
@@ -106,14 +106,14 @@ suite('ALExtractProcedureCA Test Suite', function () {
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
         // assert.strictEqual(alProcedure.parameters.length, 0);
         // assert.strictEqual(alProcedure.variables.length, 1);
         // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithMultilineParametersByValue', async () => {
         let procedureName = 'testProcedureWithMultilineParametersByValue';
@@ -132,14 +132,14 @@ suite('ALExtractProcedureCA Test Suite', function () {
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
         // assert.strictEqual(alProcedure.parameters.length, 0);
         // assert.strictEqual(alProcedure.variables.length, 1);
         // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithOneParameterByReference', async () => {
         let procedureName = 'testProcedureWithOneParameterByReference';
@@ -157,7 +157,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -177,7 +177,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -197,7 +197,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -218,7 +218,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'codeunit codeunittoextract');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'codeunittoextract');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'codeunittoextract');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -239,7 +239,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'page mypage');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'mypage');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'mypage');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -260,7 +260,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         //planned solution if not everything is handed over as var
@@ -283,7 +283,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -304,14 +304,14 @@ suite('ALExtractProcedureCA Test Suite', function () {
         //current solution because everything is handed over as var
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
         //planned solution if not everything is handed over as var
         // assert.strictEqual(alProcedure.parameters.length, 0);
         // assert.strictEqual(alProcedure.variables.length, 1);
         // assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'record customer');
-        // assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'customer');
+        // assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'customer');
     });
     test('Before_ProcedureWithUsedFilteringBefore', async () => {
         let procedureName = 'testProcedureWithUsedFilteringBefore';
@@ -329,11 +329,11 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), '"customer with quotes"');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), '"customer with quotes"');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 1);
         assert.strictEqual(alProcedure.variables[0].type.toLowerCase(), 'boolean');
-        assert.strictEqual(alProcedure.variables[0].name.toLowerCase(), 'iscustomerempty');
+        assert.strictEqual(alProcedure.variables[0].getNameOrEmpty().toLowerCase(), 'iscustomerempty');
     });
     test('Before_ProcedureWithUsedValueAfterwards', async () => {
         let procedureName = 'testProcedureWithUsedValueAfterwards';
@@ -351,7 +351,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -371,10 +371,10 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.returnType, undefined);
         assert.strictEqual(alProcedure.parameters.length, 2);
         assert.strictEqual(alProcedure.parameters[0].type.toLowerCase(), 'record customer temporary');
-        assert.strictEqual(alProcedure.parameters[0].name.toLowerCase(), 'customer');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty().toLowerCase(), 'customer');
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
         assert.strictEqual(alProcedure.parameters[1].type.toLowerCase(), 'code[20]');
-        assert.strictEqual(alProcedure.parameters[1].name.toLowerCase(), 'myreturnvalue');
+        assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty().toLowerCase(), 'myreturnvalue');
         assert.strictEqual(alProcedure.parameters[1].isVar, true);
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -415,7 +415,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.getBody(), 'returnValue := (addend - 1);')
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
-        assert.strictEqual(alProcedure.parameters[0].name, 'addend');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'addend');
         assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
         assert.strictEqual(alProcedure.variables.length, 0);
     });
@@ -437,7 +437,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.getBody(), 'intParam := 6;')
         assert.strictEqual(alProcedure.parameters.length, 1);
         assert.strictEqual(alProcedure.parameters[0].isVar, true);
-        assert.strictEqual(alProcedure.parameters[0].name, 'intParam');
+        assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'intParam');
         assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
         assert.strictEqual(alProcedure.variables.length, 0);
     });

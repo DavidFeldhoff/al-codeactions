@@ -1,4 +1,4 @@
-import { TextDocument, Range, Position, EndOfLine, Location, window, Selection, commands } from 'vscode';
+import { TextDocument, Range, Position, EndOfLine, Location, window, Selection, commands, TextEditor } from 'vscode';
 import { Err } from './Err';
 
 export class DocumentUtils {
@@ -297,5 +297,15 @@ export class DocumentUtils {
             editor.selection = new Selection(location.range.start, location.range.start);
         }
         commands.executeCommand('editor.action.rename');
+    }
+    static async getEditor(document: TextDocument) {
+        let editor: TextEditor;
+        if (window.activeTextEditor && window.activeTextEditor.document === document) {
+            editor = window.activeTextEditor;
+        }
+        else {
+            editor = await window.showTextDocument(document.uri);
+        }
+        return editor;
     }
 }

@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.5
+
+- Add feature "Add OnBefore Publisher" and "Add OnAfter Publisher"
+
 ## 1.0.4
 
 - Create overload respects return variables. #118, #119

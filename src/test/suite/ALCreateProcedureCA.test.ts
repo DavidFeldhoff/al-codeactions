@@ -97,9 +97,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 	});
 	test('getProcedureToCreate_EnumAsParameter', async () => {
@@ -114,7 +114,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'MyEnum');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'MyEnum');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Enum MyEnum');
 	});
 	test('getProcedureToCreate_EnumAsParameter2', async () => {
@@ -129,7 +129,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'MyEnum');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'MyEnum');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Enum MyEnum');
 	});
 	test('getProcedureToCreate_ReturnValue1', async () => {
@@ -145,7 +145,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValue2', async () => {
@@ -161,9 +161,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'Laenge');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'Laenge');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValue3', async () => {
@@ -179,7 +179,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValue4', async () => {
@@ -195,7 +195,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Text[20]');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 
@@ -212,7 +212,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValueField2', async () => {
@@ -228,7 +228,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ReturnValueField3', async () => {
@@ -244,7 +244,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), 'Integer');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_InsideValidate', async () => {
@@ -273,7 +273,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'PassNos');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'PassNos');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Code[20]');
 	});
 
@@ -289,9 +289,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.internal);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 		assert.strictEqual(alProcedure.ObjectOfProcedure.name, "SecondCodeunit");
 	});
@@ -308,9 +308,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text[20]");
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 		assert.strictEqual(alProcedure.ObjectOfProcedure.name, "SecondCodeunit");
 	});
@@ -327,9 +327,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Text[20]");
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 		assert.strictEqual(alProcedure.ObjectOfProcedure.name, '"FirstCodeunit"');
 	});
@@ -360,7 +360,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedure');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myProcedure');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 	test('getProcedureToCreate_ProcedureWithProcedureCallInside2', async () => {
@@ -375,9 +375,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedureWithTwoParams');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myProcedureWithTwoParams');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Integer');
 	});
 	test('getProcedureToCreate_ProcedureWithProcedureCallInside3', async () => {
@@ -392,9 +392,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myProcedure');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myProcedure');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
-		assert.strictEqual(alProcedure.parameters[1].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Integer');
 	});
 	test('getProcedureToCreate_MissingProcedureInNonExistingOverload', async () => {
@@ -451,10 +451,10 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myInteger');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myInteger');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 		assert.strictEqual(alProcedure.parameters[0].isVar, false);
-		assert.strictEqual(alProcedure.parameters[1].name, 'myBoolean');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myBoolean');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Boolean');
 		assert.strictEqual(alProcedure.parameters[1].isVar, false);
 	});
@@ -470,7 +470,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'LineDisplay');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'LineDisplay');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Option');
 	});
 	test('getProcedureToCreate_RecOnRunTrigger', async function () {
@@ -485,7 +485,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'Rec');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Record MyTable');
 		assert.strictEqual(alProcedure.parameters[0].isVar, false);
 	});
@@ -503,13 +503,13 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 4);
-		assert.strictEqual(alProcedure.parameters[0].name, 'No');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'No');
 		assert.strictEqual(alProcedure.parameters[0].type, "Code[20]");
-		assert.strictEqual(alProcedure.parameters[1].name, 'Reserve1');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'Reserve1');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
-		assert.strictEqual(alProcedure.parameters[2].name, 'ApplicationMethod');
+		assert.strictEqual(alProcedure.parameters[2].getNameOrEmpty(), 'ApplicationMethod');
 		assert.strictEqual(alProcedure.parameters[2].type, 'Option');
-		assert.strictEqual(alProcedure.parameters[3].name, 'Reserve2');
+		assert.strictEqual(alProcedure.parameters[3].getNameOrEmpty(), 'Reserve2');
 		assert.strictEqual(alProcedure.parameters[3].type, 'Enum "Reserve Method"');
 	}); //first time interacting with the symbols and another extensin can take some time.
 	test('getProcedureToCreate_FieldsOfSameAppAsParameter', async function () {
@@ -524,7 +524,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'MyField');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'MyField');
 		assert.strictEqual(alProcedure.parameters[0].type, "Integer");
 	});
 
@@ -540,9 +540,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'No1');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'No1');
 		assert.strictEqual(alProcedure.parameters[0].type, "Code[20]");
-		assert.strictEqual(alProcedure.parameters[1].name, 'No2');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'No2');
 		assert.strictEqual(alProcedure.parameters[1].type, "Code[20]");
 	});
 	test('getProcedureToCreate_TwoFieldsWithSameNameAsParameter2', async function () {
@@ -557,9 +557,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'No1');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'No1');
 		assert.strictEqual(alProcedure.parameters[0].type, "Code[20]");
-		assert.strictEqual(alProcedure.parameters[1].name, 'No2');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'No2');
 		assert.strictEqual(alProcedure.parameters[1].type, "Code[20]");
 	});
 	test('getProcedureToCreate_QuotedNameAsParameterWhichMissesQuotes', async function () {
@@ -574,7 +574,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'SalesOrderTestPage');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'SalesOrderTestPage');
 		assert.strictEqual(alProcedure.parameters[0].type, 'TestPage "Sales Order"');
 	});
 	test('getProcedureToCreate_MissingProcedureWithObjectIdAsParameter', async function () {
@@ -589,7 +589,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'TableId');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'TableId');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
 	});
 
@@ -605,13 +605,13 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 4);
-		assert.strictEqual(alProcedure.parameters[0].name, 'arg1');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'arg1');
 		assert.strictEqual(alProcedure.parameters[0].type, "Text");
-		assert.strictEqual(alProcedure.parameters[1].name, 'arg2');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'arg2');
 		assert.strictEqual(alProcedure.parameters[1].type, "Integer");
-		assert.strictEqual(alProcedure.parameters[2].name, 'arg3');
+		assert.strictEqual(alProcedure.parameters[2].getNameOrEmpty(), 'arg3');
 		assert.strictEqual(alProcedure.parameters[2].type, "Decimal");
-		assert.strictEqual(alProcedure.parameters[3].name, 'arg4');
+		assert.strictEqual(alProcedure.parameters[3].getNameOrEmpty(), 'arg4');
 		assert.strictEqual(alProcedure.parameters[3].type, "Boolean");
 	});
 	test('getProcedureToCreate_IfStatement', async function () {
@@ -782,7 +782,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, 'Decimal');
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'myDecimal1');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'myDecimal1');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Decimal');
 		assert.strictEqual(alProcedure.parameters[0].isVar, false);
 	});
@@ -798,7 +798,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'TempMyTable');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'TempMyTable');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Record MyTable temporary');
 		assert.strictEqual(alProcedure.parameters[0].isVar, true);
 	});
@@ -884,7 +884,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Boolean");
 		assert.strictEqual(alProcedure.parameters.length, 1);
-		assert.strictEqual(alProcedure.parameters[0].name, 'MyField');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'MyField');
 		assert.strictEqual(alProcedure.parameters[0].type, "Integer");
 	});
 	test('getProcedureToCreate_Table_OnInsertTrigger', async function () {
@@ -900,9 +900,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.notStrictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.getReturnTypeAsString(), "Integer");
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'MyField');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'MyField');
 		assert.strictEqual(alProcedure.parameters[0].type, "Integer");
-		assert.strictEqual(alProcedure.parameters[1].name, 'myInt');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'myInt');
 		assert.strictEqual(alProcedure.parameters[1].type, "Integer");
 	});
 	test('getProcedureToCreate_Table_RecsAsParameter', async function () {
@@ -917,9 +917,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'Rec');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Record MyTable');
-		assert.strictEqual(alProcedure.parameters[1].name, 'xRec');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'xRec');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Record MyTable');
 	});
 	test('getProcedureToCreate_Page_RecsAsParameter', async function () {
@@ -934,9 +934,9 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 2);
-		assert.strictEqual(alProcedure.parameters[0].name, 'Rec');
+		assert.strictEqual(alProcedure.parameters[0].getNameOrEmpty(), 'Rec');
 		assert.strictEqual(alProcedure.parameters[0].type, 'Record Vendor');
-		assert.strictEqual(alProcedure.parameters[1].name, 'xRec');
+		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'xRec');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Record Vendor');
 	});
 	test('getProcedureToCreate_ImplicitWithSourceTable', async function () {

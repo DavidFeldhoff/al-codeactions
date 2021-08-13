@@ -35,7 +35,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
 
         let edit: WorkspaceEdit = new WorkspaceEdit();
-        edit.replace(this.document.uri, stringLiteralRange, variable.name);
+        edit.replace(this.document.uri, stringLiteralRange, variable.name!);
         edit.insert(this.document.uri, textEdit.range.start, textEdit.newText);
         let linesAdded: number = (textEdit.newText.length - textEdit.newText.replace(/\r\n/g, '').length) / 2;
 

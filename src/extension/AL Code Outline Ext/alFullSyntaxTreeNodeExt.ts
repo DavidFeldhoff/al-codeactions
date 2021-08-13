@@ -34,16 +34,16 @@ export class ALFullSyntaxTreeNodeExt {
             return outList[0];
         }
     }
-    public static getIdentifierValue(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode, removeQuotes: boolean): string | undefined {
-        let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(objectTreeNode, FullSyntaxTreeNodeKind.getIdentifierName(), false);
+    public static getIdentifierValue(document: TextDocument, node: ALFullSyntaxTreeNode, removeQuotes: boolean): string | undefined {
+        let identifierTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(node, FullSyntaxTreeNodeKind.getIdentifierName(), false);
         if (!identifierTreeNode)
             return undefined;
 
-        let objectNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
+        let identifierNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
         if (removeQuotes)
-            return objectNameWithQuotes.removeQuotes()
+            return identifierNameWithQuotes.removeQuotes()
         else
-            return objectNameWithQuotes;
+            return identifierNameWithQuotes;
     }
 
     public static getPathToTreeNode(mainNode: ALFullSyntaxTreeNode, childNode: ALFullSyntaxTreeNode): number[] {

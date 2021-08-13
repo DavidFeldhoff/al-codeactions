@@ -46,7 +46,7 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
         let argumentList: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(invocationExpressionNode, FullSyntaxTreeNodeKind.getArgumentList(), false)
         if (!argumentList)
             return []
-        let variablesUsed: ALVariable[] = await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, procedureName, true)
+        let variablesUsed: ALVariable[] = await ALParameterParser.createParametersOutOfArgumentListTreeNode(this.document, argumentList, procedureName, true, false)
 
         let destDocument: TextDocument = await workspace.openTextDocument(this.candidateLocations[0].uri)
         let publishersShouldHaveVarParametersOnly: boolean = Config.getPublisherHasVarParametersOnly(destDocument.uri);

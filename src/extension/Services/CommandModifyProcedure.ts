@@ -94,7 +94,7 @@ export class CommandModifyProcedure {
                     varSectionAdded = true
                 }
                 textToAdd += indentText + tab + missingParameter.getVariableDeclarationString() + ';\r\n'
-                parameterIdentifiers.push(missingParameter.name)
+                parameterIdentifiers.push(missingParameter.getNameOrEmpty())
             }
         }
         textToAdd += indentText + 'begin\r\n';

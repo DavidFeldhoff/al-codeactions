@@ -68,6 +68,23 @@ export class CreateProcedureCommands {
     }
 
     public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure) {
+        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = await this.getEditToAddProcedureToSourceCode(document, procedure);
+        if (!edit)
+            return
+        if (edit.workspaceEdit)
+            await workspace.applyEdit(edit.workspaceEdit!);
+
+        if (edit.snippetString || edit.selectionToPlaceCursor || edit.rangeToReveal) {
+            let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
+            if (edit.snippetString)
+                editor.insertSnippet(edit.snippetString, edit.position)
+            if (edit.selectionToPlaceCursor)
+                editor.selection = edit.selectionToPlaceCursor
+            if (edit.rangeToReveal)
+                editor.revealRange(edit.rangeToReveal);
+        }
+    }
+    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
         let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
         if (!position)
             return
@@ -79,32 +96,33 @@ export class CreateProcedureCommands {
 
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
+        let rangeToReveal: Range | undefined
+        let selectionToPlaceCursor: Selection | undefined
+        let snippetString: SnippetString | undefined
+        let workspaceEdit: WorkspaceEdit | undefined
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
-            let textToInsert = createProcedure.createProcedureDefinition(procedure, false, isInterface);
+            let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
-            let snippetString: SnippetString = new SnippetString(textToInsert);
-            let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
-            editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
-            editor.insertSnippet(snippetString, position);
+            let linesInserted: number = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
+            snippetString = new SnippetString(textToInsert);
+            rangeToReveal = new Range(position, position.translate(linesInserted, undefined))
         } else {
             let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            let workspaceEdit = new WorkspaceEdit();
+            workspaceEdit = new WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
             let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
-            await workspace.applyEdit(workspaceEdit);
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
                 if (lineOfBodyStart !== undefined) {
                     let lineToPlaceCursor: number = lineOfBodyStart + position.line;
                     let positionToPlaceCursor: Position = new Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
-                    let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
-                    editor.selection = new Selection(positionToPlaceCursor, positionToPlaceCursor);
-                    editor.revealRange(new Range(position, position.translate(linesInserted, undefined)), TextEditorRevealType.InCenter)
+                    selectionToPlaceCursor = new Selection(positionToPlaceCursor, positionToPlaceCursor);
+                    rangeToReveal = new Range(position, position.translate(linesInserted, undefined));
                 }
             }
         }
+        return { position, workspaceEdit, snippetString, selectionToPlaceCursor, rangeToReveal }
     }
 
     private static async askUserForMandatoryReturnType(): Promise<string | undefined> {

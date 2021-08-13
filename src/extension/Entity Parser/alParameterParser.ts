@@ -77,31 +77,32 @@ export class ALParameterParser {
 
         return variables;
     }
-    public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean): Promise<ALVariable[]> {
-        let parameters = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
-        let varParameters: string[] = Config.getVarParameters(document.uri).map(param => param.toLowerCase().removeQuotes())
-        let isRegex: RegExp = /^\/(?<source>.*)\/(?<flags>\w*)$/
-        let varParametersStrings: string[] = []
-        let varParametersRegex: RegExp[] = []
+    public static async createParametersOutOfArgumentListTreeNode(document: TextDocument, argumentListTreeNode: ALFullSyntaxTreeNode, procedureNameToCreate: string, modifyVarNames: boolean, forceVar: boolean = false): Promise<ALVariable[]> {
+        let parameters: ALVariable[] = await ALParameterParser.createALVariableArrayOutOfArgumentListTreeNode(argumentListTreeNode, document, modifyVarNames);
+        return ALParameterParser.enhanceParametersToVarParameters(document, parameters, procedureNameToCreate, forceVar);
+    }
+
+    public static enhanceParametersToVarParameters(document: TextDocument, parameters: ALVariable[], procedureNameToCreate: string, forceVar: boolean): ALVariable[] {
+        let varParameters: string[] = Config.getVarParameters(document.uri).map(param => param.toLowerCase().removeQuotes());
+        let isRegex: RegExp = /^\/(?<source>.*)\/(?<flags>\w*)$/;
+        let varParametersStrings: string[] = [];
+        let varParametersRegex: RegExp[] = [];
         for (const varParameter of varParameters) {
             if (isRegex.test(varParameter)) {
-                let match: RegExpMatchArray = varParameter.match(isRegex)!
-                let regex = new RegExp(match.groups!["source"], match.groups!["flags"])
-                varParametersRegex.push(regex)
+                let match: RegExpMatchArray = varParameter.match(isRegex)!;
+                let regex = new RegExp(match.groups!["source"], match.groups!["flags"]);
+                varParametersRegex.push(regex);
             }
             else
-                varParametersStrings.push(varParameter)
+                varParametersStrings.push(varParameter);
         }
 
         parameters.forEach(parameter => {
             parameter.isLocal = true;
             parameter.procedure = procedureNameToCreate;
-            if (parameter.isResultParameter)
-                parameter.isVar = true;
-            if (varParametersStrings.includes(parameter.name.removeQuotes().toLowerCase()))
-                parameter.isVar = true;
-            if (varParametersRegex.some(regex => regex.test(parameter.name.removeQuotes())))
-                parameter.isVar = true;
+            if (parameter.canBeVar)
+                if (forceVar || parameter.isResultParameter || varParametersStrings.includes(parameter.getNameOrEmpty().removeQuotes().toLowerCase()) || varParametersRegex.some(regex => regex.test(parameter.getNameOrEmpty().removeQuotes().toLowerCase())))
+                    parameter.isVar = true;
         });
         return parameters;
     }
@@ -122,19 +123,19 @@ export class ALParameterParser {
     }
 
     public static getUniqueVariableName(variables: ALVariable[], newVariable: ALVariable): ALVariable {
-        if (this.existsVariableNameWithNumber(variables, newVariable.name)) {
+        if (this.existsVariableNameWithNumber(variables, newVariable.name!)) {
             for (let i = 1; true; i++) {
-                let newVariableNameWithNumber = this.addNumberToVariableName(newVariable.name, i);
+                let newVariableNameWithNumber = this.addNumberToVariableName(newVariable.name!, i);
                 if (!this.existsVariableName(variables, newVariableNameWithNumber)) {
-                    newVariable.name = newVariableNameWithNumber;
+                    newVariable.name! = newVariableNameWithNumber;
                     return newVariable;
                 }
             }
         } else {
-            if (this.existsVariableName(variables, newVariable.name)) {
-                let existingVariable = variables.find(v => v.name === newVariable.name) as ALVariable;
-                existingVariable.name = this.addNumberToVariableName(existingVariable.name, 1);
-                newVariable.name = this.addNumberToVariableName(newVariable.name, 2);
+            if (this.existsVariableName(variables, newVariable.name!)) {
+                let existingVariable = variables.find(v => v.name! === newVariable.name!) as ALVariable;
+                existingVariable.name! = this.addNumberToVariableName(existingVariable.name!, 1);
+                newVariable.name! = this.addNumberToVariableName(newVariable.name!, 2);
                 return newVariable;
             } else {
                 return newVariable;
@@ -142,12 +143,12 @@ export class ALParameterParser {
         }
     }
     private static existsVariableName(variables: ALVariable[], variableName: string): boolean {
-        let existingVariable = variables.find(v => v.name === variableName);
+        let existingVariable = variables.find(v => v.getNameOrEmpty() === variableName);
         return existingVariable !== undefined;
     }
     static existsVariableNameWithNumber(variables: ALVariable[], variableName: string) {
         variableName = this.addNumberToVariableName(variableName);
-        let existingVariable = variables.find(v => v.name === variableName);
+        let existingVariable = variables.find(v => v.getNameOrEmpty() === variableName);
         return existingVariable !== undefined;
     }
     private static addNumberToVariableName(variableName: string, number?: number): string {

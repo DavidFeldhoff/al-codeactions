@@ -85,7 +85,7 @@ export class ExtractProcedureCommand {
             variableRangesOfNormalDeclarations.push({ name: varName, range: range });
         }
         for (const variableRangeOfNormalDeclaration of variableRangesOfNormalDeclarations) {
-            if (variables.some(variable => variable.name.toLowerCase() == variableRangeOfNormalDeclaration.name.toLowerCase()))
+            if (variables.some(variable => variable.name!.toLowerCase() == variableRangeOfNormalDeclaration.name!.toLowerCase()))
                 edit.delete(document.uri, variableRangeOfNormalDeclaration.range);
         }
 
@@ -98,7 +98,7 @@ export class ExtractProcedureCommand {
             let deleteWholeListDeclaration: boolean = true;
             for (let i = 0; i < variableDeclarationNames.length; i++) {
                 let varName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, variableDeclarationNames[i], false) as string;
-                if (!variables.some(variable => variable.name.toLowerCase() == varName.toLowerCase()))
+                if (!variables.some(variable => variable.name!.toLowerCase() == varName.toLowerCase()))
                     deleteWholeListDeclaration = false;
 
                 let rangeToRemove: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(variableDeclarationNames[i].fullSpan));
@@ -109,7 +109,7 @@ export class ExtractProcedureCommand {
             } else {
                 let previousOneDeleted: boolean = false;
                 for (let i = variableRangesOfDeclarationNames.length - 1; i >= 0; i--) {
-                    if (variables.some(variable => variable.name.toLowerCase() == variableRangesOfDeclarationNames[i].name.toLowerCase())) {
+                    if (variables.some(variable => variable.name!.toLowerCase() == variableRangesOfDeclarationNames[i].name!.toLowerCase())) {
                         if (i != 0)
                             edit.delete(document.uri, new Range(variableRangesOfDeclarationNames[i - 1].range.end, variableRangesOfDeclarationNames[i].range.end));
                         else if (i == 0 && previousOneDeleted) {
