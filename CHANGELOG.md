@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.6
+
+- Bugfix: If a procedure should be added at the end of the file, an error appeared
+
 ## 1.0.5
 
 - Add feature "Add OnBefore Publisher" and "Add OnAfter Publisher"

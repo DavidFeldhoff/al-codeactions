@@ -116,7 +116,12 @@ export class CreateProcedureCommands {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
                 if (lineOfBodyStart !== undefined) {
                     let lineToPlaceCursor: number = lineOfBodyStart + position.line;
-                    let positionToPlaceCursor: Position = new Position(lineToPlaceCursor, document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex);
+                    let character: number
+                    if (lineToPlaceCursor > document.lineCount)
+                        character = 8
+                    else
+                        character = document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex;
+                    let positionToPlaceCursor: Position = new Position(lineToPlaceCursor, character);
                     selectionToPlaceCursor = new Selection(positionToPlaceCursor, positionToPlaceCursor);
                     rangeToReveal = new Range(position, position.translate(linesInserted, undefined));
                 }
