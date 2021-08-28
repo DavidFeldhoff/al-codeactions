@@ -99,6 +99,14 @@ export class ALSourceCodeHandler {
         let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
         if (globalVarSection)
             methodQPItems.push({ label: globalVarItem, range: TextRangeExt.createVSCodeRange(globalVarSection.fullSpan), node: globalVarSection })
+        let locationBeforeQuickPick: Location | undefined
+        if (window.activeTextEditor)
+            locationBeforeQuickPick = new Location(window.activeTextEditor.document.uri, window.activeTextEditor.selection)
+        if (window.activeTextEditor) {
+            if (window.activeTextEditor.document.uri.fsPath != document.uri.fsPath) {
+                await window.showTextDocument(document);
+            }
+        }
         let itemChosen: ownQuickPickItem | undefined = await window.showQuickPick(methodQPItems,
             {
                 placeHolder: 'Select an anchor after which you want to place your new function.',
@@ -108,8 +116,14 @@ export class ALSourceCodeHandler {
                     window.activeTextEditor?.revealRange(item.range, TextEditorRevealType.InCenter)
                 }
             })
-        if (!itemChosen)
+        if (!itemChosen) {
+            if (window.activeTextEditor)
+                if (locationBeforeQuickPick && locationBeforeQuickPick.uri.fsPath != window.activeTextEditor.document.uri.fsPath) {
+                    await window.showTextDocument(locationBeforeQuickPick.uri)
+                    window.activeTextEditor.revealRange(locationBeforeQuickPick.range);
+                }
             return { anchorNode: undefined, userCanceled: true };
+        }
         else
             return { anchorNode: itemChosen.node, userCanceled: false }
     }
