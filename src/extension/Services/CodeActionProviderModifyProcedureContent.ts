@@ -1,4 +1,4 @@
-import { CodeAction, Diagnostic, Position, Range, TextDocument, TextEdit, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, Diagnostic, Location, Position, Range, TextDocument, TextEdit, window, workspace, WorkspaceEdit } from "vscode";
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
@@ -55,25 +55,26 @@ export class CodeActionProviderModifyProcedureContent {
         let createOnAfterCodeAction: boolean = !this.document.getText(methodRange).includes(onAfterPublisherName + '(');
         if (!createOnBeforeCodeAction && !createOnAfterCodeAction)
             return [];
+        let sourceLocation = new Location(this.document.uri, this.range);
         let codeActions: CodeAction[] = [];
         if (createOnBeforeCodeAction)
             codeActions.push({
                 title: 'Add OnBefore Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore], title: 'Create Publisher' }
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore, sourceLocation], title: 'Create Publisher' }
             });
         if (createOnAfterCodeAction)
             codeActions.push({
                 title: 'Add OnAfter Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter], title: 'Create Publisher' }
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter, sourceLocation], title: 'Create Publisher' }
             });
         return codeActions;
     }
-    async executeCommand(publisherToAdd: PublisherToAdd): Promise<void> {
-        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd);
+    async executeCommand(publisherToAdd: PublisherToAdd, sourceLocation: Location): Promise<void> {
+        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation);
         if (workspaceEdit)
             await workspace.applyEdit(workspaceEdit);
     }
-    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
+    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, sourceLocation: Location, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
         let sourceSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let methodNode: ALFullSyntaxTreeNode | undefined = sourceSyntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration()]);
         if (!methodNode)
@@ -126,7 +127,7 @@ export class CodeActionProviderModifyProcedureContent {
             return undefined;
         let publisherParameters: ALVariable[] = selection;
         let procedure: ALProcedure = await this.getProcedureToCreate(rangeOfBlockNode, publisherName, publisherParameters);
-        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure);
+        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation);
         if (edits && edits.workspaceEdit) {
             for (const entry of edits.workspaceEdit.entries()) {
                 for (const textEditEntry of entry[1])

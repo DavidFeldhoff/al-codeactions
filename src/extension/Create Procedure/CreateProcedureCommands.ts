@@ -1,4 +1,4 @@
-import { commands, Diagnostic, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
+import { commands, Diagnostic, Location, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
@@ -34,7 +34,7 @@ export class CreateProcedureCommands {
         }
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
-        commands.executeCommand(Command.createProcedureCommand, document, procedure);
+        commands.executeCommand(Command.createProcedureCommand, document, procedure, new Location(document.uri, diagnostic.range));
     }
     private static getCreateProcedureImplementation(handlerToAdd: string, document: TextDocument, diagnostic: Diagnostic): ICreateProcedure {
         switch (handlerToAdd) {
@@ -67,8 +67,8 @@ export class CreateProcedureCommands {
         }
     }
 
-    public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure) {
-        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = await this.getEditToAddProcedureToSourceCode(document, procedure);
+    public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) {
+        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation);
         if (!edit)
             return
         if (edit.workspaceEdit)
@@ -84,8 +84,8 @@ export class CreateProcedureCommands {
                 editor.revealRange(edit.rangeToReveal);
         }
     }
-    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
+    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation);
         if (!position)
             return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);

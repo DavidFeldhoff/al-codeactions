@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { CodeAction, Range, TextDocument, TextEdit, Uri, window, workspace, WorkspaceEdit } from 'vscode';
+import { CodeAction, Location, Range, TextDocument, TextEdit, Uri, window, workspace, WorkspaceEdit } from 'vscode';
 import { ALVariable } from '../../extension/Entities/alVariable';
 import { Command } from '../../extension/Entities/Command';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from '../../extension/Services/CodeActionProviderModifyProcedureContent';
@@ -27,8 +27,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('NoParametersNoVarSectionNoReturn', async () => {
 		let lineTextToSearch = 'procedure NoParametersNoVarSectionNoReturn()';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -49,7 +50,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -60,7 +61,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeNoParametersNoVarSectionNoReturn(IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeNoParametersNoVarSectionNoReturn(var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -74,8 +75,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersNoVarSectionNoReturn', async () => {
 		let lineTextToSearch = 'procedure ParametersNoVarSectionNoReturn(CustomerNo: Code[20])';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -105,7 +107,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -116,7 +118,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersNoVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersNoVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -130,8 +132,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionNoReturn1', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionNoReturn(CustomerNo: Code[20])';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -163,7 +166,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -174,7 +177,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -188,8 +191,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionNoReturn2', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionNoReturn(CustomerNo: Code[20])';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -221,7 +225,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -231,7 +235,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNoReturn(Customer2, CustomerNo);\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionNoReturn(Customer2: Record Customer; CustomerNo: Code[20])\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -245,8 +249,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionUnnamedReturn', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionUnnamedReturn(CustomerNo: Code[20]): Record Customer';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -271,7 +276,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturn', true), parameterPositionPrio: 10 },
 							{ label: "Customer3", picked: true, description: "Record Customer, var: true, reason: return variable", variable: new ALVariable('Customer3', 'Record Customer', 'OnBeforeParametersVarSectionUnnamedReturn', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionUnnamedReturn', false), parameterPositionPrio: 8 },
-							{ label: "Customer2", picked: false, description:"Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionUnnamedReturn', false), parameterPositionPrio: 7 },
+							{ label: "Customer2", picked: false, description: "Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionUnnamedReturn', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturn', true), parameterPositionPrio: 10 },
@@ -291,7 +296,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -303,7 +308,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -317,8 +322,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionNamedReturn', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionNamedReturn(CustomerNo: Code[20]) Customer3: Record Customer';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -334,7 +340,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionNamedReturn', true), parameterPositionPrio: 10 },
 							{ label: "Customer3", picked: true, description: "Record Customer, var: true, reason: return variable", variable: new ALVariable('Customer3', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturn', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionNamedReturn', false), parameterPositionPrio: 8 },
-							{ label: "Customer2", picked: false, description:"Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturn', false), parameterPositionPrio: 7 },
+							{ label: "Customer2", picked: false, description: "Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturn', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionNamedReturn', true), parameterPositionPrio: 10 },
@@ -355,7 +361,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -366,7 +372,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -377,11 +383,12 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnAfterParametersVarSectionNamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer)\r\n    begin\r\n    end;\r\n')
 		assert.strictEqual(mock.finalize(), true);
 	})
-	
+
 	test('ParametersVarSectionNamedReturnDifferentExit', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionNamedReturnDifferentExit(CustomerNo: Code[20]) Customer3: Record Customer';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -397,7 +404,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', true), parameterPositionPrio: 10 },
 							{ label: "Customer3", picked: true, description: "Record Customer, var: true, reason: return variable", variable: new ALVariable('Customer3', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', false), parameterPositionPrio: 8 },
-							{ label: "Customer2", picked: false, description:"Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', false), parameterPositionPrio: 7 },
+							{ label: "Customer2", picked: false, description: "Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionNamedReturnDifferentExit', true), parameterPositionPrio: 10 },
@@ -418,7 +425,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -429,7 +436,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -443,8 +450,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionUnnamedReturnMemberAccess', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionUnnamedReturnMemberAccess(CustomerNo: Code[20]): Decimal';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -469,7 +477,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', true), parameterPositionPrio: 10 },
 							{ label: "Amount", picked: true, description: "Decimal, var: true, reason: return variable", variable: new ALVariable('Amount', 'Decimal', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', false), parameterPositionPrio: 8 },
-							{ label: "Customer2", picked: false, description:"Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', false), parameterPositionPrio: 7 },
+							{ label: "Customer2", picked: false, description: "Record Customer, var: false, reason: local variable", variable: new ALVariable('Customer2', 'Record Customer', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess', true), parameterPositionPrio: 10 },
@@ -489,7 +497,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -501,7 +509,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo, Amount, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo: Code[20]; var Amount: Decimal; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -515,8 +523,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionUnnamedReturnSimpleType', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionUnnamedReturnSimpleType(CustomerNo: Code[20]): Integer';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -541,7 +550,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', true), parameterPositionPrio: 10 },
 							{ label: "rInt", picked: true, description: "Integer, var: true, reason: return variable", variable: new ALVariable('rInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', false), parameterPositionPrio: 8 },
-							{ label: "myInt", picked: false, description:"Integer, var: false, reason: local variable", variable: new ALVariable('myInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', false), parameterPositionPrio: 7 },
+							{ label: "myInt", picked: false, description: "Integer, var: false, reason: local variable", variable: new ALVariable('myInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnSimpleType', true), parameterPositionPrio: 10 },
@@ -561,7 +570,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -573,7 +582,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -587,8 +596,9 @@ suite('ALModifyProcedureContent Test Suite', function () {
 
 	test('ParametersVarSectionUnnamedReturnConstant', async () => {
 		let lineTextToSearch = 'procedure ParametersVarSectionUnnamedReturnConstant(CustomerNo: Code[20]): Integer';
-		let procedureStartPos = TestHelper.getRangeOfLine(addPublishersToProcedure, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
-		let codeActionProvider = new CodeActionProviderModifyProcedureContent(addPublishersToProcedure, new Range(procedureStartPos, procedureStartPos))
+		let doc = addPublishersToProcedure;
+		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
+		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
@@ -613,7 +623,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnConstant', true), parameterPositionPrio: 10 },
 							{ label: "rInt", picked: true, description: "Integer, var: true, reason: return variable", variable: new ALVariable('rInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnConstant', true), parameterPositionPrio: 9 },
 							{ label: "CustomerNo", picked: true, description: "Code[20], var: false, reason: parameter", variable: new ALVariable('CustomerNo', 'Code[20]', 'OnBeforeParametersVarSectionUnnamedReturnConstant', false), parameterPositionPrio: 8 },
-							{ label: "myInt", picked: false, description:"Integer, var: false, reason: local variable", variable: new ALVariable('myInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnConstant', false), parameterPositionPrio: 7 },
+							{ label: "myInt", picked: false, description: "Integer, var: false, reason: local variable", variable: new ALVariable('myInt', 'Integer', 'OnBeforeParametersVarSectionUnnamedReturnConstant', false), parameterPositionPrio: 7 },
 						],
 						result: [
 							{ label: "IsHandled", picked: true, description: "Boolean, var: true, reason: IsHandled", variable: new ALVariable('IsHandled', 'Boolean', 'OnBeforeParametersVarSectionUnnamedReturnConstant', true), parameterPositionPrio: 10 },
@@ -632,7 +642,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -644,7 +654,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false,false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 

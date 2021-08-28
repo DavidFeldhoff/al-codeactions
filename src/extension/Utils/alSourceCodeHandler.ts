@@ -1,4 +1,4 @@
-import { Position, Range, TextDocument, TextEditorRevealType, window } from 'vscode';
+import { Location, Position, Range, Selection, TextDocument, TextEditorRevealType, window } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -19,7 +19,7 @@ export class ALSourceCodeHandler {
     constructor(document: TextDocument) {
         this.document = document;
     }
-    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
+    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let rootNode: ALFullSyntaxTreeNode = syntaxTree.getRoot();
         let objectNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(rootNode, FullSyntaxTreeNodeKind.getAllObjectKinds(), false);
@@ -29,7 +29,7 @@ export class ALSourceCodeHandler {
         let methodOrTriggerNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()], false)
         let classifiedNodes: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] = this.classifyMethodOrTriggerNodes(methodOrTriggerNodes);
 
-        let result: { anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode)
+        let result: { anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode, sourceLocation)
         if (result.userCanceled)
             return undefined
 
@@ -51,7 +51,7 @@ export class ALSourceCodeHandler {
                 return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(targetObjectNode.fullSpan)).end.translate(0, -1);
         }
     }
-    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], targetObjectNode: ALFullSyntaxTreeNode): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
+    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
         let anchorNode: ALFullSyntaxTreeNode | undefined
         if ([FindNewProcedureLocation['Sort by type, access modifier, name'], FindNewProcedureLocation['Sort by type, access modifier, range']].includes(config)) {
             let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
@@ -81,18 +81,32 @@ export class ALSourceCodeHandler {
                     .pop()
         } else if (config == FindNewProcedureLocation['Always ask']) {
             if (classifiedNodes.length > 1)
-                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document)
+                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document, sourceLocation)
             else if (classifiedNodes.length == 1)
                 anchorNode = classifiedNodes[0].node
         }
         return { anchorNode, userCanceled: false }
     }
-    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
-        classifiedNodes = classifiedNodes.sort((a, b) => a.range.start.compareTo(b.range.start))
+    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument, sourceLocation: Location): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
+        classifiedNodes = classifiedNodes.sort((a, b) => {
+            if (sourceLocation) {
+                if (sourceLocation.uri.fsPath == document.uri.fsPath)
+                    if (a.range.contains(sourceLocation.range.start))
+                        return -1;
+                    else if (b.range.contains(sourceLocation.range.start))
+                        return 1;
+            }
+            return a.range.start.compareTo(b.range.start)
+        })
         interface ownQuickPickItem { label: string, detail?: string, range: Range, node: ALFullSyntaxTreeNode }
         let methodQPItems: ownQuickPickItem[] = classifiedNodes.map(entry => {
             let detail: string = document.getText(DocumentUtils.trimRange(document, entry.range)).replace(/\r\n/g, '')
             let label = entry.node.name!
+            if (sourceLocation) {
+                if (sourceLocation.uri.fsPath == document.uri.fsPath)
+                    if (entry.range.contains(sourceLocation.range.start))
+                        label += ' (Current)';
+            }
             return { label, detail, range: entry.range, node: entry.node }
         })
         let globalVarItem = 'Global variable section'

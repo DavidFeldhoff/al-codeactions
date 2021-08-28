@@ -135,16 +135,16 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
     }
     private async createCodeAction(msg: string, procedureToCreate: ALProcedure): Promise<CodeAction> {
         let otherDocument: TextDocument = await workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri!);
-        let codeActionToCreateProcedure: CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument);
+        let codeActionToCreateProcedure: CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, new Location(this.document.uri, this.diagnostic.range));
         return codeActionToCreateProcedure;
     }
 
-    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: TextDocument): CodeAction {
+    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: TextDocument, sourceLocation: Location): CodeAction {
         const codeAction = new CodeAction(msg, CodeActionKind.QuickFix);
         codeAction.command = {
             command: Command.createProcedureCommand,
             title: 'Create Procedure',
-            arguments: [document, procedure]
+            arguments: [document, procedure, sourceLocation]
         };
         return codeAction;
     }

@@ -21,7 +21,7 @@ export class ExtractProcedureCommand {
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure);
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded));
         if (!position)
             return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);

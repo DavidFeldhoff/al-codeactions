@@ -52,8 +52,8 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		commands.registerCommand(Command.createProcedureCommand,
-			(document: TextDocument, procedure: ALProcedure) =>
-				CreateProcedureCommands.addProcedureToSourceCode(document, procedure))
+			(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) =>
+				CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation))
 	);
 	context.subscriptions.push(
 		commands.registerCommand(Command.createHandlerCommand,
@@ -89,8 +89,8 @@ export function activate(context: ExtensionContext) {
 	)
 	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
 	context.subscriptions.push(commands.registerCommand(Command.showError, (message: string) => window.showInformationMessage(message)))
-	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent, (document: TextDocument, range: Range, publisherToAdd: PublisherToAdd) => 
-		new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd)))
+	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent, (document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location) => 
+		new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation)))
 }
 
 
