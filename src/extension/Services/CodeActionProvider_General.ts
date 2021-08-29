@@ -8,6 +8,7 @@ import { CodeActionProviderLocalVariableToGlobal } from './CodeActionProviderLoc
 import { CodeActionProvider, TextDocument, Range, CodeActionContext, CancellationToken, CodeAction } from 'vscode';
 import { CodeActionProviderModifyProcedureDeclaration } from './CodeActionProviderModifyProcedureDeclaration';
 import { CodeActionProviderModifyProcedureContent } from './CodeActionProviderModifyProcedureContent';
+import { CodeActionProviderOptionToEnum } from './CodeActionProviderOptionToEnum';
 
 export class CodeActionProvider_General implements CodeActionProvider {
     async provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Promise<CodeAction[] | undefined> {
@@ -19,6 +20,7 @@ export class CodeActionProvider_General implements CodeActionProvider {
         myCodeActionProviders.push(new CodeActionProviderLocalVariableToGlobal(document, range));
         myCodeActionProviders.push(new CodeActionProviderModifyProcedureDeclaration(document, range));
         myCodeActionProviders.push(new CodeActionProviderModifyProcedureContent(document, range));
+        myCodeActionProviders.push(new CodeActionProviderOptionToEnum(document, range));
 
         let codeActions: CodeAction[] = [];
 

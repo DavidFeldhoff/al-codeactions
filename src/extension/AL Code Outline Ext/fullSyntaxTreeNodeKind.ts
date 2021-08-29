@@ -8,6 +8,12 @@ export class FullSyntaxTreeNodeKind {
     public static getLabelDataType(): string {
         return 'LabelDataType';
     }
+    public static getOptionDataType(): string {
+        return 'OptionDataType';
+    }
+    public static getOptionValues(): string {
+        return 'OptionValues';
+    }
     public static getLabel(): string {
         return 'Label';
     }
@@ -80,6 +86,12 @@ export class FullSyntaxTreeNodeKind {
     public static getProperty(): string {
         return 'Property';
     }
+    public static getLabelPropertyValue(): string {
+        return 'LabelPropertyValue';
+    }
+    public static getCommaSeparatedIdentifierEqualsLiteralList(): string {
+        return 'CommaSeparatedIdentifierEqualsLiteralList';
+    }
     public static getAssignmentStatement(): string {
         return 'AssignmentStatement';
     }
@@ -133,6 +145,9 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getIdentifierName(): string {
         return 'IdentifierName';
+    }
+    public static getIdentifierNameOrEmpty(): string {
+        return 'IdentifierNameOrEmpty';
     }
     public static getBlock(): string {
         return 'Block';

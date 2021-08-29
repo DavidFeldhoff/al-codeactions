@@ -16,6 +16,9 @@ export class Config {
     static setPublisherHasVarParametersOnly(uri: Uri | undefined, newValue: boolean | undefined) {
         this.getConfig(uri).update('publisherHasVarParametersOnly', newValue);
     }
+    static getCommentsContainTranslations(uri?: Uri): boolean {
+        return this.getConfig(uri).get('commentsContainTranslations', true);
+    }
 }
 
 export enum FindNewProcedureLocation {

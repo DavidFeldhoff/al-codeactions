@@ -11,5 +11,6 @@ export class Command {
     public static findRelatedTriggers: string = 'alCodeActions.findRelatedTriggers';
     public static fixCop: string = 'alCodeActions.fixCop';
     public static renameCommand: string = 'alcodeactions.renameMethod';
+    public static refactorOptionToEnum: string = 'alcodeactions.refactorOptionToEnum';
     public static showError: string = 'alcodeactions.showError';
 }

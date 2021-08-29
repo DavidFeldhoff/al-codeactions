@@ -119,7 +119,13 @@
                         "type": "boolean",
                         "default": false,
                         "description": "All parameters of new publishers will be declared as var-parameters."
+                    },
+                    "alCodeActions.commentsContainTranslations": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "If the VS Code extension 'AL Language Tools' is in use, then the translations are maintained in the comments. If you set this property, then the code action 'Refactor option to enum' will try to parse the translated option captions and directly add them to the enum value captions."
                     }
+                    
                 }
             }
         ]
