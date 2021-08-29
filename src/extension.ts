@@ -31,70 +31,60 @@ export function activate(context: ExtensionContext) {
 
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
-	context.subscriptions.push(
-		languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
-			{ providedCodeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract] })
-	)
+	// CodeAction Providers
+	context.subscriptions.push(languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
+		{ providedCodeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract] }))
 
-	context.subscriptions.push(
-		commands.registerCommand(Command.renameCommand, (location: Location) => DocumentUtils.executeRename(location))
-	);
+	// Commands
+	context.subscriptions.push(commands.registerCommand(Command.renameCommand,
+		(location: Location) => DocumentUtils.executeRename(location)));
 	context.subscriptions.push(commands.registerCommand(Command.extractProcedure,
 		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range) =>
-			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded))
-	)
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls, () => FindRelated.exec(1)))
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber, () => FindRelated.exec(2)))
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers, () => FindRelated.exec(3)))
+			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls,
+		() => FindRelated.exec(1)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber,
+		() => FindRelated.exec(2)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers,
+		() => FindRelated.exec(3)))
+	context.subscriptions.push(commands.registerCommand(Command.createProcedureCommand,
+		(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) =>
+			CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation)));
+	context.subscriptions.push(commands.registerCommand(Command.createHandlerCommand,
+		(document: TextDocument, diagnostic: Diagnostic) => CreateProcedureCommands.addHandler(document, diagnostic)));
+	context.subscriptions.push(commands.registerCommand(Command.fixCop,
+		() => new FixCop().resolve()))
+	context.subscriptions.push(commands.registerCommand(Command.addParametersToProcedure,
+		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) =>
+			CommandModifyProcedure.addParametersToProcedure(doc, methodNode, missingParameters)))
+	context.subscriptions.push(commands.registerCommand(Command.createOverloadOfProcedure,
+		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) =>
+			CommandModifyProcedure.createOverloadOfProcedure(doc, methodNode, missingParameters)))
+	context.subscriptions.push(commands.registerCommand(Command.showError,
+		(message: string) => window.showInformationMessage(message)))
+	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent,
+		(document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location) =>
+			new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation)))
+	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum,
+		async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
+			await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
+
+	// Reference/Definition Provider
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
+	context.subscriptions.push(languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions()));
+	context.subscriptions.push(languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions()));
+	context.subscriptions.push(languages.registerDefinitionProvider('al', new DefinitionProviderCallToTrigger()));
+	context.subscriptions.push(languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter()));
+	if (!ALStudioExtension.isAvailable())
+		context.subscriptions.push(languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent()));
 
-
-	context.subscriptions.push(
-		commands.registerCommand(Command.createProcedureCommand,
-			(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) =>
-				CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation))
-	);
-	context.subscriptions.push(
-		commands.registerCommand(Command.createHandlerCommand,
-			(document: TextDocument, diagnostic: Diagnostic) =>
-				CreateProcedureCommands.addHandler(document, diagnostic))
-	);
-	context.subscriptions.push(commands.registerCommand(Command.fixCop, () => new FixCop().resolve()))
-	context.subscriptions.push(commands.registerCommand(Command.addParametersToProcedure,
-		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) => CommandModifyProcedure.addParametersToProcedure(doc, methodNode, missingParameters)))
-	context.subscriptions.push(commands.registerCommand(Command.createOverloadOfProcedure,
-		(doc: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) => CommandModifyProcedure.createOverloadOfProcedure(doc, methodNode, missingParameters)))
-
-
-	context.subscriptions.push(
-		languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions())
-	);
-	context.subscriptions.push(
-		languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions())
-	);
-	context.subscriptions.push(
-		languages.registerDefinitionProvider('al', new DefinitionProviderCallToTrigger())
-	);
-	context.subscriptions.push(
-		languages.registerReferenceProvider('al', new ReferenceProviderTriggerParameter())
-	);
-	if (!ALStudioExtension.isAvailable()) {
-		context.subscriptions.push(
-			languages.registerDefinitionProvider('al', new DefinitionProviderIntegrationEvent())
-		);
-	}
-	context.subscriptions.push(
-		languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable())
-	)
+	// Completion Item Provider
+	context.subscriptions.push(languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable()))
+	
+	// Others
 	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
-	context.subscriptions.push(commands.registerCommand(Command.showError, (message: string) => window.showInformationMessage(message)))
-	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent, (document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location) =>
-		new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation)))
-
-	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum, async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
-		await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
 }
 
 
