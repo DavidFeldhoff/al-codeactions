@@ -57,12 +57,12 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
         let candidateNodes: ALFullSyntaxTreeNode[] = []
         ALFullSyntaxTreeNodeExt.collectChildNodes(objectNode, FullSyntaxTreeNodeKind.getMethodDeclaration(), false, candidateNodes)
         candidateNodes = candidateNodes.filter(candidateNode => candidateNode.name?.removeQuotes().toLowerCase() == procedureName.removeQuotes().toLowerCase())
-
-        let validCandidates: { node: ALFullSyntaxTreeNode, matches: number, missingParameters: ALVariable[], isPublisher: boolean }[] = []
+        interface IMatches { exact: number, sameBaseType: number, validAssignment: number };
+        let validCandidates: { node: ALFullSyntaxTreeNode, matches: IMatches, missingParameters: ALVariable[], isPublisher: boolean }[] = []
         for (let candidateNode of candidateNodes) {
             let isValidCandidate = true
             let isPublisher = false
-            let matches = 0
+            let matches: { exact: number, sameBaseType: number, validAssignment: number } = { exact: 0, sameBaseType: 0, validAssignment: 0 }
             let parameterList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(candidateNode, FullSyntaxTreeNodeKind.getParameterList(), false)!
             let parameters: ALVariable[] = []
             if (parameterList.childNodes)
@@ -72,10 +72,29 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
             if (!(parameters.length < variablesUsed.length))
                 continue
             for (let i = 0; i < parameters.length; i++) {
-                if (parameters[i].type !== variablesUsed[i].type)
+                let candidate = parameters[i]
+                let used = variablesUsed[i]
+                if (candidate.isVar && !used.canBeVar) {
                     isValidCandidate = false
-                else
-                    matches++
+                    break;
+                }
+                let validTypePairs: string[][] = [
+                    ['code', 'text'],
+                    ['integer', 'decimal', 'enum', 'option']
+                ]
+                if (candidate.type.toLowerCase() == used.type.toLowerCase())
+                    matches.exact++;
+                else if (candidate.getTypeShort().toLowerCase() == used.getTypeShort().toLowerCase())
+                    matches.sameBaseType++;
+                else {
+                    let validTypePair: string[] | undefined = validTypePairs.find(pair => pair.includes(used.getTypeShort().toLowerCase()))
+                    if (validTypePair && validTypePair.includes(candidate.getTypeShort().toLowerCase()))
+                        matches.validAssignment++;
+                    else {
+                        isValidCandidate = false;
+                        break;
+                    }
+                }
             }
             if (isValidCandidate) {
                 let methodType = MethodClassifier.classifyMethodAsType(ALMethodNode.create(candidateNode))
@@ -88,7 +107,11 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
                 validCandidates.push(validCandidate)
             }
         }
-        let bestCandidate: { node: ALFullSyntaxTreeNode, matches: number, missingParameters: ALVariable[], isPublisher: boolean } | undefined = validCandidates.sort((a, b) => b.matches - a.matches).pop()
+        let bestCandidate: { node: ALFullSyntaxTreeNode, matches: IMatches, missingParameters: ALVariable[], isPublisher: boolean } | undefined = validCandidates.sort((a, b) => {
+            return b.matches.exact - a.matches.exact != 0 ? b.matches.exact - a.matches.exact :
+                b.matches.sameBaseType - a.matches.sameBaseType != 0 ? b.matches.sameBaseType - a.matches.sameBaseType :
+                    b.matches.validAssignment - a.matches.validAssignment != 0 ? b.matches.validAssignment - a.matches.validAssignment : 0
+        }).pop()
         if (!bestCandidate)
             return []
         else {
