@@ -1,7 +1,7 @@
 import { ICRSExtensionPublicApi } from "crs-al-language-extension-api";
 import { writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { CodeAction, CodeActionKind, extensions, Range, TextDocument, window, workspace, WorkspaceEdit } from "vscode";
+import { join, parse } from "path";
+import { CodeAction, CodeActionKind, commands, CompletionItem, CompletionItemKind, CompletionList, extensions, Range, TextDocument, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -85,7 +85,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
             }
         }
 
-        let baseFolder: string = dirname(this.document.uri.fsPath)
+        let baseFolder: string = parse(this.document.uri.fsPath).dir
         let alCodeOutlineApi = (await ALCodeOutlineExtension.getInstance()).getAPI()
         let enumId = await alCodeOutlineApi.toolsLangServerClient.getNextObjectId(baseFolder, "enum");
 
@@ -121,12 +121,42 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         let filePath = join(baseFolder, fileName);
         writeFileSync(filePath, textForEnumObject, { encoding: 'utf8' });
 
+        let enumDocument: TextDocument = await workspace.openTextDocument(filePath);
+        if (alEnum.id == 0)
+            await this.tryToFixWrongId(enumDocument);
+
         let edit: WorkspaceEdit = new WorkspaceEdit();
         edit.replace(this.document.uri, TextRangeExt.createVSCodeRange(optionDataType.fullSpan), `Enum ${alEnum.name}`)
         edit.delete(this.document.uri, TextRangeExt.createVSCodeRange(optionMembersValueNode.parentNode!.fullSpan))
         if (optionCaptionValueNode)
             edit.delete(this.document.uri, TextRangeExt.createVSCodeRange(optionCaptionValueNode.parentNode!.fullSpan))
         await workspace.applyEdit(edit);
+
+        window.showTextDocument(enumDocument, ViewColumn.Beside);
+    }
+    async tryToFixWrongId(enumDocument: TextDocument) {
+        let nextIDCompletionItem: CompletionItem | undefined;
+        let timeStarted: Date = new Date();
+        let currentIdRange = new Range(0, 'enum '.length, 0, 'enum 0'.length);
+        do {
+            let completionList: CompletionList | undefined = await commands.executeCommand('vscode.executeCompletionItemProvider', enumDocument.uri, currentIdRange.start);
+            if (!completionList)
+                return undefined;
+            nextIDCompletionItem = completionList.items.find(item => item.kind && item.kind == CompletionItemKind.Reference)
+            let currentTime: Date = new Date()
+            let millisecondsAlreadyRan: number = currentTime.getTime() - timeStarted.getTime();
+            let secondsRan: number = millisecondsAlreadyRan / 1000
+            if (secondsRan > 5)
+                break;
+        } while (!nextIDCompletionItem);
+        if (nextIDCompletionItem) {
+            let edit: WorkspaceEdit = new WorkspaceEdit();
+            edit.replace(enumDocument.uri, currentIdRange, nextIDCompletionItem.label)
+            await workspace.applyEdit(edit);
+            let onSaveAlFileAction: string | undefined = workspace.getConfiguration('CRS', window.activeTextEditor?.document.uri).get('OnSaveAlFileAction', 'DoNothing');
+            if (onSaveAlFileAction && !['reorganize', 'rename'].includes(onSaveAlFileAction.toLowerCase()))
+                await enumDocument.save();
+        }
     }
     private addCommentTranslationText(translations: { language: string; translatedValues: string[]; }[], i: number) {
         let commentText = '';

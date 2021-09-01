@@ -17,6 +17,7 @@ You can support me here:
 |**Extract Procedure**     |Select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hands them over as parameter or adds them as local variables. For the moment the parameters are always var-Parameters, but I'm considering to improve it to check if the "var" is necessary. After the new procedure is created you can rename it directly. And I have to admit that this feature is currently not working with report dataitems because I don't recognize them as parameters yet. Before showing this feature in action in the demo section at the end of this file I would like to thank Andrzej for his support. [Demo](#extract-procedure) |
 |**Extract to Label**|If you're inside a method or trigger and there's a string literal you can extract that one directly to a label. [Demo](#extract-to-label)|
 |**Refactor to Validate**|You can refactor a single assignment statement to a validate statement by selecting the '`:=`' operator or by selecting the range of the assignment statement. And you can refactor multiple assignment statements to validate statements if all assignments are underneath each other. [Demo](#refactor-to-validate) |
+|**Refactor Option to Enum**|With this you're able to convert an option table field to an enum. The OptionMembers and OptionCaption Properties are used as values and as translations (if you have the 'AL Language Tools' installed and the setting 'commentsContainTranslations' activated). [Demo](#refactor-option-to-enum)|
 |**Make variable global**|With this code action you can make your local variable to a global one. The variable is ordered by type correctly.  [Demo](#make-variable-global)|
 |**References to HandlerFunctions**     | The AL language does not provide references or definitions for handler functions yet which is why you can't jump between these with F12 or Shift+F12. This extension fixed it to improve your daily test writing. [demo](#create-handler-functions-and-use-references)        |
 |**References to Built in functions**|If you want to know what gets triggered if you call Customer.Insert() then this feature will guide you to the OnInsert-Trigger of the base table. That's a benefit as such, but from there you can furthermore use the "Find related"-feature explained below, to find related OnBefore-/OnAfterInsert Event Subscribers and all OnBefore-/OnAfter-/OnInsert-Triggers of the TableExtensions you developed. [Demo](#references-to-built-in-functions) |
@@ -78,6 +79,10 @@ You can support me here:
 ### Refactor to Validate
 
 ![demo](images/RefactorValidate.gif)
+
+### Refactor Option to Enum
+
+![demo](images/RefactorOptionToEnum.gif)
 
 ### Make variable global
 

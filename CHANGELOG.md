@@ -2,6 +2,13 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.7
+
+- Add feature "Refactor Option to Enum"
+- Improve: Add Parameters/Create Procedure overload. If a string literal was handed over, it just checked if there are procedure candidates with a 'Text' parameter. Procedures with equivalent parameters like 'Code' have not been considered. This has been improved.
+- Improve: Setting "Location of new procedure = Always ask". Now the current procedure from which the new procedure should be created is listed at the top of the list, so that we can simply "enter" the list away if we want to create the procedure directly underneath.
+- Bugfix: Setting "Location of new procedure = Always ask". While going through the procedure candidates under which we want to place our new procedure, the editor revealed the procedure content in the current editor. But if we wanted to create the procedure in a different document, then the wrong content was revealed. This has been fixed.
+
 ## 1.0.6
 
 - Bugfix: If a procedure should be added at the end of the file, an error appeared
