@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, Location, Range, TextDocument, TextEdit, TextLine, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionKind, Location, Range, TextDocument, TextEdit, TextLine, WorkspaceEdit, workspace, commands } from "vscode";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
@@ -33,9 +33,13 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
             return [];
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
-
-        let commentText: string = LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
-
+        let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
+        let commentText: string;
+        if (extractLabelCreatesComment) {
+           commentText = LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
+        } else {
+           commentText = ''
+        }
         let variable: ALVariable = new ALVariable('newLabel', 'Label ' + this.document.getText(stringLiteralRange) + commentText);
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
 

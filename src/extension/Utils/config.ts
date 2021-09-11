@@ -1,4 +1,4 @@
-import { Uri, workspace } from "vscode";
+import { ConfigurationScope, Uri, workspace } from "vscode";
 
 export class Config {
     private static getConfig(uri?: Uri) {
@@ -22,6 +22,9 @@ export class Config {
     static getExtractToLabelCreatesComment(uri?: Uri): boolean {
         return this.getConfig(uri).get('extractToLabelCreatesComment', false);
     }
+    static setExtractToLabelCreatesComment(uri: Uri | undefined, newValue: boolean | undefined) {
+        this.getConfig(uri).update('extractToLabelCreatesComment', newValue);
+    } 
 }
 
 export enum FindNewProcedureLocation {
