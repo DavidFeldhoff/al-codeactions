@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.8
+
+- fix #128: Extract procedure should allow rename even if a comment is inside the selection
+
 ## 1.0.7
 
 - Add feature "Refactor Option to Enum"

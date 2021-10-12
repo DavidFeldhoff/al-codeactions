@@ -10,6 +10,7 @@ import { AccessModifier } from '../../extension/Entities/accessModifier';
 import { ALProcedure } from '../../extension/Entities/alProcedure';
 import { ReturnTypeAnalyzer } from '../../extension/Extract Procedure/returnTypeAnalyzer';
 import { CodeActionProviderExtractProcedure } from '../../extension/Services/CodeActionProviderExtractProcedure';
+import { DocumentUtils } from '../../extension/Utils/documentUtils';
 import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
 
@@ -441,6 +442,27 @@ suite('ALExtractProcedureCA Test Suite', function () {
         assert.strictEqual(alProcedure.parameters[0].type, 'Integer');
         assert.strictEqual(alProcedure.variables.length, 0);
     });
+    test('ExtractComments', async () => {
+        let procedureName = 'codeWithComments';
+        let textToExtractStart = '//MyComment';
+        let textToExtractEnd = 'Customer.Name := \'Name\';';
+        let rangeToExtract: Range = getRange(codeunitToExtractDocument, procedureName, textToExtractStart, textToExtractEnd);
+        let syntaxTreeCodeunitToExtractDoc: SyntaxTree = await SyntaxTree.getInstance(codeunitToExtractDocument);
+        let startTreeNode: ALFullSyntaxTreeNode = syntaxTreeCodeunitToExtractDoc.findTreeNode(rangeToExtract.start, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
+        let endTreeNode: ALFullSyntaxTreeNode = syntaxTreeCodeunitToExtractDoc.findTreeNode(rangeToExtract.end, [FullSyntaxTreeNodeKind.getAssignmentStatement()]) as ALFullSyntaxTreeNode;
+        let returnTypeAnalyzer: ReturnTypeAnalyzer = new ReturnTypeAnalyzer(codeunitToExtractDocument, startTreeNode, endTreeNode);
+        await returnTypeAnalyzer.analyze();
+        let alProcedure: ALProcedure | undefined = await new CodeActionProviderExtractProcedure(codeunitToExtractDocument, rangeToExtract).provideProcedureObjectForCodeAction(rangeToExtract, returnTypeAnalyzer);
+        assert.notStrictEqual(alProcedure, undefined, 'Procedure should be extracted');
+        alProcedure = alProcedure as ALProcedure;
+        assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
+        assert.strictEqual(alProcedure.returnType, undefined);
+        assert.strictEqual(alProcedure.getBody(), 'Customer.Name := \'Name\';')
+        assert.strictEqual(alProcedure.parameters.length, 0);
+        assert.strictEqual(alProcedure.variables.length, 1);
+        assert.strictEqual(alProcedure.variables[0].getNameOrEmpty(), 'Customer');
+        assert.strictEqual(alProcedure.variables[0].type, 'Record Customer');
+    });
 
 
     function getRange(document: TextDocument, procedureName: string, textToExtractStart: string, textToExtractEnd: string): Range {
@@ -460,7 +482,7 @@ suite('ALExtractProcedureCA Test Suite', function () {
                 if (startPos) {
                     if (document.lineAt(i).text.includes(textToExtractEnd)) {
                         endPos = new Position(i, document.lineAt(i).text.indexOf(textToExtractEnd) + textToExtractEnd.length);
-                        return new Range(startPos, endPos);
+                        return DocumentUtils.trimRange(document, new Range(startPos, endPos));
                     }
                 }
             }

@@ -37,7 +37,7 @@ export class ExtractProcedureCommand {
         await workspace.applyEdit(workspaceEdit);
 
         if (callRename)
-            ExtractProcedureCommand.callRename(document);
+            await ExtractProcedureCommand.callRename(document);
     }
     private static async askForNewName(procedureCallingText: string, procedure: ALProcedure) {
         let newName: string | undefined = await window.showInputBox({ prompt: 'Enter the name for the new method.', placeHolder: RenameMgt.newProcedureName });
@@ -50,13 +50,20 @@ export class ExtractProcedureCommand {
         return procedureCallingText;
     }
 
-    private static callRename(document: TextDocument) {
+    private static async callRename(document: TextDocument) {
         let wordRange: Range | undefined = document.getWordRangeAtPosition(window.activeTextEditor!.selection.start)
-        if (!wordRange)
-            return
-        let executeRenameAt: Position = wordRange.start
-
-        commands.executeCommand(Command.renameCommand, new Location(document.uri, executeRenameAt));
+        if (wordRange) {
+            let executeRenameAt: Position = wordRange.start
+            commands.executeCommand(Command.renameCommand, new Location(document.uri, executeRenameAt));
+        }
+        else {
+            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+            let invocationNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(window.activeTextEditor!.selection.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+            if (invocationNode) {
+                let invocationRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(invocationNode.fullSpan));
+                commands.executeCommand(Command.renameCommand, new Location(document.uri, invocationRange.start));
+            }
+        }
     }
 
     private static async removeLocalVariables(edit: WorkspaceEdit, document: TextDocument, start: Position, variables: ALVariable[]) {
