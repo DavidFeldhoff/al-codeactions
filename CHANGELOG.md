@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.8
 
 - fix #128: Extract procedure should allow rename even if a comment is inside the selection
+- fix #126: Position of new procedures: If the "anchor" after which the new procedure should be added is a trigger, then the new procedure should be added after the last global variable section - not the first one
 
 ## 1.0.7
 

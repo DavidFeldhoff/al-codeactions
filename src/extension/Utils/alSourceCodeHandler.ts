@@ -35,9 +35,9 @@ export class ALSourceCodeHandler {
 
         if (result.anchorNode) {
             if (result.anchorNode.kind == FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
-                let globalVarSection = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(targetObjectNode, FullSyntaxTreeNodeKind.getGlobalVarSection(), false)
-                if (globalVarSection)
-                    result.anchorNode = globalVarSection
+                let globalVarSections: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getGlobalVarSection()], false);
+                if (globalVarSections.length > 1)
+                    result.anchorNode = globalVarSections.pop()!
             }
             return TextRangeExt.createVSCodeRange(result.anchorNode.fullSpan).end
         }
