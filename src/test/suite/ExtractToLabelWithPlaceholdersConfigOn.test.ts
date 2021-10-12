@@ -25,8 +25,7 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 		//open the file just once	
 		let fileName = path.resolve(ALTestProject.dir, 'extractLabelWithPlaceholders.codeunit.al');
 		document = await workspace.openTextDocument(fileName);
-		Config.setExtractToLabelCreatesComment(document.uri, true);
-		let configSetting = Config.getExtractToLabelCreatesComment(document.uri);
+		await Config.setExtractToLabelCreatesComment(document.uri, true);
 	
 		window.showInformationMessage('Start all tests of CodeActionProviderExtractLabel.');
 	});
