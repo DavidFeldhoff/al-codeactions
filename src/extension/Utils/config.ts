@@ -1,4 +1,4 @@
-import { ConfigurationScope, Uri, workspace } from "vscode";
+import { Uri, workspace } from "vscode";
 
 export class Config {
     private static getConfig(uri?: Uri) {

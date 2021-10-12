@@ -12,7 +12,7 @@ import { config } from 'process';
 // import * as myExtension from '../extension';
 
 suite('Extract to Label with Placeholders Config On Test Suite', function () {
-	let codeunit1Document: TextDocument;
+	let document: TextDocument;
 	let rootPath: string;
 
 	this.timeout(0);
@@ -24,11 +24,9 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 
 		//open the file just once	
 		let fileName = path.resolve(ALTestProject.dir, 'extractLabelWithPlaceholders.codeunit.al');
-		await workspace.openTextDocument(fileName).then(document => {
-			codeunit1Document = document;
-		});	
-		Config.setExtractToLabelCreatesComment(codeunit1Document.uri, true);
-		let configSetting = Config.getExtractToLabelCreatesComment(codeunit1Document.uri);
+		document = await workspace.openTextDocument(fileName);
+		Config.setExtractToLabelCreatesComment(document.uri, true);
+		let configSetting = Config.getExtractToLabelCreatesComment(document.uri);
 	
 		window.showInformationMessage('Start all tests of CodeActionProviderExtractLabel.');
 	});
@@ -36,26 +34,24 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 	test('extractToLabelOnNone', async () => {
 		let textToExtract = 'No Local Var Section end.';
 		let expectedResult = '    var\r\n        newLabel: Label \'No Local Var Section end.\';\r\n';
-		let tmpDoc: TextDocument = await workspace.openTextDocument({ language: 'al', content: codeunit1Document.getText() })
-		let rangeOfTextLiteral = getRangeOfTextLiteral(tmpDoc, textToExtract);
+		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
-		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(tmpDoc, new Range(positionToExecute, positionToExecute)).createCodeActions();
+		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 		
-		verifyCodeActionProviderExtractLabel(textToExtract, expectedResult, tmpDoc, codeActions);
+		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
 	test('extractToLabelOnOne', async () => {
 		let textToExtract = 'No Local Var Section %1 end.';
-		let expectedResult = '    var\r\n        newLabel: Label \'No Local Var Section %1 end.\', comment=\'%1= \';\r\n';
-		let tmpDoc: TextDocument = await workspace.openTextDocument({ language: 'al', content: codeunit1Document.getText() })
-		let rangeOfTextLiteral = getRangeOfTextLiteral(tmpDoc, textToExtract);
+		let expectedResult = '    var\r\n        newLabel: Label \'No Local Var Section %1 end.\', Comment=\'%1=\';\r\n';
+		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
-		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(tmpDoc, new Range(positionToExecute, positionToExecute)).createCodeActions();
+		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 		
-		verifyCodeActionProviderExtractLabel(textToExtract, expectedResult, tmpDoc, codeActions);
+		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
-	function verifyCodeActionProviderExtractLabel(textToExtract: string, expectedResult: string, tmpDoc: TextDocument, codeActions: CodeAction[]) {
+	function verifyCodeActionProviderExtractLabel(expectedResult: string, codeActions: CodeAction[]) {
 		assert.strictEqual(codeActions.length, 1, 'Expected one codeAction');
 		assert.notStrictEqual(codeActions[0].edit, undefined, 'workspaceedit expected')
 		let edit = codeActions[0].edit as WorkspaceEdit;

@@ -1,16 +1,15 @@
-import { CodeAction, CodeActionKind, Location, Range, TextDocument, TextEdit, TextLine, WorkspaceEdit, workspace, commands } from "vscode";
+import { CodeAction, CodeActionKind, Location, Range, TextDocument, TextEdit, TextLine, WorkspaceEdit } from "vscode";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ICodeActionProvider } from "./ICodeActionProvider";
-import { Command } from '../Entities/Command';
-import { DocumentUtils } from '../Utils/documentUtils';
 import { ALVariable } from '../Entities/alVariable';
-import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
+import { Command } from '../Entities/Command';
 import { Config } from '../Utils/config';
-import { config } from "process";
+import { DocumentUtils } from '../Utils/documentUtils';
 import { LabelComment } from "../Utils/labelComment";
+import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
+import { ICodeActionProvider } from "./ICodeActionProvider";
 
 export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     range: Range;

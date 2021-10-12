@@ -1,5 +1,4 @@
-import { CodeAction, CodeActionKind, Location, Range, TextDocument, TextEdit, TextLine, WorkspaceEdit } from "vscode";
-import { Config } from '../Utils/config';
+import { Range, TextDocument } from "vscode";
 
 export class LabelComment {
     static getCommentTextForLabel(document: TextDocument, stringLiteralRange: Range): string {
