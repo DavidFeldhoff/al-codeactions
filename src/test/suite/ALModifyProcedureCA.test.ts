@@ -525,11 +525,11 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'OnPost(Customer, MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		Config.setPublisherHasVarParametersOnly(undefined, true)
+		await Config.setPublisherHasVarParametersOnly(undefined, true)
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
-		Config.setPublisherHasVarParametersOnly(undefined, undefined); //reset config
+		await Config.setPublisherHasVarParametersOnly(undefined, undefined); //reset config
 		assert.strictEqual(codeActions.length, 1, 'Code action should be created');
 		let addParamCA = codeActions.find(entry => entry.command?.command == Command.addParametersToProcedure)
 		assert.notStrictEqual(addParamCA, undefined)

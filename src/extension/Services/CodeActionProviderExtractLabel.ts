@@ -3,11 +3,13 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ICodeActionProvider } from "./ICodeActionProvider";
-import { Command } from '../Entities/Command';
-import { DocumentUtils } from '../Utils/documentUtils';
 import { ALVariable } from '../Entities/alVariable';
+import { Command } from '../Entities/Command';
+import { Config } from '../Utils/config';
+import { DocumentUtils } from '../Utils/documentUtils';
+import { LabelComment } from "../Utils/labelComment";
 import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
+import { ICodeActionProvider } from "./ICodeActionProvider";
 
 export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     range: Range;
@@ -30,8 +32,14 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
             return [];
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
-
-        let variable: ALVariable = new ALVariable('newLabel', 'Label ' + this.document.getText(stringLiteralRange))
+        let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
+        let commentText: string;
+        if (extractLabelCreatesComment) {
+           commentText = LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
+        } else {
+           commentText = ''
+        }
+        let variable: ALVariable = new ALVariable('newLabel', 'Label ' + this.document.getText(stringLiteralRange) + commentText);
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
 
         let edit: WorkspaceEdit = new WorkspaceEdit();

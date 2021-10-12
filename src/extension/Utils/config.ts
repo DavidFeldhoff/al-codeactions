@@ -13,12 +13,18 @@ export class Config {
     static getPublisherHasVarParametersOnly(uri?: Uri): boolean {
         return this.getConfig(uri).get('publisherHasVarParametersOnly', false);
     }
-    static setPublisherHasVarParametersOnly(uri: Uri | undefined, newValue: boolean | undefined) {
-        this.getConfig(uri).update('publisherHasVarParametersOnly', newValue);
+    static async setPublisherHasVarParametersOnly(uri: Uri | undefined, newValue: boolean | undefined) {
+        await this.getConfig(uri).update('publisherHasVarParametersOnly', newValue);
     }
     static getCommentsContainTranslations(uri?: Uri): boolean {
         return this.getConfig(uri).get('commentsContainTranslations', true);
     }
+    static getExtractToLabelCreatesComment(uri?: Uri): boolean {
+        return this.getConfig(uri).get('extractToLabelCreatesComment', false);
+    }
+    static async setExtractToLabelCreatesComment(uri: Uri | undefined, newValue: boolean | undefined) {
+        await this.getConfig(uri).update('extractToLabelCreatesComment', newValue);
+    } 
 }
 
 export enum FindNewProcedureLocation {
