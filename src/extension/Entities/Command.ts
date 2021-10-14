@@ -13,4 +13,5 @@ export class Command {
     public static renameCommand: string = 'alcodeactions.renameMethod';
     public static refactorOptionToEnum: string = 'alcodeactions.refactorOptionToEnum';
     public static showError: string = 'alcodeactions.showError';
+    public static extractLabel: string = 'alcodeactions.extractLabel';
 }

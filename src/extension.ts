@@ -25,6 +25,7 @@ import { ALVariable } from './extension/Entities/alVariable';
 import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
 import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
+import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
@@ -68,6 +69,9 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum,
 		async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
 			await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
+	context.subscriptions.push(commands.registerCommand(Command.extractLabel,
+		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) =>
+			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode)))
 
 	// Reference/Definition Provider
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
@@ -82,7 +86,7 @@ export function activate(context: ExtensionContext) {
 
 	// Completion Item Provider
 	context.subscriptions.push(languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable()))
-	
+
 	// Others
 	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
 }

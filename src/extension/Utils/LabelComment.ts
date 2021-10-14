@@ -22,9 +22,9 @@ export class LabelComment {
                     commentText += '; '
 
                 if (orderedPlaceHolderArray[i] != null) {
-                    commentText += orderedPlaceHolderArray[i] + '=';
+                    commentText += orderedPlaceHolderArray[i] + '=${' + orderedPlaceHolderArray[i].substr(1) + '}';
                 } else {
-                    commentText += '%' + (i+1) + '=<not used>';
+                    commentText += '%' + (i + 1) + '=<not used>';
                 }
             }
 
