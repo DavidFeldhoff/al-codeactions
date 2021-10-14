@@ -198,6 +198,8 @@ export class CodeActionProviderModifyProcedureContent {
         let textToInsert: string = `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
         if (isHandledSelected)
             textToInsert += `if IsHandled then\r\n${indent}    exit;\r\n${indent}`;
+        if (!this.document.lineAt(rangeOfBlockNode.start.line + 1).isEmptyOrWhitespace)
+            textToInsert += `\r\n${indent}`
         workspaceEdit.insert(this.document.uri, rangeOfBlockNode.start.translate(1, 4), textToInsert);
         return publisherParameters;
     }
@@ -243,9 +245,13 @@ export class CodeActionProviderModifyProcedureContent {
             return undefined;
         let publisherParameters: ALVariable[] = selection;
         let data: { addAtPosition: Position; addTab: boolean; indentAfterwards: number } = this.getFormatDataToInsertText(lastExitStatementData, rangeOfBlockNode);
+        let indent = "".padStart(data.addAtPosition.character, " ");
         let textToInsert: string = "";
         if (data.addTab)
-            textToInsert = "".padStart(4, " ");
+            textToInsert += "".padStart(4, " ");
+        indent += textToInsert;
+        if (!this.document.lineAt(data.addAtPosition.line - 1).isEmptyOrWhitespace)
+            textToInsert += `\r\n${indent}`
         textToInsert += `${onAfterPublisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${"".padStart(data.indentAfterwards, " ")}`;
         onAfterWorkspaceEdit.insert(this.document.uri, data.addAtPosition, textToInsert);
         return publisherParameters;
