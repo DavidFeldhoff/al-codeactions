@@ -1,4 +1,4 @@
-import { commands, Location, Range, TextDocument, workspace } from 'vscode';
+import { commands, Location, Position, Range, TextDocument, workspace } from 'vscode';
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { DocumentUtils } from '../Utils/documentUtils';
@@ -175,5 +175,27 @@ export class ALFullSyntaxTreeNodeExt {
         let extendedObjectDoc: TextDocument = await workspace.openTextDocument(location.uri);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(extendedObjectDoc);
         return SyntaxTreeExt.getObjectTreeNode(syntaxTree, location.range.start) as ALFullSyntaxTreeNode;
+    }
+    public static findTreeNode(node: ALFullSyntaxTreeNode, position: Position, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {
+        if (!node.childNodes) {
+            return undefined;
+        }
+        for (let i = 0; i < node.childNodes.length; i++) {
+            let cn: ALFullSyntaxTreeNode = node.childNodes[i];
+            let cnRange: Range = TextRangeExt.createVSCodeRange(cn.fullSpan);
+            if (cnRange?.start.isBeforeOrEqual(position) && cnRange.end.isAfterOrEqual(position)) {
+                let deeperResult = this.findTreeNode(cn, position, searchForNodeKinds);
+                if (searchForNodeKinds) {
+                    if (!deeperResult || !deeperResult.kind || deeperResult && !searchForNodeKinds.includes(deeperResult.kind)) {
+                        if (cn.kind && searchForNodeKinds.includes(cn.kind)) {
+                            return cn;
+                        }
+                        return undefined;
+                    }
+                }
+                return deeperResult ? deeperResult : cn;
+            }
+        }
+        return undefined;
     }
 }

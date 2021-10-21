@@ -8,7 +8,7 @@ export class CreateProcedureAL0118IntegrationEvent extends CreateProcedureAL0118
         super(document, diagnostic);
     }
     getMemberAttributes(): string[] {
-        return ['IntegrationEvent(false,false)'];
+        return ['IntegrationEvent(false, false)'];
     }
     async getReturnType(): Promise<string | undefined> {
         return undefined;
