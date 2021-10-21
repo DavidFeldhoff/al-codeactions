@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, commands, Location, Range, SnippetString, TextDocument, TextEdit, TextLine, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionKind, commands, Location, Position, Range, SnippetString, TextDocument, TextEdit, TextLine, window, workspace, WorkspaceEdit } from "vscode";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
@@ -41,6 +41,20 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         return [codeAction];
     }
     public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
+        let { snippetMode, edit, snippetParams } = this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode);
+
+        if (snippetMode && snippetParams) {
+            await workspace.applyEdit(edit);
+            await window.activeTextEditor!.insertSnippet(snippetParams.snippetString, snippetParams.position, snippetParams.options)
+        } else {
+            await workspace.applyEdit(edit);
+            let lastTextEdit = edit.entries().pop()?.[1].pop()!
+            let linesAdded: number = (lastTextEdit.newText.length - lastTextEdit.newText.replace(/\r\n/g, '').length) / 2;
+            await commands.executeCommand(Command.renameCommand, new Location(this.document.uri, stringLiteralRange.start.translate(linesAdded)));
+        }
+    }
+
+    public getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
         let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
         let commentText: string = '';
         if (extractLabelCreatesComment)
@@ -56,15 +70,15 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
             variableName = '${0:' + cleanVariableName + '}';
         let variable: ALVariable = new ALVariable(variableName, 'Label ' + this.document.getText(stringLiteralRange) + commentText);
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
-
-        if (snippetMode) {
-            await workspace.applyEdit(edit);
-            await window.activeTextEditor!.insertSnippet(new SnippetString(textEdit.newText), textEdit.range.start, { undoStopBefore: false, undoStopAfter: false })
-        } else {
+        let snippetParams: { snippetString: SnippetString, position: Position, options: { undoStopBefore: boolean; undoStopAfter: boolean; } } | undefined
+        if (snippetMode)
+            snippetParams = {
+                snippetString: new SnippetString(textEdit.newText),
+                position: textEdit.range.start,
+                options: { undoStopBefore: false, undoStopAfter: false }
+            }
+        else
             edit.insert(this.document.uri, textEdit.range.start, textEdit.newText);
-            await workspace.applyEdit(edit);
-            let linesAdded: number = (textEdit.newText.length - textEdit.newText.replace(/\r\n/g, '').length) / 2;
-            await commands.executeCommand(Command.renameCommand, new Location(this.document.uri, stringLiteralRange.start.translate(linesAdded)));
-        }
+        return { snippetMode, edit, snippetParams };
     }
 }

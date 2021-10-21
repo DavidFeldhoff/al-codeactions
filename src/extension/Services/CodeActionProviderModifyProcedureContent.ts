@@ -255,7 +255,7 @@ export class CodeActionProviderModifyProcedureContent {
             else if (localVariables.some((localVariable: { name: any; }) => localVariable.name == lastExitStatementData.variable!.name)) {
                 reason += ' + local variable';
             }
-            possibleParameters.push({ reason: reason, variable: lastExitStatementData.variable, pickDefault: true, parameterPositionPrio: 10 });
+            possibleParameters.push({ reason: reason, variable: lastExitStatementData.variable, pickDefault: true, parameterPositionPrio: 100 });
         }
         if (returnVariable) {
             let returnVariableIsRequiredButMissing: boolean = !returnVariable.name && !lastExitStatementData;
