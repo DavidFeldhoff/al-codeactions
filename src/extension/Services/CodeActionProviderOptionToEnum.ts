@@ -103,6 +103,8 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                     let caption = optionCaptionStrings[i]
                     if (translations.length > 0)
                         caption += this.addCommentTranslationText(translations, i);
+                    if(caption == `' '`)
+                        caption += ', Locked = true'
 
                     enumProperties.push(new alEnumValueProperty(alPropertyName.Caption, caption))
                 }

@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.9
+
+- #122: Convert option to enum on table field: Small addition that if one caption is blank (' '), then ", Locked = true" is added
+
 ## 1.0.8
 
 - fix #128: Extract procedure should allow rename even if a comment is inside the selection
