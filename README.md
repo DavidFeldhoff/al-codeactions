@@ -1,10 +1,6 @@
 # AL CodeActions
 
-[![Open in Visual Studio Code](images/open-in-vscode.png)](https://open.vscode.dev/DavidFeldhoff/al-codeactions)
-
-You can support me here:
-
-[![https://www.buymeacoffee.com/davidfeldhoff](./images/buymeacoffeeSmall.png)](https://www.buymeacoffee.com/davidfeldhoff)
+[Report an issue](https://github.com/DavidFeldhoff/al-codeactions/issues/new)
 
 ## Features
 
