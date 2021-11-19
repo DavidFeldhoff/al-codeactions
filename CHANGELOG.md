@@ -4,7 +4,8 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 1.0.10
 
-- #123: Be compatible with AL Language Extension version 8.2.545335
+- #132: Be compatible with AL Language Extension version 8.2.545335
+- #131: Allow leading and trailing spaces in the selection while extracting a procedure
 
 ## 1.0.9
 

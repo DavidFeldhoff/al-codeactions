@@ -1,4 +1,4 @@
-import { TextDocument, Range, CodeAction, Position, Location, commands, CodeActionKind, WorkspaceEdit } from 'vscode';
+import { TextDocument, Range, CodeAction, Position, Location, commands, CodeActionKind, WorkspaceEdit, window, Selection } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -32,11 +32,12 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         if (this.range.start.compareTo(this.range.end) === 0) { //performance
             return false;
         }
+        if (this.document.uri.scheme == 'al-preview')
+            return false
+        this.range = DocumentUtils.trimRange(this.document, this.range)
         if (this.document.lineAt(this.range.start).firstNonWhitespaceCharacterIndex <= 4 ||
             this.document.lineAt(this.range.end).firstNonWhitespaceCharacterIndex <= 4)
             return false;
-        if (this.document.uri.scheme == 'al-preview')
-            return false
         return true;
     }
     async createCodeActions(): Promise<CodeAction[]> {

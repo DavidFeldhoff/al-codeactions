@@ -1,4 +1,4 @@
-import { commands, Location, Position, Range, TextDocument, window, workspace, WorkspaceEdit } from "vscode";
+import { commands, Location, Position, Range, Selection, TextDocument, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -24,6 +24,8 @@ export class ExtractProcedureCommand {
         let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded));
         if (!position)
             return
+        if (window.activeTextEditor)
+            window.activeTextEditor.selection = new Selection(rangeExpanded.start, rangeExpanded.end);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
