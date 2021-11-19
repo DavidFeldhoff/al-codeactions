@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.10
+
+- #123: Be compatible with AL Language Extension version 8.2.545335
+
 ## 1.0.9
 
 - #122: Convert option to enum on table field: Small addition that if one caption is blank (' '), then ", Locked = true" is added

@@ -14,7 +14,7 @@ export class CodeActionProviderCreateProcedureFactory {
         }
         let codeActionCreators: ICodeActionProvider[] = [];
         diagnostics.forEach(diagnostic => {
-            switch (diagnostic.code) {
+            switch (DiagnosticAnalyzer.getDiagnosticCode(diagnostic)) {
                 case SupportedDiagnosticCodes.AL0118.toString():
                     codeActionCreators.push(new CodeActionProviderAL0118(document, diagnostic));
                     break;

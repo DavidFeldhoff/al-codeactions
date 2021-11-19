@@ -9,6 +9,7 @@ import { Command } from "../Entities/Command";
 import { MethodType } from "../Entities/methodTypes";
 import { ALParameterParser } from "../Entity Parser/alParameterParser";
 import { Config } from "../Utils/config";
+import { DiagnosticAnalyzer } from "../Utils/diagnosticAnalyzer";
 import { MethodClassifier } from "../Utils/MethodClassifier";
 import { ICodeActionProvider } from "./ICodeActionProvider";
 
@@ -22,7 +23,7 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
     }
     async considerLine(): Promise<boolean> {
         let diagnostics: Diagnostic[] = languages.getDiagnostics(this.document.uri);
-        if (!diagnostics.some(diagnostic => diagnostic.range.contains(this.range) && diagnostic.code == 'AL0126'))
+        if (!diagnostics.some(diagnostic => diagnostic.range.contains(this.range) && DiagnosticAnalyzer.getDiagnosticCode(diagnostic) == 'AL0126'))
             return false
         let candidateLocations: Location[] | undefined = await commands.executeCommand('vscode.executeDefinitionProvider', this.document.uri, this.range.start)
         if (!candidateLocations)

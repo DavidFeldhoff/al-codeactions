@@ -124,13 +124,12 @@
                         "type": "boolean",
                         "default": true,
                         "description": "If the VS Code extension 'AL Language Tools' is in use, then the translations are maintained in the comments. If you set this property, then the code action 'Refactor option to enum' will try to parse the translated option captions and directly add them to the enum value captions."
-                    },    
+                    },
                     "alCodeActions.extractToLabelCreatesComment": {
                         "type": "boolean",
                         "default": false,
                         "description": "Extract to label will create a comment when placeholders are found."
                     }
-                    
                 }
             }
         ]
@@ -145,6 +144,7 @@
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.7",
         "@types/node": "^12.12.42",
+        "@types/semver": "^7.3.9",
         "@types/vscode": "^1.40.0",
         "copyfiles": "^2.2.0",
         "glob": "^7.1.5",

@@ -1,5 +1,6 @@
 import { SupportedDiagnosticCodes } from '../Create Procedure/supportedDiagnosticCodes';
-import { TextDocument, Range, Diagnostic, languages, Uri } from 'vscode';
+import { TextDocument, Range, Diagnostic, languages, Uri, extensions } from 'vscode';
+import * as semver from 'semver';
 
 export class DiagnosticAnalyzer {
     public constructor() {
@@ -21,12 +22,20 @@ export class DiagnosticAnalyzer {
         for (let i = 0; i < allDiagnostics.length; i++) {
             let currentUri: Uri = allDiagnostics[i][0];
             let diagnosticsOfUri: Diagnostic[] = allDiagnostics[i][1];
-            let filteredDiagnosticsOfUri: Diagnostic[] = diagnosticsOfUri.filter(d => d.code && ['AL0606', 'AL0604'].includes(d.code.toString()));
+            let filteredDiagnosticsOfUri: Diagnostic[] = diagnosticsOfUri.filter(d => d.code && ['AL0606', 'AL0604'].includes(DiagnosticAnalyzer.getDiagnosticCode(d)));
             if (filteredDiagnosticsOfUri.length > 0) {
                 filteredDiagnostics.push([currentUri, filteredDiagnosticsOfUri]);
             }
         }
         return filteredDiagnostics;
+    }
+
+    public static getDiagnosticCode(d: Diagnostic): string {
+        let microsoftExtension = extensions.getExtension('ms-dynamics-smb.al');
+        if (semver.gte(microsoftExtension?.packageJSON.version, '8.2.545335'))
+            return (d.code as {value: string, target: Uri}).value;
+        else
+            return d.code!.toString();
     }
     private checkDiagnosticsLanguage(d: Diagnostic): boolean {
         if (!d.source) {
@@ -42,7 +51,7 @@ export class DiagnosticAnalyzer {
         for (var enumMember in SupportedDiagnosticCodes) {
             supportedDiagnosticCodes.push(enumMember.toString());
         }
-        return supportedDiagnosticCodes.includes(d.code.toString());
+        return supportedDiagnosticCodes.includes(DiagnosticAnalyzer.getDiagnosticCode(d));
     }
 
     private checkDiagnosticsPosition(d: Diagnostic, range: Range): boolean {
