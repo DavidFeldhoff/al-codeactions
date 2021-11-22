@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.11
+
+- #133: Second try of being compatible with AL Language Extension version 8.2.545335
+
 ## 1.0.10
 
 - #132: Be compatible with AL Language Extension version 8.2.545335

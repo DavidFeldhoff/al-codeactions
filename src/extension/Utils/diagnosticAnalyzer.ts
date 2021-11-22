@@ -31,11 +31,10 @@ export class DiagnosticAnalyzer {
     }
 
     public static getDiagnosticCode(d: Diagnostic): string {
-        let microsoftExtension = extensions.getExtension('ms-dynamics-smb.al');
-        if (semver.gte(microsoftExtension?.packageJSON.version, '8.2.545335'))
-            return (d.code as {value: string, target: Uri}).value;
+        if ((d.code as any).value)
+            return (d.code as any).value
         else
-            return d.code!.toString();
+            return d.code as string
     }
     private checkDiagnosticsLanguage(d: Diagnostic): boolean {
         if (!d.source) {
