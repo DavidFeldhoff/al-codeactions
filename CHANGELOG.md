@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.12
+
+- #133: "Create Overload" or "Add parameters": Allow comment lines before that line
+
 ## 1.0.11
 
 - #133: Second try of being compatible with AL Language Extension version 8.2.545335

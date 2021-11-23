@@ -41,7 +41,10 @@ export class CommandModifyProcedure {
         ]
     }
     static async createOverloadOfProcedure(document: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[]) {
-        let obsoleteOldOne: boolean = (await window.showQuickPick(['No', 'Yes'], { placeHolder: 'Obsolete old one?' })) == 'Yes'
+        let userAnswer: string | undefined = await window.showQuickPick(['No', 'Yes'], { placeHolder: 'Obsolete old one?' })
+        if (!userAnswer)
+            return
+        let obsoleteOldOne: boolean = userAnswer == 'Yes'
         let textEdits: TextEdit[] | undefined = await this.getTextEditsToCreateOverloadOfProcedure(document, methodNode, missingParameters, obsoleteOldOne)
         if (textEdits) {
             let edit: WorkspaceEdit = new WorkspaceEdit();

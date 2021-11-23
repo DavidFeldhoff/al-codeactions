@@ -39,7 +39,7 @@ export class ALFullSyntaxTreeNodeExt {
         if (!identifierTreeNode)
             return undefined;
 
-        let identifierNameWithQuotes: string = document.getText(TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan)).trim();
+        let identifierNameWithQuotes: string = document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan))).trim();
         if (removeQuotes)
             return identifierNameWithQuotes.removeQuotes()
         else
