@@ -117,7 +117,7 @@ export class CreateProcedureCommands {
                 if (lineOfBodyStart !== undefined) {
                     let lineToPlaceCursor: number = lineOfBodyStart + position.line;
                     let character: number
-                    if (lineToPlaceCursor > document.lineCount)
+                    if (lineToPlaceCursor >= document.lineCount)
                         character = 8
                     else
                         character = document.lineAt(lineToPlaceCursor).firstNonWhitespaceCharacterIndex;

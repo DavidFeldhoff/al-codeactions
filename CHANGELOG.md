@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.13
+
+- #133: fix "Illegal value for line" error
+
 ## 1.0.12
 
 - #133: "Create Overload" or "Add parameters": Allow comment lines before that line
