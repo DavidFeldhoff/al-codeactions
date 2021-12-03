@@ -56,6 +56,9 @@ export class FullSyntaxTreeNodeKind {
     public static getReportObject(): string {
         return 'ReportObject';
     }
+    public static getReportExtensionObject(): string {
+        return 'ReportExtensionObject';
+    }
     public static getXmlPortObject(): string {
         return 'XmlPortObject';
     }
@@ -296,7 +299,7 @@ export class FullSyntaxTreeNodeKind {
             FullSyntaxTreeNodeKind.getPageCustomizationObject(),
             FullSyntaxTreeNodeKind.getCodeunitObject(),
             FullSyntaxTreeNodeKind.getReportObject(),
-            //reportextension
+            FullSyntaxTreeNodeKind.getReportExtensionObject(),
             FullSyntaxTreeNodeKind.getXmlPortObject(),
             FullSyntaxTreeNodeKind.getQueryObject(),
             FullSyntaxTreeNodeKind.getEnumType(),

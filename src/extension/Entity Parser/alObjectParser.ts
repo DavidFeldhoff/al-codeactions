@@ -1,30 +1,15 @@
-import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
-import { ALObject } from '../Entities/alObject';
+import { Position, TextDocument } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
-import { DocumentUtils } from '../Utils/documentUtils';
-import { Err } from '../Utils/Err';
+import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { Position, TextDocument } from 'vscode';
+import { ALObject } from '../Entities/alObject';
+import { Err } from '../Utils/Err';
 
 export class ALObjectParser {
-    private static objectKinds: string[] = [
-        FullSyntaxTreeNodeKind.getTableObject(),
-        FullSyntaxTreeNodeKind.getTableExtensionObject(),
-        FullSyntaxTreeNodeKind.getPageObject(),
-        FullSyntaxTreeNodeKind.getPageExtensionObject(),
-        FullSyntaxTreeNodeKind.getPageCustomizationObject(),
-        FullSyntaxTreeNodeKind.getReportObject(),
-        FullSyntaxTreeNodeKind.getCodeunitObject(),
-        FullSyntaxTreeNodeKind.getXmlPortObject(),
-        FullSyntaxTreeNodeKind.getEnumType(),
-        FullSyntaxTreeNodeKind.getEnumExtensionType(),
-        FullSyntaxTreeNodeKind.getInterface()
-    ];
-
     public static parseObjectTreeNodeToALObject(document: TextDocument, objectTreeNode: ALFullSyntaxTreeNode): ALObject {
-        if (objectTreeNode.kind && this.objectKinds.includes(objectTreeNode.kind)) {
+        if (objectTreeNode.kind && FullSyntaxTreeNodeKind.getAllObjectKinds().includes(objectTreeNode.kind)) {
             let objectType: string = this.getType(objectTreeNode.kind);
             let objectId: number = this.getObjectId(document, objectTreeNode);
             let objectName: string = this.getName(document, objectTreeNode);
@@ -34,7 +19,7 @@ export class ALObjectParser {
     }
     public static async getBaseObjectName(document: TextDocument, position: Position): Promise<string | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
-        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, this.objectKinds);
+        let objectTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(position, FullSyntaxTreeNodeKind.getAllObjectKinds());
         if (!objectTreeNode || !objectTreeNode.kind)
             return;
         let isExtension = [FullSyntaxTreeNodeKind.getTableExtensionObject(),
