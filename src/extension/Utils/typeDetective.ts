@@ -152,27 +152,31 @@ export class TypeDetective {
 
             let hovers: Hover[] | undefined = await commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
             if (hovers && hovers.length > 0) {
-                let hoverMessage: string = hovers[0].contents.values().next().value.value;
-                let hoverMessageLines: string[] = hoverMessage.split('\r\n');
-                let startIndex = hoverMessageLines.indexOf('```al');
-                if (startIndex >= 0) {
-                    this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
-                    if (this.hoverMessageFirstLine.includes(':')) {
-                        this.type = this.hoverMessageFirstLine.substr(this.hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
-                        this.type = this.fixHoverMessage(this.type);
-                        this.canBeVar = true;
+                let allHoverMessages: string[] = [];
+                for (const hover  of hovers) {
+                    let hoverMessage: string = hover.contents.values().next().value.value;
+                    allHoverMessages.push(hoverMessage);
+                    let hoverMessageLines: string[] = hoverMessage.split('\r\n');
+                    let startIndex = hoverMessageLines.indexOf('```al');
+                    if (startIndex >= 0) {
+                        this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
+                        if (this.hoverMessageFirstLine.includes(':')) {
+                            this.type = this.hoverMessageFirstLine.substr(this.hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
+                            this.type = this.fixHoverMessage(this.type);
+                            this.canBeVar = true;
 
-                        this.checkIsVar(this.hoverMessageFirstLine);
-                        await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
-                        if (this.isTemporary) {
-                            this.type += " temporary";
+                            this.checkIsVar(this.hoverMessageFirstLine);
+                            await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
+                            if (this.isTemporary) {
+                                this.type += " temporary";
+                            }
+                            return true;
+                        } else if (this.hoverMessageFirstLine.startsWith('Enum')) {
+                            this.type = this.hoverMessageFirstLine;
                         }
-                        return true;
-                    } else if (this.hoverMessageFirstLine.startsWith('Enum')) {
-                        this.type = this.hoverMessageFirstLine;
                     }
                 }
-                OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:\r\n' + hoverMessage);
+                OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:\r\n' + allHoverMessages.join('\r\n'));
                 return false;
             }
             OwnConsole.ownConsole.appendLine('Unable to get hover of text:\r\n' + document.getText(range));
