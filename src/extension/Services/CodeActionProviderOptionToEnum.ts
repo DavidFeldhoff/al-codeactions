@@ -7,6 +7,7 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
 import { ALCodeOutlineExtension } from "../devToolsExtensionContext";
 import { Command } from '../Entities/Command';
 import { Config } from "../Utils/config";
@@ -50,6 +51,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         return [codeAction];
     }
     async runCommand(fieldTreeNode: ALFullSyntaxTreeNode) {
+        let appInsightsEntryProperties: any = {};
         let enumName: string | undefined = await window.showInputBox({ prompt: 'Please specify a name for the new enum' })
         if (!enumName)
             return []
@@ -81,13 +83,14 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                         optionCaptionStrings[i] = `'${optionCaptionStrings[i].replace(/^'?(.*?)'?$/, '$1')}'`
                 }
                 if (labelNode.childNodes.length > 0)
-                    translations = this.getTranslationInComments(labelNode);
+                    translations = this.getTranslationInComments(labelNode, appInsightsEntryProperties);
             }
         }
 
         let baseFolder: string = parse(this.document.uri.fsPath).dir
         let alCodeOutlineApi = (await ALCodeOutlineExtension.getInstance()).getAPI()
         let enumId = await alCodeOutlineApi.toolsLangServerClient.getNextObjectId(baseFolder, "enum");
+        appInsightsEntryProperties.enumIdReceivedFromAZALDevTools = enumId > 0
 
         let alEnum: alEnum = {
             id: enumId,
@@ -103,7 +106,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                     let caption = optionCaptionStrings[i]
                     if (translations.length > 0)
                         caption += this.addCommentTranslationText(translations, i);
-                    if(caption == `' '`)
+                    if (caption == `' '`)
                         caption += ', Locked = true'
 
                     enumProperties.push(new alEnumValueProperty(alPropertyName.Caption, caption))
@@ -133,6 +136,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         if (optionCaptionValueNode)
             edit.delete(this.document.uri, TextRangeExt.createVSCodeRange(optionCaptionValueNode.parentNode!.fullSpan))
         await workspace.applyEdit(edit);
+        ApplicationInsights.getInstance().trackEvent(EventName.ConvertOptionToEnum, appInsightsEntryProperties)
 
         window.showTextDocument(enumDocument, ViewColumn.Beside);
     }
@@ -174,7 +178,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         return commentText;
     }
 
-    private getTranslationInComments(labelNode: ALFullSyntaxTreeNode): { language: string; translatedValues: string[]; }[] {
+    private getTranslationInComments(labelNode: ALFullSyntaxTreeNode, appInsightsEntryProperties: any): { language: string; translatedValues: string[]; }[] {
         if (!Config.getCommentsContainTranslations(this.document.uri))
             return []
         let translations: { language: string; translatedValues: string[]; }[] = []
@@ -191,7 +195,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                         let regexMatches = commentText.match(regex);
                         if (regexMatches)
                             for (let regexMatch of regexMatches) {
-                                let languageCode = regexMatch.substr(0, 3);
+                                let languageCode = regexMatch.substring(0, 3);
                                 regex = new RegExp(`${languageCode}="([^"]+)"`);
                                 let languageTranslationMatch = regex.exec(commentText);
                                 if (languageTranslationMatch)
@@ -200,10 +204,34 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                                         translatedValues: languageTranslationMatch[1].split(',')
                                     });
                             }
+                    } else {
+                        const workspaceConfig = workspace.getConfiguration("xliffSync");
+                        if (!workspaceConfig.get<boolean>("parseFromDeveloperNote"))
+                            return []
+                        let separator: string | undefined = workspaceConfig.get("parseFromDeveloperNoteSeparator");
+                        if (!separator)
+                            separator = "|"
+                        let regex = new RegExp(`[a-zA-Z]{2}-[a-zA-Z]{2}=.*`, "i")
+                        if (regex.test(commentText)) {
+                            regex = /\b([a-zA-Z]{2}-[a-zA-Z]{2})\b=/g;
+                            let regexMatches = commentText.match(regex);
+                            if (regexMatches)
+                                for (let regexMatch of regexMatches) {
+                                    let languageCode = regexMatch.substring(0, 5)
+                                    let commentTextStartingFromLanguageCode = commentText.substring(commentText.indexOf(`${languageCode}=`) + `${languageCode}=`.length)
+                                    if (commentTextStartingFromLanguageCode.indexOf(separator) >= 0)
+                                        commentTextStartingFromLanguageCode = commentTextStartingFromLanguageCode.substring(0, commentTextStartingFromLanguageCode.indexOf(separator))
+                                    translations.push({
+                                        language: languageCode,
+                                        translatedValues: commentTextStartingFromLanguageCode.split(',')
+                                    });
+                                }
+                        }
                     }
                 }
             }
         }
+        appInsightsEntryProperties.translationInComments = translations.length > 0
         return translations;
     }
 

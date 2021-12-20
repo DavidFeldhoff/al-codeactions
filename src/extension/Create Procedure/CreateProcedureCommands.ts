@@ -1,6 +1,7 @@
 import { commands, Diagnostic, Location, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ApplicationInsights, EventName } from '../ApplicationInsights/applicationInsights';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { ALProcedure } from '../Entities/alProcedure';
 import { Command } from '../Entities/Command';
@@ -68,9 +69,13 @@ export class CreateProcedureCommands {
     }
 
     public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) {
-        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation);
+        let appInsightsEntryProperties: any = {};
+        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = 
+            await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation, appInsightsEntryProperties);
         if (!edit)
             return
+
+        ApplicationInsights.getInstance().trackEvent(EventName.CreateProcedure, appInsightsEntryProperties)
         if (edit.workspaceEdit)
             await workspace.applyEdit(edit.workspaceEdit!);
 
@@ -84,13 +89,14 @@ export class CreateProcedureCommands {
                 editor.revealRange(edit.rangeToReveal);
         }
     }
-    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation);
+    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation, appInsightsEntryProperties);
         if (!position)
             return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
 
         if (procedure.isReturnTypeRequired()) {
+            appInsightsEntryProperties.askUserForMandatoryReturnType = true;
             procedure.returnType = await CreateProcedureCommands.askUserForMandatoryReturnType()
         }
 
@@ -100,6 +106,7 @@ export class CreateProcedureCommands {
         let selectionToPlaceCursor: Selection | undefined
         let snippetString: SnippetString | undefined
         let workspaceEdit: WorkspaceEdit | undefined
+        appInsightsEntryProperties.containsSnippet = procedure.getContainsSnippet();
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
             let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);

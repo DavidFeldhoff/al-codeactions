@@ -4,6 +4,7 @@ import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
 import { CreateProcedure } from "../Create Procedure/Procedure Creator/CreateProcedure";
 import { ALProcedure } from "../Entities/alProcedure";
 import { ALVariable } from "../Entities/alVariable";
@@ -15,13 +16,15 @@ import { DocumentUtils } from "../Utils/documentUtils";
 
 export class ExtractProcedureCommand {
     static async extract(document: TextDocument, procedureCallingText: string, procedure: ALProcedure, rangeExpanded: Range) {
+        let appInsightsEntryProperties: any = {};
         let callRename: boolean = true
         if (Config.getFindNewProcedureLocation(document.uri) == FindNewProcedureLocation["Sort by type, access modifier, name"]) {
             callRename = false
+            appInsightsEntryProperties.askforNewName = true
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded));
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), appInsightsEntryProperties);
         if (!position)
             return
         if (window.activeTextEditor)
@@ -37,6 +40,7 @@ export class ExtractProcedureCommand {
         await this.removeLocalVariables(workspaceEdit, document, rangeExpanded.start, procedure.variables);
         workspaceEdit.replace(document.uri, rangeExpanded, procedureCallingText);
         await workspace.applyEdit(workspaceEdit);
+        ApplicationInsights.getInstance().trackEvent(EventName.ExtractToProcedure, appInsightsEntryProperties)
 
         if (callRename)
             await ExtractProcedureCommand.callRename(document);

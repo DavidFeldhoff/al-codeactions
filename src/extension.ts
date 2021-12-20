@@ -26,10 +26,12 @@ import { CommandModifyProcedure } from './extension/Services/CommandModifyProced
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
 import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
 import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
+import { ApplicationInsights } from './extension/ApplicationInsights/applicationInsights';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
-
+	ApplicationInsights.getInstance().start();
+	
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	// CodeAction Providers

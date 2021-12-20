@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -105,7 +105,8 @@
                             "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.",
                             "You are always asked where to place the procedure in the document"
                         ],
-                        "description": "Specifies the search criteria to find an anchor to add the new procedure in the document."
+                        "description": "Specifies the search criteria to find an anchor to add the new procedure in the document.",
+                        "scope": "resource"
                     },
                     "alCodeActions.varParameters": {
                         "type": "array",
@@ -113,22 +114,26 @@
                             "IsHandled"
                         ],
                         "uniqueItems": true,
-                        "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag."
+                        "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag.",
+                        "scope": "resource"
                     },
                     "alCodeActions.publisherHasVarParametersOnly": {
                         "type": "boolean",
                         "default": false,
-                        "description": "All parameters of new publishers will be declared as var-parameters."
+                        "description": "All parameters of new publishers will be declared as var-parameters.",
+                        "scope": "resource"
                     },
                     "alCodeActions.commentsContainTranslations": {
                         "type": "boolean",
                         "default": true,
-                        "description": "If the VS Code extension 'AL Language Tools' is in use, then the translations are maintained in the comments. If you set this property, then the code action 'Refactor option to enum' will try to parse the translated option captions and directly add them to the enum value captions."
+                        "description": "If the VS Code extension 'AL Language Tools' is in use, then the translations are maintained in the comments. If you set this property, then the code action 'Refactor option to enum' will try to parse the translated option captions and directly add them to the enum value captions.",
+                        "scope": "resource"
                     },
                     "alCodeActions.extractToLabelCreatesComment": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Extract to label will create a comment when placeholders are found."
+                        "description": "Extract to label will create a comment when placeholders are found.",
+                        "scope": "resource"
                     }
                 }
             }
@@ -155,6 +160,7 @@
         "vscode-test": "^1.3.0"
     },
     "dependencies": {
+        "applicationinsights": "^2.2.0",
         "jsonc-parser": "^3.0.0"
     },
     "extensionDependencies": [

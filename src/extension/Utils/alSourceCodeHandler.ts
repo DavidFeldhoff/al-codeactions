@@ -19,7 +19,7 @@ export class ALSourceCodeHandler {
     constructor(document: TextDocument) {
         this.document = document;
     }
-    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
+    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, appInsightsEntryProperties: any, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let rootNode: ALFullSyntaxTreeNode = syntaxTree.getRoot();
         let objectNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(rootNode, FullSyntaxTreeNodeKind.getAllObjectKinds(), false);
@@ -29,7 +29,7 @@ export class ALSourceCodeHandler {
         let methodOrTriggerNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()], false)
         let classifiedNodes: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] = this.classifyMethodOrTriggerNodes(methodOrTriggerNodes);
 
-        let result: { anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode, sourceLocation)
+        let result: { anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, targetObjectNode, sourceLocation, appInsightsEntryProperties)
         if (result.userCanceled)
             return undefined
 
@@ -51,7 +51,7 @@ export class ALSourceCodeHandler {
                 return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(targetObjectNode.fullSpan)).end.translate(0, -1);
         }
     }
-    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
+    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location, appInsightsEntryProperties: any): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
         let anchorNode: ALFullSyntaxTreeNode | undefined
         if ([FindNewProcedureLocation['Sort by type, access modifier, name'], FindNewProcedureLocation['Sort by type, access modifier, range']].includes(config)) {
             let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
@@ -81,13 +81,13 @@ export class ALSourceCodeHandler {
                     .pop()
         } else if (config == FindNewProcedureLocation['Always ask']) {
             if (classifiedNodes.length > 1)
-                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document, sourceLocation)
+                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, this.document, sourceLocation, appInsightsEntryProperties)
             else if (classifiedNodes.length == 1)
                 anchorNode = classifiedNodes[0].node
         }
         return { anchorNode, userCanceled: false }
     }
-    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument, sourceLocation: Location): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
+    async findPositionByAsking(targetObjectNode: ALFullSyntaxTreeNode, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], document: TextDocument, sourceLocation: Location, appInsightsEntryProperties: any): Promise<{ anchorNode: ALFullSyntaxTreeNode | undefined, userCanceled: boolean }> {
         classifiedNodes = classifiedNodes.sort((a, b) => {
             if (sourceLocation) {
                 if (sourceLocation.uri.fsPath == document.uri.fsPath)
@@ -138,8 +138,9 @@ export class ALSourceCodeHandler {
                 }
             return { anchorNode: undefined, userCanceled: true };
         }
-        else
-            return { anchorNode: itemChosen.node, userCanceled: false }
+        appInsightsEntryProperties.alwaysAsk = true
+        appInsightsEntryProperties.selectedAfterCurrent = itemChosen.label.endsWith(' (Current)')
+        return { anchorNode: itemChosen.node, userCanceled: false }
     }
     private classifyMethodOrTriggerNodes(methodOrTriggerNodes: ALFullSyntaxTreeNode[]): { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] {
         let classifiedNodes: { type: MethodType; accessModifier: AccessModifier, range: Range; node: ALFullSyntaxTreeNode; }[] = []

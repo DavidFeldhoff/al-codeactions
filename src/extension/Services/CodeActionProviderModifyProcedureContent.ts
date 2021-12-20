@@ -18,6 +18,7 @@ import { WorkspaceEditUtils } from "../Utils/WorkspaceEditUtils";
 import { Config } from "../Utils/config";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { ALVariableHandler } from "../Utils/alVariableHandler";
+import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
 
 export class CodeActionProviderModifyProcedureContent {
     document: TextDocument;
@@ -75,11 +76,15 @@ export class CodeActionProviderModifyProcedureContent {
         return codeActions;
     }
     async executeCommand(publisherToAdd: PublisherToAdd, sourceLocation: Location): Promise<void> {
-        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation);
-        if (workspaceEdit)
+        let appInsightsEntryProperties: any = {};
+        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation, appInsightsEntryProperties);
+        if (workspaceEdit) {
+            ApplicationInsights.getInstance().trackEvent(EventName.AddPublisher, appInsightsEntryProperties);
             await workspace.applyEdit(workspaceEdit);
+        }
     }
-    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, sourceLocation: Location, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
+    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, sourceLocation: Location, appInsightsEntryProperties: any, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
+        appInsightsEntryProperties.publisherToAdd = publisherToAdd.toString();
         let sourceSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let methodOrTriggerNode: ALFullSyntaxTreeNode | undefined = sourceSyntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
         if (!methodOrTriggerNode)
@@ -136,7 +141,8 @@ export class CodeActionProviderModifyProcedureContent {
             return undefined;
         let publisherParameters: ALVariable[] = selection;
         let procedure: ALProcedure = await this.getProcedureToCreate(rangeOfBlockNode, publisherName, publisherParameters);
-        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation);
+
+        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation, appInsightsEntryProperties);
         if (edits && edits.workspaceEdit) {
             for (const entry of edits.workspaceEdit.entries()) {
                 for (const textEditEntry of entry[1])
