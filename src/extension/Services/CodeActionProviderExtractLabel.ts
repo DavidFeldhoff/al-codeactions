@@ -3,6 +3,7 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
+import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
 import { ALVariable } from '../Entities/alVariable';
 import { Command } from '../Entities/Command';
 import { Config } from '../Utils/config';
@@ -41,9 +42,11 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         return [codeAction];
     }
     public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
-        let { snippetMode, edit, snippetParams } = this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode);
+        let { snippetMode, edit, snippetParams } = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode);
 
         if (snippetMode && snippetParams) {
+            if (snippetParams.snippetString.value.match(/\{%\d+:\}/))
+                ApplicationInsights.getInstance().trackEvent(EventName.CreateLabel, { originalText: this.document.lineAt(stringLiteralRange.start.line) })
             await workspace.applyEdit(edit);
             await window.activeTextEditor!.insertSnippet(snippetParams.snippetString, snippetParams.position, snippetParams.options)
         } else {
@@ -54,11 +57,11 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         }
     }
 
-    public getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
+    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
         let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
         let commentText: string = '';
         if (extractLabelCreatesComment)
-            commentText = LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
+            commentText = await LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
         let snippetMode: boolean = commentText != '';
 
         let cleanVariableName = 'newLabel';

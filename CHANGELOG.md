@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.15
 
 - Add Application Insights
+- Extract to Label: Add default values for placeholders if alCodeActions.extractToLabelCreatesComment is set #138
 
 ## 1.0.14
 

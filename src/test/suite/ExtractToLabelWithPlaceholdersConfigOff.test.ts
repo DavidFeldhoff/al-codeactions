@@ -41,7 +41,7 @@ suite('Extract to Label with Placeholders Config Off Test Suite', function () {
 		let codeActionProvider = new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute));
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 
-		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
 	test('extractToLabelOffOne', async () => {
@@ -55,16 +55,16 @@ suite('Extract to Label with Placeholders Config Off Test Suite', function () {
 		let codeActionProvider = new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute));
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 
-		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
-	function verifyCodeActionProviderExtractLabel(expectedResult: { newText: string, snippetMode: boolean }, codeActions: CodeAction[]) {
+	async function verifyCodeActionProviderExtractLabel(expectedResult: { newText: string, snippetMode: boolean }, codeActions: CodeAction[]) {
 		assert.strictEqual(codeActions.length, 1, 'Expected one codeAction');
 		assert.notStrictEqual(codeActions[0].command, undefined, 'command expected');
 		let command = codeActions[0].command!;
 		assert.strictEqual(command.command, Command.extractLabel, 'ExtractLabel Command expected');
 		assert.notStrictEqual(command.arguments, undefined)
-		let { snippetMode, edit, snippetParams } = new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3]);
+		let { snippetMode, edit, snippetParams } = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3]);
 		assert.strictEqual(snippetMode, expectedResult.snippetMode, 'SnippetMode');
 		if (expectedResult.snippetMode)
 			assert.strictEqual(snippetParams!.snippetString, expectedResult.newText);

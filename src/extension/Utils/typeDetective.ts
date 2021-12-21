@@ -18,6 +18,7 @@ export class TypeDetective {
     private isVar: boolean | undefined;
     private isTemporary: boolean | undefined;
     private hoverMessageFirstLine: string | undefined;
+    private defaultVariableName: string = 'arg';
     constructor(document: TextDocument, treeNode: ALFullSyntaxTreeNode) {
         this.document = document;
         this.treeNode = treeNode;
@@ -25,7 +26,9 @@ export class TypeDetective {
     public getType(): string {
         return this.type ? this.type : '';
     }
-    public getName(): string {
+    public getName(returnBlankIfDefaultVariableName: boolean = false): string {
+        if (returnBlankIfDefaultVariableName && this.name == this.defaultVariableName)
+            return '';
         return this.name ? this.name : '';
     }
     public getIsVar(): boolean {
@@ -65,6 +68,8 @@ export class TypeDetective {
                     let typeDetective = new TypeDetective(this.document, childNode);
                     await typeDetective.analyzeTypeOfTreeNode();
                     this.name = typeDetective.getName();
+                    if (this.name.toLowerCase() == 'fieldcaption' && this.treeNode.childNodes.length > 1 && this.treeNode.childNodes[1].kind == FullSyntaxTreeNodeKind.getArgumentList())
+                        this.name = this.name + this.document.getText(TextRangeExt.createVSCodeRange(this.treeNode.childNodes[1].fullSpan));
                     this.type = typeDetective.getType();
                 }
                 break;
@@ -97,7 +102,7 @@ export class TypeDetective {
             case FullSyntaxTreeNodeKind.getSubtractExpression():
             case FullSyntaxTreeNodeKind.getMultiplyExpression():
             case FullSyntaxTreeNodeKind.getDivideExpression():
-                this.name = 'arg';
+                this.name = this.defaultVariableName;
                 this.type = 'Decimal';
                 break;
             case FullSyntaxTreeNodeKind.getLogicalAndExpression():
@@ -109,12 +114,12 @@ export class TypeDetective {
             case FullSyntaxTreeNodeKind.getGreaterThanExpression():
             case FullSyntaxTreeNodeKind.getEqualsExpression():
             case FullSyntaxTreeNodeKind.getNotEqualsExpression():
-                this.name = 'arg';
+                this.name = this.defaultVariableName;
                 this.type = 'Boolean';
                 break;
         }
         if (!this.name || !this.type) {
-            this.name = 'arg';
+            this.name = this.defaultVariableName;
             this.type = 'Variant';
         }
     }
@@ -122,19 +127,19 @@ export class TypeDetective {
         if (treeNode && treeNode.childNodes && treeNode.childNodes[0].kind) {
             switch (treeNode.childNodes[0].kind) {
                 case FullSyntaxTreeNodeKind.getBooleanLiteralValue():
-                    this.name = 'arg';
+                    this.name = this.defaultVariableName;
                     this.type = 'Boolean';
                     return true;
                 case FullSyntaxTreeNodeKind.getStringLiteralValue():
-                    this.name = 'arg';
+                    this.name = this.defaultVariableName;
                     this.type = 'Text';
                     return true;
                 case FullSyntaxTreeNodeKind.getInt32SignedLiteralValue():
-                    this.name = 'arg';
+                    this.name = this.defaultVariableName;
                     this.type = 'Integer';
                     return true;
                 case FullSyntaxTreeNodeKind.getDecimalSignedLiteralValue():
-                    this.name = 'arg';
+                    this.name = this.defaultVariableName;
                     this.type = 'Decimal';
                     return true;
             }
@@ -153,7 +158,7 @@ export class TypeDetective {
             let hovers: Hover[] | undefined = await commands.executeCommand('vscode.executeHoverProvider', document.uri, position);
             if (hovers && hovers.length > 0) {
                 let allHoverMessages: string[] = [];
-                for (const hover  of hovers) {
+                for (const hover of hovers) {
                     let hoverMessage: string = hover.contents.values().next().value.value;
                     allHoverMessages.push(hoverMessage);
                     let hoverMessageLines: string[] = hoverMessage.split('\r\n');

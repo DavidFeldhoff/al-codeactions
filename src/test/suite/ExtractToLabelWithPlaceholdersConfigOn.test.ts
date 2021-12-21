@@ -40,29 +40,29 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
 		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 
-		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
 	test('extractToLabelOnOne', async () => {
 		let textToExtract = 'No Local Var Section %1 %3 %2 end.';
 		let expectedResult: { newText: string, snippetMode: boolean } = {
-			newText: "    var\r\n        ${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=${1}; %2=${2}; %3=${3}';\r\n",
+			newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:"No."}; %2=\${2:"Name 2"}; %3=\${3:Name}';\r\n`,
 			snippetMode: true
 		}
 		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
 		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 
-		verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
 	});
 
-	function verifyCodeActionProviderExtractLabel(expectedResult: { newText: string, snippetMode: boolean }, codeActions: CodeAction[]) {
+	async function verifyCodeActionProviderExtractLabel(expectedResult: { newText: string, snippetMode: boolean }, codeActions: CodeAction[]) {
 		assert.strictEqual(codeActions.length, 1, 'Expected one codeAction');
 		assert.notStrictEqual(codeActions[0].command, undefined, 'command expected');
 		let command = codeActions[0].command!;
 		assert.strictEqual(command.command, Command.extractLabel, 'ExtractLabel Command expected');
 		assert.notStrictEqual(command.arguments, undefined)
-		let { snippetMode, edit, snippetParams } = new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3]);
+		let { snippetMode, edit, snippetParams } = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3]);
 		assert.strictEqual(snippetMode, expectedResult.snippetMode, 'SnippetMode');
 		if (expectedResult.snippetMode)
 			assert.strictEqual(snippetParams!.snippetString.value, expectedResult.newText);
