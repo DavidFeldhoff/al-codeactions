@@ -3,6 +3,7 @@ import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
+import { DocumentUtils } from "./documentUtils";
 import { TypeDetective } from "./typeDetective";
 
 export class LabelComment {
@@ -50,9 +51,9 @@ export class LabelComment {
             const invocationExpressionNode: ALFullSyntaxTreeNode = argumentListNode.parentNode!;
             let identifierName: string | undefined
             if (invocationExpressionNode.childNodes![0].kind == FullSyntaxTreeNodeKind.getMemberAccessExpression())
-                identifierName = document.getText(TextRangeExt.createVSCodeRange(invocationExpressionNode.childNodes![0].childNodes![1].fullSpan))
+                identifierName = document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(invocationExpressionNode.childNodes![0].childNodes![1].fullSpan)))
             else
-                identifierName = document.getText(TextRangeExt.createVSCodeRange(invocationExpressionNode.childNodes![0].fullSpan))
+                identifierName = document.getText(DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(invocationExpressionNode.childNodes![0].fullSpan)))
 
             if (!identifierName)
                 return undefined

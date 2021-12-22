@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.16
+
+- small fix for #138
+
 ## 1.0.15
 
 - Add Application Insights
