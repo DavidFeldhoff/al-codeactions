@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.17
+
+- reduce amount of app insight logs
+
 ## 1.0.16
 
 - small fix for #138

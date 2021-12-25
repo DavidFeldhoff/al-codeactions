@@ -14,11 +14,11 @@ export class ApplicationInsights {
     }
     start() {
         this.appInsights = require('applicationinsights');
-        this.appInsights.setup("InstrumentationKey=67325404-91c5-4291-bce7-2f80d591f253;IngestionEndpoint=https://germanywestcentral-1.in.applicationinsights.azure.com/").start();
+        this.appInsights.setup("InstrumentationKey=67325404-91c5-4291-bce7-2f80d591f253;IngestionEndpoint=https://germanywestcentral-1.in.applicationinsights.azure.com/").setAutoCollectPerformance(false, false).start();
         this.client = this.appInsights.defaultClient
         const configurations = workspace.getConfiguration('alCodeActions')
         let properties = JSON.parse(JSON.stringify(configurations));
-        this.trackEvent(EventName.Settings, configurations);
+        // this.trackEvent(EventName.Settings, configurations);
     }
 
     trackTrace(message: string) {
