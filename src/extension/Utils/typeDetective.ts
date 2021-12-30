@@ -99,6 +99,14 @@ export class TypeDetective {
                 }
                 break;
             case FullSyntaxTreeNodeKind.getAddExpression():
+                if (this.treeNode.childNodes) {
+                    let childNode: ALFullSyntaxTreeNode = this.treeNode.childNodes[0];
+                    let typeDetective: TypeDetective = new TypeDetective(this.document, childNode);
+                    await typeDetective.analyzeTypeOfTreeNode();
+                    this.name = typeDetective.getName();
+                    this.type = typeDetective.getType();
+                }
+                break;
             case FullSyntaxTreeNodeKind.getSubtractExpression():
             case FullSyntaxTreeNodeKind.getMultiplyExpression():
             case FullSyntaxTreeNodeKind.getDivideExpression():
