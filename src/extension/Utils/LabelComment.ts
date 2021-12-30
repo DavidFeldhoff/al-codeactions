@@ -69,9 +69,24 @@ export class LabelComment {
             if (index) {
                 let indexToCheck = (placeHolderPosition - 1) + (index.startAt - 1)
                 if (argumentListNode.childNodes && argumentListNode.childNodes.length > indexToCheck) {
-                    const typeDetective = new TypeDetective(document, argumentListNode.childNodes[indexToCheck])
+                    const nodeToCheck = argumentListNode.childNodes[indexToCheck]
+                    let nameOfParentType: string = ''
+                    let variableName: string = ''
+                    if (nodeToCheck.kind == FullSyntaxTreeNodeKind.getMemberAccessExpression()) {
+                        const typeDetective = new TypeDetective(document, nodeToCheck.childNodes![0])
+                        await typeDetective.analyzeTypeOfTreeNode();
+                        if (typeDetective.getType().toLowerCase().startsWith('record')) {
+                            const type = typeDetective.getType()
+                            const typeWithoutTemporary = typeDetective.getIsTemporary() ? type.substring(0, type.lastIndexOf('temporary')).trim() : type;
+                            nameOfParentType = typeWithoutTemporary.substring('record'.length).trim()
+                        }
+                    }
+                    const typeDetective = new TypeDetective(document, nodeToCheck)
                     await typeDetective.analyzeTypeOfTreeNode();
-                    return typeDetective.getName(true)
+                    variableName = typeDetective.getName(true)
+                    if (variableName != '' && nameOfParentType != '')
+                        variableName = `${nameOfParentType}.${variableName}`
+                    return variableName
                 }
             }
         }

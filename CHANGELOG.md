@@ -4,6 +4,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 1.0.18
 
+- Extract to Label: Add record type in default values which have been introduced in 1.0.15 #138
 - fix return type in constructs like "Hello" + "World" + MissingFunc(); as previously the return type was considered as decimal
 
 ## 1.0.17
