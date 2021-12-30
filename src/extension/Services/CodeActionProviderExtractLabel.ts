@@ -3,7 +3,7 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
+import { AppInsights, EventName } from "../ApplicationInsights/applicationInsights";
 import { ALVariable } from '../Entities/alVariable';
 import { Command } from '../Entities/Command';
 import { Config } from '../Utils/config';
@@ -46,7 +46,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
 
         if (snippetMode && snippetParams) {
             if (snippetParams.snippetString.value.match(/\{%\d+:\}/))
-                ApplicationInsights.getInstance().trackEvent(EventName.CreateLabel, { originalText: this.document.lineAt(stringLiteralRange.start.line) })
+                AppInsights.getInstance().trackEvent(EventName.CreateLabel, { originalText: this.document.lineAt(stringLiteralRange.start.line) })
             await workspace.applyEdit(edit);
             await window.activeTextEditor!.insertSnippet(snippetParams.snippetString, snippetParams.position, snippetParams.options)
         } else {

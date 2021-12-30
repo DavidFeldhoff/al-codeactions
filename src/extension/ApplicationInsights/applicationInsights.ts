@@ -1,24 +1,24 @@
-import { workspace } from "vscode"
+import * as applicationinsights from 'applicationinsights';
 
-export class ApplicationInsights {
-    private static _instance: ApplicationInsights
-    private appInsights: any
+export class AppInsights {
+    private static _instance: AppInsights
+    private appInsights: typeof applicationinsights | undefined
     private client: any
     private constructor() {
     }
-    static getInstance(): ApplicationInsights {
-        if (!ApplicationInsights._instance) {
-            ApplicationInsights._instance = new ApplicationInsights()
+    static getInstance(): AppInsights {
+        if (!AppInsights._instance) {
+            AppInsights._instance = new AppInsights()
         }
-        return ApplicationInsights._instance
+        return AppInsights._instance
     }
     start() {
         this.appInsights = require('applicationinsights');
-        this.appInsights.setup("InstrumentationKey=67325404-91c5-4291-bce7-2f80d591f253;IngestionEndpoint=https://germanywestcentral-1.in.applicationinsights.azure.com/").setAutoCollectPerformance(false, false).start();
-        this.client = this.appInsights.defaultClient
-        const configurations = workspace.getConfiguration('alCodeActions')
-        let properties = JSON.parse(JSON.stringify(configurations));
-        // this.trackEvent(EventName.Settings, configurations);
+        this.appInsights!.setup("InstrumentationKey=f73de61d-dda6-446e-a964-ec0cf0d0d5e6;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/")
+            .setAutoCollectPerformance(false, false)
+            .setAutoCollectExceptions(false)
+            .start();
+        this.client = this.appInsights!.defaultClient
     }
 
     trackTrace(message: string) {
@@ -27,11 +27,11 @@ export class ApplicationInsights {
     trackCommand(command: string) {
         this.trackTrace(`Command ${command} was executed.`)
     }
-    trackEvent(name: EventName, properties: any){
-        this.client.trackEvent({name: name.toString(), properties: properties});
+    trackEvent(name: EventName, properties: any) {
+        this.client.trackEvent({ name: name.toString(), properties: properties });
     }
 }
-export enum EventName{
+export enum EventName {
     AddPublisher = "AddPublisher",
     CreateProcedure = "CreateProcedure",
     ExtractToProcedure = "ExtractToProcedure",

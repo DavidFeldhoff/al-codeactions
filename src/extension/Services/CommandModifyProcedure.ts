@@ -3,7 +3,7 @@ import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTree
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
-import { ApplicationInsights, EventName } from "../ApplicationInsights/applicationInsights";
+import { AppInsights, EventName } from "../ApplicationInsights/applicationInsights";
 import { ALVariable } from "../Entities/alVariable";
 import { ALVariableParser } from "../Entity Parser/alVariableParser";
 import { DocumentUtils } from "../Utils/documentUtils";
@@ -15,7 +15,7 @@ export class CommandModifyProcedure {
         if (textEdits) {
             let edit = new WorkspaceEdit();
             edit.set(document.uri, textEdits)
-            ApplicationInsights.getInstance().trackEvent(EventName.AddParameter, {})
+            AppInsights.getInstance().trackEvent(EventName.AddParameter, {})
             await workspace.applyEdit(edit);
         }
     }
@@ -53,7 +53,7 @@ export class CommandModifyProcedure {
             let edit: WorkspaceEdit = new WorkspaceEdit();
             edit.set(document.uri, textEdits)
             appInsightsEntryProperties.obsoleteOldOne = obsoleteOldOne
-            ApplicationInsights.getInstance().trackEvent(EventName.CreateProcedureOverload, appInsightsEntryProperties);
+            AppInsights.getInstance().trackEvent(EventName.CreateProcedureOverload, appInsightsEntryProperties);
             await workspace.applyEdit(edit)
         }
     }
