@@ -165,5 +165,8 @@
     },
     "extensionDependencies": [
         "andrzejzwierzchowski.al-code-outline"
-    ]
+    ],
+    "sponsor": {
+        "url": "https://www.buymeacoffee.com/davidfeldhoff"
+    }
 }
