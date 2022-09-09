@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.19
+
+- Add IsHandled := false to OnBeforePublishers
+
 ## 1.0.18
 
 - Extract to Label: Add record type in default values which have been introduced in 1.0.15 #138

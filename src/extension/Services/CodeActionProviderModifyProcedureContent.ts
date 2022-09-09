@@ -234,7 +234,10 @@ export class CodeActionProviderModifyProcedureContent {
             workspaceEdit.insert(this.document.uri, textEdit.range.start, textEdit.newText);
         }
         let indent: string = "".padStart(rangeOfBlockNode.start.character + 4, " ");
-        let textToInsert: string = `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
+        let textToInsert: string = ""
+        if(isHandledSelected)
+            textToInsert += `IsHandled := false;\r\n${indent}`;
+        textToInsert += `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
         if (isHandledSelected)
             textToInsert += `if IsHandled then\r\n${indent}    exit;\r\n${indent}`;
         let insertAt: Position = rangeOfBlockNode.start.translate(1, 4)
