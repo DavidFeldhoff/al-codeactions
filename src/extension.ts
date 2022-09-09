@@ -35,8 +35,7 @@ export function activate(context: ExtensionContext) {
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	// CodeAction Providers
-	context.subscriptions.push(languages.registerCodeActionsProvider('al', new CodeActionProvider_General(),
-		{ providedCodeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract] }))
+	context.subscriptions.push(languages.registerCodeActionsProvider('al', new CodeActionProvider_General()))
 
 	// Commands
 	context.subscriptions.push(commands.registerCommand(Command.renameCommand,

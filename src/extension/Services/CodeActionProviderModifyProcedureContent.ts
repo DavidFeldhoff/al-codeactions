@@ -66,12 +66,14 @@ export class CodeActionProviderModifyProcedureContent {
         if (createOnBeforeCodeAction)
             codeActions.push({
                 title: 'Add OnBefore Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore, sourceLocation], title: 'Create Publisher' }
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore, sourceLocation], title: 'Create Publisher' },
+                kind: vscode.CodeActionKind.QuickFix
             });
         if (createOnAfterCodeAction)
             codeActions.push({
                 title: 'Add OnAfter Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter, sourceLocation], title: 'Create Publisher' }
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter, sourceLocation], title: 'Create Publisher' },
+                kind: vscode.CodeActionKind.QuickFix
             });
         return codeActions;
     }

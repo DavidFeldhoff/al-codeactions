@@ -37,7 +37,7 @@ export class CodeActionProviderLocalVariableToGlobal implements ICodeActionProvi
         if (varSection) {
             this.moveLocalVariableToGlobal(syntaxTree, edit);
             if (edit.entries().length > 0) {
-                let codeAction: CodeAction = new CodeAction('Make variable global', CodeActionKind.Refactor);
+                let codeAction: CodeAction = new CodeAction('Make variable global', CodeActionKind.RefactorRewrite);
                 codeAction.edit = edit;
                 return [codeAction];
             }

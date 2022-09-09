@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.19
 
 - Add IsHandled := false to OnBeforePublishers
+- Categorize code actions to match better with the new VS Code Code Action control https://code.visualstudio.com/updates/v1_71#_new-code-action-control
 
 ## 1.0.18
 

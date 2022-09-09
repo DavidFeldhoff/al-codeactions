@@ -62,7 +62,7 @@ export class CodeActionProviderRefactorToValidate implements ICodeActionProvider
             }
         }
         if (edit.entries().length > 0) {
-            let codeAction: CodeAction = new CodeAction('Refactor to Validate-Statement', CodeActionKind.RefactorInline);
+            let codeAction: CodeAction = new CodeAction('Refactor to Validate-Statement', CodeActionKind.RefactorRewrite);
             codeAction.edit = edit;
             return [codeAction];
         } else {

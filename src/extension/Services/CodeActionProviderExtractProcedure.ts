@@ -358,7 +358,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         return undefined;
     }
     private createCodeAction(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range): CodeAction {
-        let codeAction = new CodeAction(`Extract to procedure`, CodeActionKind.QuickFix);
+        let codeAction = new CodeAction(`Extract to procedure`, CodeActionKind.RefactorExtract);
         codeAction.command = {
             command: Command.extractProcedure,
             arguments: [currentDocument, procedureCallingText, procedureToCreate, rangeExpanded],

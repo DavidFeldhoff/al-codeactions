@@ -42,7 +42,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         if (!optionValues)
             return []
 
-        let codeAction: CodeAction = new CodeAction('Refactor to enum', CodeActionKind.RefactorExtract);
+        let codeAction: CodeAction = new CodeAction('Refactor to enum', CodeActionKind.RefactorRewrite);
         codeAction.command = {
             command: Command.refactorOptionToEnum,
             arguments: [this.document, this.range, fieldTreeNode],

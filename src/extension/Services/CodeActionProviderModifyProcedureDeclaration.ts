@@ -1,4 +1,4 @@
-import { CodeAction, commands, Diagnostic, languages, Location, Range, TextDocument, workspace } from "vscode";
+import { CodeAction, CodeActionKind, commands, Diagnostic, languages, Location, Range, TextDocument, workspace } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
@@ -123,7 +123,8 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
                     command: Command.addParametersToProcedure,
                     title: 'some title',
                     arguments: [destDocument, bestCandidate.node, bestCandidate.missingParameters]
-                }
+                },
+                kind: CodeActionKind.QuickFix
             }
             let createOverloadCA: CodeAction =
             {
@@ -132,7 +133,8 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
                     command: Command.createOverloadOfProcedure,
                     title: 'some title',
                     arguments: [destDocument, bestCandidate.node, bestCandidate.missingParameters]
-                }
+                },
+                kind: CodeActionKind.QuickFix
             }
             let codeActions: CodeAction[] = []
             codeActions.push(addParamCA)
