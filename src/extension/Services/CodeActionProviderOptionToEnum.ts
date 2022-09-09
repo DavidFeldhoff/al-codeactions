@@ -157,7 +157,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         } while (!nextIDCompletionItem);
         if (nextIDCompletionItem) {
             let edit: WorkspaceEdit = new WorkspaceEdit();
-            edit.replace(enumDocument.uri, currentIdRange, nextIDCompletionItem.label)
+            edit.replace(enumDocument.uri, currentIdRange, nextIDCompletionItem.label.toString())
             await workspace.applyEdit(edit);
             let onSaveAlFileAction: string | undefined = workspace.getConfiguration('CRS', window.activeTextEditor?.document.uri).get('OnSaveAlFileAction', 'DoNothing');
             if (onSaveAlFileAction && !['reorganize', 'rename'].includes(onSaveAlFileAction.toLowerCase()))

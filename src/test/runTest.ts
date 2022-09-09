@@ -1,7 +1,7 @@
 import * as cp from 'child_process';
 import * as path from 'path';
 
-import { runTests, downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from 'vscode-test';
+import { runTests, downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath } from '@vscode/test-electron';
 
 async function main() {
 	try {
@@ -15,10 +15,10 @@ async function main() {
 
 		// Download VS Code and unzip it
 		const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
-		const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+		const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
 
 		// Install dependent extensions
-		cp.spawnSync(cliPath, ['--install-extension', 'ms-dynamics-smb.al'], {
+		cp.spawnSync(cli, [...args,'--install-extension', 'ms-dynamics-smb.al'], {
 			encoding: 'utf-8',
 			stdio: 'inherit'
 		});
