@@ -47,7 +47,8 @@ export class ALSourceCodeHandler {
         if (result.userCanceled)
             return undefined
 
-        if (result.anchorNode instanceof ALFullSyntaxTreeNode) {
+        if (result.anchorNode && (<ALFullSyntaxTreeNode>result.anchorNode).kind) {
+            result.anchorNode = result.anchorNode as ALFullSyntaxTreeNode
             if (result.anchorNode.kind == FullSyntaxTreeNodeKind.getTriggerDeclaration()) {
                 let globalVarSections: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(targetObjectNode, [FullSyntaxTreeNodeKind.getGlobalVarSection()], false);
                 if (globalVarSections.length > 1)
@@ -56,6 +57,7 @@ export class ALSourceCodeHandler {
             return TextRangeExt.createVSCodeRange(result.anchorNode.fullSpan).end
         }
         else if (result.anchorNode !== undefined) {
+            result.anchorNode = result.anchorNode as { range: Range, regionName: string }
             return result.anchorNode.range.end
         }
         else if (classifiedNodes.length !== 0)

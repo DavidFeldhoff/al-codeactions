@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.20
+
+- Fix creating of procedures #143
+
 ## 1.0.19
 
 - Add IsHandled := false to OnBeforePublishers
