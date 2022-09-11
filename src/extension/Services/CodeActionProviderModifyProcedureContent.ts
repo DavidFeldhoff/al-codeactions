@@ -18,7 +18,7 @@ import { WorkspaceEditUtils } from "../Utils/WorkspaceEditUtils";
 import { Config } from "../Utils/config";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { ALVariableHandler } from "../Utils/alVariableHandler";
-import { AppInsights, EventName } from "../ApplicationInsights/applicationInsights";
+import * as Telemetry from "../ApplicationInsights/applicationInsights";
 
 export class CodeActionProviderModifyProcedureContent {
     document: TextDocument;
@@ -81,7 +81,7 @@ export class CodeActionProviderModifyProcedureContent {
         let appInsightsEntryProperties: any = {};
         let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation, appInsightsEntryProperties);
         if (workspaceEdit) {
-            AppInsights.getInstance().trackEvent(EventName.AddPublisher, appInsightsEntryProperties);
+            Telemetry.trackEvent(Telemetry.EventName.AddPublisher, appInsightsEntryProperties);
             await workspace.applyEdit(workspaceEdit);
         }
     }

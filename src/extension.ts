@@ -1,37 +1,38 @@
-import './extension/Utils/StringPrototype'
+import { commands, Diagnostic, env, ExtensionContext, languages, Location, Range, TextDocument, window } from 'vscode';
+import { ALFullSyntaxTreeNode } from './extension/AL Code Outline/alFullSyntaxTreeNode';
 import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
+import * as Telemetry from './extension/ApplicationInsights/applicationInsights';
 import { OwnConsole } from './extension/console';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
+import { ALVariable } from './extension/Entities/alVariable';
 import { Command } from './extension/Entities/Command';
+import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
+import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
+import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
+import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
 import { CodeActionProvider_General } from './extension/Services/CodeActionProvider_General';
 import { FixCop } from './extension/Services/CommandFixCop';
+import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
 import { CompletionItemProviderVariable } from './extension/Services/CompletionItemProviderVariable';
+import { ContextSetter } from './extension/Services/ContextSetter';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
 import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
 import { DefinitionProviderCallToTrigger } from './extension/Services/DefinitionProviderOnInsert';
 import { FindRelated } from './extension/Services/FindRelated';
+import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
 import { FindRelatedEventSubscribers } from './extension/Services/FindRelatedEventSubscribers';
+import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
-import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
-import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
-import { ContextSetter } from './extension/Services/ContextSetter';
-import { CodeActionKind, commands, Diagnostic, ExtensionContext, languages, Location, Range, TextDocument, window, WorkspaceEdit } from 'vscode';
-import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
-import { ALFullSyntaxTreeNode } from './extension/AL Code Outline/alFullSyntaxTreeNode';
-import { ALVariable } from './extension/Entities/alVariable';
-import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
-import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
-import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
-import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
-import { AppInsights } from './extension/ApplicationInsights/applicationInsights';
+import './extension/Utils/StringPrototype';
 
 export function activate(context: ExtensionContext) {
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
-	AppInsights.getInstance().start();
-	
+	if (env.isTelemetryEnabled)
+		Telemetry.start();
+
 	console.log('Congratulations, your extension "al-codeactions" is now active!');
 
 	// CodeAction Providers

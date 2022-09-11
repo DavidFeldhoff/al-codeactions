@@ -186,6 +186,7 @@ export class TypeDetective {
                             return true;
                         } else if (this.hoverMessageFirstLine.startsWith('Enum')) {
                             this.type = this.hoverMessageFirstLine;
+                            return true;
                         }
                     }
                 }

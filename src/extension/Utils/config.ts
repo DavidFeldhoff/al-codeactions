@@ -7,6 +7,9 @@ export class Config {
     static getFindNewProcedureLocation(uri?: Uri): FindNewProcedureLocation {
         return FindNewProcedureLocation[this.getConfig(uri).get('findNewProcedureLocation', "Sort by type, access modifier, range")]
     }
+    static async setFindNewProcedureLocation(uri: Uri | undefined, newValue: string | undefined) {
+        await this.getConfig(uri).update('findNewProcedureLocation', newValue);
+    }
     static getVarParameters(uri?: Uri): string[] {
         return this.getConfig(uri).get('varParameters', ["IsHandled"]);
     }
@@ -24,7 +27,7 @@ export class Config {
     }
     static async setExtractToLabelCreatesComment(uri: Uri | undefined, newValue: boolean | undefined) {
         await this.getConfig(uri).update('extractToLabelCreatesComment', newValue);
-    } 
+    }
 }
 
 export enum FindNewProcedureLocation {

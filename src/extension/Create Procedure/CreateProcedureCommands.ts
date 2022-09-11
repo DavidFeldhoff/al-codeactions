@@ -1,7 +1,7 @@
 import { commands, Diagnostic, Location, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { AppInsights, EventName } from '../ApplicationInsights/applicationInsights';
+import * as Telemetry from '../ApplicationInsights/applicationInsights';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { ALProcedure } from '../Entities/alProcedure';
 import { Command } from '../Entities/Command';
@@ -75,7 +75,7 @@ export class CreateProcedureCommands {
         if (!edit)
             return
 
-        AppInsights.getInstance().trackEvent(EventName.CreateProcedure, appInsightsEntryProperties)
+        Telemetry.trackEvent(Telemetry.EventName.CreateProcedure, appInsightsEntryProperties)
         if (edit.workspaceEdit)
             await workspace.applyEdit(edit.workspaceEdit!);
 

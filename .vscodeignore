@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+out/**
 out/test/**
 src/**
 .gitignore
@@ -9,4 +10,6 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/*.xcf
+webpack.config.js
+node_modules
 azure-pipelines.yml

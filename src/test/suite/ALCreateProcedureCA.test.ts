@@ -71,7 +71,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.accessModifier, AccessModifier.local);
 		assert.strictEqual(alProcedure.returnType, undefined);
 		assert.strictEqual(alProcedure.parameters.length, 0);
-	}).timeout(3000); //First time opening something can take a little bit longer
+	}).timeout(5000); //First time opening something can take a little bit longer
 	test('getProcedureToCreate_OneParameter', async () => {
 		let procedureName = 'MissingProcedureWithParameter';
 		let rangeOfProcedureName = getRangeOfProcedureName(codeunit1Document, procedureName);

@@ -4,7 +4,7 @@ import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
-import { AppInsights, EventName } from "../ApplicationInsights/applicationInsights";
+import * as Telemetry from "../ApplicationInsights/applicationInsights";
 import { CreateProcedure } from "../Create Procedure/Procedure Creator/CreateProcedure";
 import { ALProcedure } from "../Entities/alProcedure";
 import { ALVariable } from "../Entities/alVariable";
@@ -40,7 +40,7 @@ export class ExtractProcedureCommand {
         await this.removeLocalVariables(workspaceEdit, document, rangeExpanded.start, procedure.variables);
         workspaceEdit.replace(document.uri, rangeExpanded, procedureCallingText);
         await workspace.applyEdit(workspaceEdit);
-        AppInsights.getInstance().trackEvent(EventName.ExtractToProcedure, appInsightsEntryProperties)
+        Telemetry.trackEvent(Telemetry.EventName.ExtractToProcedure, appInsightsEntryProperties)
 
         if (callRename)
             await ExtractProcedureCommand.callRename(document);

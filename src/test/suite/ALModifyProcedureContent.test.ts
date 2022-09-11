@@ -4,6 +4,7 @@ import { CodeAction, Location, Range, TextDocument, TextEdit, Uri, window, works
 import { ALVariable } from '../../extension/Entities/alVariable';
 import { Command } from '../../extension/Entities/Command';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from '../../extension/Services/CodeActionProviderModifyProcedureContent';
+import { Config } from '../../extension/Utils/config';
 import { ALLanguageExtension } from '../alExtension';
 import { VSCodeFunctions, vscodeMock } from '../vscodeMock';
 import { ALTestProject } from './ALTestProject';
@@ -21,6 +22,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		//open the file just once
 		let modifyProcDir = path.resolve(ALTestProject.dir, 'ModifyProcedure')
 		addPublishersToProcedure = await workspace.openTextDocument(path.resolve(modifyProcDir, 'AddPublishersToProcedure.Codeunit.al'));
+		await Config.setFindNewProcedureLocation(addPublishersToProcedure.uri, "Sort by type, access modifier, name"); //reset config
 
 		window.showInformationMessage('Start all tests of ALModifyProcedureCA.');
 	});
@@ -58,7 +60,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		workspaceEdit.entries().map((value: [Uri, TextEdit[]]) => value[1].forEach((value: TextEdit) => textEdits.push(value)));
 		assert.strictEqual(textEdits.length, 3);
 		assert.strictEqual(textEdits.shift()!.newText, '    var\r\n        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeNoParametersNoVarSectionNoReturn(IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeNoParametersNoVarSectionNoReturn(IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeNoParametersNoVarSectionNoReturn(var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -115,7 +117,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		workspaceEdit.entries().map((value: [Uri, TextEdit[]]) => value[1].forEach((value: TextEdit) => textEdits.push(value)));
 		assert.strictEqual(textEdits.length, 3);
 		assert.strictEqual(textEdits.shift()!.newText, '    var\r\n        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersNoVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersNoVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersNoVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -174,7 +176,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		workspaceEdit.entries().map((value: [Uri, TextEdit[]]) => value[1].forEach((value: TextEdit) => textEdits.push(value)));
 		assert.strictEqual(textEdits.length, 3);
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -305,7 +307,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.length, 4);
 		assert.strictEqual(textEdits.shift()!.newText, ' Customer3')
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -369,7 +371,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		workspaceEdit.entries().map((value: [Uri, TextEdit[]]) => value[1].forEach((value: TextEdit) => textEdits.push(value)));
 		assert.strictEqual(textEdits.length, 3);
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -433,7 +435,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		workspaceEdit.entries().map((value: [Uri, TextEdit[]]) => value[1].forEach((value: TextEdit) => textEdits.push(value)));
 		assert.strictEqual(textEdits.length, 3);
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -506,7 +508,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.length, 4);
 		assert.strictEqual(textEdits.shift()!.newText, ' Amount')
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo, Amount, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo, Amount, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo: Code[20]; var Amount: Decimal; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -579,7 +581,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.length, 4);
 		assert.strictEqual(textEdits.shift()!.newText, ' rInt')
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
@@ -651,7 +653,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.length, 4);
 		assert.strictEqual(textEdits.shift()!.newText, ' rInt')
 		assert.strictEqual(textEdits.shift()!.newText, '        IsHandled: Boolean;\r\n')
-		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
+		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
 		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);

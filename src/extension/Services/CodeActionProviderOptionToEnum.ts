@@ -7,7 +7,7 @@ import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNod
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
-import { AppInsights, EventName } from "../ApplicationInsights/applicationInsights";
+import * as Telemetry from "../ApplicationInsights/applicationInsights";
 import { ALCodeOutlineExtension } from "../devToolsExtensionContext";
 import { Command } from '../Entities/Command';
 import { Config } from "../Utils/config";
@@ -136,7 +136,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         if (optionCaptionValueNode)
             edit.delete(this.document.uri, TextRangeExt.createVSCodeRange(optionCaptionValueNode.parentNode!.fullSpan))
         await workspace.applyEdit(edit);
-        AppInsights.getInstance().trackEvent(EventName.ConvertOptionToEnum, appInsightsEntryProperties)
+        Telemetry.trackEvent(Telemetry.EventName.ConvertOptionToEnum, appInsightsEntryProperties)
 
         window.showTextDocument(enumDocument, ViewColumn.Beside);
     }

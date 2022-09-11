@@ -46,7 +46,7 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 	test('extractToLabelOnOne', async () => {
 		let textToExtract = 'No Local Var Section %1 %3 %2 end.';
 		let expectedResult: { newText: string, snippetMode: boolean } = {
-			newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:"No."}; %2=\${2:"Name 2"}; %3=\${3:Name}';\r\n`,
+			newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:Customer."No."}; %2=\${2:Customer."Name 2"}; %3=\${3:Customer.Name}';\r\n`,
 			snippetMode: true
 		}
 		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
