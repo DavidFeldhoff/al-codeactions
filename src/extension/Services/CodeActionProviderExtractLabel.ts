@@ -34,15 +34,21 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
         let codeAction: CodeAction = new CodeAction('Extract to Label', CodeActionKind.RefactorExtract);
+        let codeActionLockedLabel: CodeAction = new CodeAction('Extract to locked Label', CodeActionKind.RefactorExtract);
         codeAction.command = {
             command: Command.extractLabel,
-            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerTreeNode],
-            title: 'Extract Label'
+            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerTreeNode, false],
+            title: codeAction.title
         };
-        return [codeAction];
+        codeActionLockedLabel.command = {
+            command: Command.extractLabel,
+            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerTreeNode, true],
+            title: codeActionLockedLabel.title
+        };
+        return [codeAction, codeActionLockedLabel];
     }
-    public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
-        let { snippetMode, edit, snippetParams } = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode);
+    public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) {
+        let { snippetMode, edit, snippetParams } = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode, lockLabel);
 
         if (snippetMode && snippetParams) {
             if (snippetParams.snippetString.value.match(/\{%\d+:\}/))
@@ -57,12 +63,14 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         }
     }
 
-    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) {
+    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean) {
         let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
-        let commentText: string = '';
+        let commentText: string = '', lockText: string = '';
         if (extractLabelCreatesComment)
             commentText = await LabelComment.getCommentTextForLabel(this.document, stringLiteralRange);
         let snippetMode: boolean = commentText != '';
+        if (lockTranslation)
+            lockText = ", Locked = true"
 
         let cleanVariableName = 'newLabel';
         let edit: WorkspaceEdit = new WorkspaceEdit();
@@ -71,7 +79,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         let variableName = cleanVariableName;
         if (snippetMode)
             variableName = '${0:' + cleanVariableName + '}';
-        let variable: ALVariable = new ALVariable(variableName, 'Label ' + this.document.getText(stringLiteralRange) + commentText);
+        let variable: ALVariable = new ALVariable(variableName, 'Label ' + this.document.getText(stringLiteralRange) + commentText + lockText);
         let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
         let snippetParams: { snippetString: SnippetString, position: Position, options: { undoStopBefore: boolean; undoStopAfter: boolean; } } | undefined
         if (snippetMode)

@@ -32,42 +32,57 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 
 	test('extractToLabelOnNone', async () => {
 		let textToExtract = 'No Local Var Section end.';
-		let expectedResult: { newText: string, snippetMode: boolean } = {
-			newText: '    var\r\n        newLabel: Label \'No Local Var Section end.\';\r\n',
-			snippetMode: false
-		};
+		let expectedResults: { newText: string, snippetMode: boolean }[] = [
+			{
+				newText: '    var\r\n        newLabel: Label \'No Local Var Section end.\';\r\n',
+				snippetMode: false
+			},
+			{
+				newText: '    var\r\n        newLabel: Label \'No Local Var Section end.\', Locked = true;\r\n',
+				snippetMode: false
+			}
+		];
 		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
 		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 
-		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResults, codeActions);
 	});
 
 	test('extractToLabelOnOne', async () => {
 		let textToExtract = 'No Local Var Section %1 %3 %2 end.';
-		let expectedResult: { newText: string, snippetMode: boolean } = {
-			newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:Customer."No."}; %2=\${2:Customer."Name 2"}; %3=\${3:Customer.Name}';\r\n`,
-			snippetMode: true
-		}
+		let expectedResults: { newText: string, snippetMode: boolean }[] = [
+			{
+				newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:Customer."No."}; %2=\${2:Customer."Name 2"}; %3=\${3:Customer.Name}';\r\n`,
+				snippetMode: true
+			},
+			{
+				newText: `    var\r\n        \${0:newLabel}: Label 'No Local Var Section %1 %3 %2 end.', Comment='%1=\${1:Customer."No."}; %2=\${2:Customer."Name 2"}; %3=\${3:Customer.Name}', Locked = true;\r\n`,
+				snippetMode: true
+			}
+		]
 		let rangeOfTextLiteral = getRangeOfTextLiteral(document, textToExtract);
 		let positionToExecute: Position = rangeOfTextLiteral.start.translate(0, 0);
 		let codeActions: CodeAction[] = await new CodeActionProviderExtractLabel(document, new Range(positionToExecute, positionToExecute)).createCodeActions();
 
-		await verifyCodeActionProviderExtractLabel(expectedResult, codeActions);
+		await verifyCodeActionProviderExtractLabel(expectedResults, codeActions);
 	});
 
-	async function verifyCodeActionProviderExtractLabel(expectedResult: { newText: string, snippetMode: boolean }, codeActions: CodeAction[]) {
-		assert.strictEqual(codeActions.length, 1, 'Expected one codeAction');
-		assert.notStrictEqual(codeActions[0].command, undefined, 'command expected');
-		let command = codeActions[0].command!;
-		assert.strictEqual(command.command, Command.extractLabel, 'ExtractLabel Command expected');
-		assert.notStrictEqual(command.arguments, undefined)
-		let { snippetMode, edit, snippetParams } = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3]);
-		assert.strictEqual(snippetMode, expectedResult.snippetMode, 'SnippetMode');
-		if (expectedResult.snippetMode)
-			assert.strictEqual(snippetParams!.snippetString.value, expectedResult.newText);
-		else
-			assert.strictEqual(edit.entries().pop()![1].pop()!.newText, expectedResult.newText);
+	async function verifyCodeActionProviderExtractLabel(expectedResults: { newText: string, snippetMode: boolean }[], codeActions: CodeAction[]) {
+		assert.strictEqual(codeActions.length, expectedResults.length, 'Expected codeActions');
+		for (let i = 0; i < expectedResults.length; i++) {
+			const expectedResult = expectedResults[i];
+			assert.notStrictEqual(codeActions[i].command, undefined, 'command expected');
+			let command = codeActions[i].command!;
+			assert.strictEqual(command.command, Command.extractLabel, 'ExtractLabel Command expected');
+			assert.notStrictEqual(command.arguments, undefined)
+			let { snippetMode, edit, snippetParams } = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3], command.arguments![4]);
+			assert.strictEqual(snippetMode, expectedResult.snippetMode, 'SnippetMode');
+			if (expectedResult.snippetMode)
+				assert.strictEqual(snippetParams!.snippetString.value, expectedResult.newText);
+			else
+				assert.strictEqual(edit.entries().pop()![1].pop()!.newText, expectedResult.newText);
+		}
 	}
 
 	function getRangeOfTextLiteral(document: TextDocument, textLiteral: string): Range {

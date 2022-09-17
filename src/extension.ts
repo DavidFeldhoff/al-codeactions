@@ -72,8 +72,8 @@ export function activate(context: ExtensionContext) {
 		async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
 			await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
 	context.subscriptions.push(commands.registerCommand(Command.extractLabel,
-		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode) =>
-			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode)))
+		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) =>
+			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode, lockLabel)))
 
 	// Reference/Definition Provider
 	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))

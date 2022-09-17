@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.21
 
 - Use webpack to increase performance
+- Add "Extract to locked Label"
 
 ## 1.0.20
 
