@@ -1,12 +1,17 @@
 import { commands, Diagnostic, Location, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
+import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
+import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
+import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import * as Telemetry from '../ApplicationInsights/applicationInsights';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
 import { ALProcedure } from '../Entities/alProcedure';
 import { Command } from '../Entities/Command';
+import { PublisherToAdd } from '../Services/CodeActionProviderModifyProcedureContent';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
 import { Err } from '../Utils/Err';
+import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
 import { CreateProcedureAL0499ConfirmHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ConfirmHandler';
 import { CreateProcedureAL0499FilterPageHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499FilterPageHandler';
 import { CreateProcedureAL0499HyperlinkHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499HyperlinkHandler';
@@ -35,7 +40,7 @@ export class CreateProcedureCommands {
         }
         let createProcedure: ICreateProcedure = CreateProcedureCommands.getCreateProcedureImplementation(handlerToAdd, document, diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createProcedure);
-        commands.executeCommand(Command.createProcedureCommand, document, procedure, new Location(document.uri, diagnostic.range));
+        commands.executeCommand(Command.createProcedureCommand, document, procedure, new Location(document.uri, diagnostic.range), { suppressUI: false, advancedProcedureCreation: false });
     }
     private static getCreateProcedureImplementation(handlerToAdd: string, document: TextDocument, diagnostic: Diagnostic): ICreateProcedure {
         switch (handlerToAdd) {
@@ -68,16 +73,35 @@ export class CreateProcedureCommands {
         }
     }
 
-    public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) {
+    public static async addProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }) {
         let appInsightsEntryProperties: any = {};
-        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined = 
-            await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation, appInsightsEntryProperties);
+
+        let addOnBeforeOnAfterPublishers: boolean = false;
+        if (options.advancedProcedureCreation)
+            addOnBeforeOnAfterPublishers = (await window.showQuickPick(['Yes', 'No'], { title: 'Add OnBefore and OnAfter publishers to the new procedure?' })) == 'Yes'
+        let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined =
+            await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation, options, appInsightsEntryProperties);
         if (!edit)
             return
 
         Telemetry.trackEvent(Telemetry.EventName.CreateProcedure, appInsightsEntryProperties)
-        if (edit.workspaceEdit)
-            await workspace.applyEdit(edit.workspaceEdit!);
+        if (edit.workspaceEdit) {
+            if (addOnBeforeOnAfterPublishers) {
+                await WorkspaceEditUtils.applyWorkspaceEditWithoutUndoStack(edit.workspaceEdit);
+                const syntaxTree = await SyntaxTree.getInstance(document);
+                const methodNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(edit.workspaceEdit.get(document.uri)[0].range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration()])
+                if (methodNode) {
+                    const identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNode, FullSyntaxTreeNodeKind.getIdentifierName(), false)
+                    if (identifierNode) {
+                        const methodIdentifierRange = TextRangeExt.createVSCodeRange(identifierNode.fullSpan)
+                        const methodIdentifierLocation = new Location(document.uri, methodIdentifierRange)
+                        await commands.executeCommand(Command.modifyProcedureContent, document, methodIdentifierRange, PublisherToAdd.OnBefore, methodIdentifierLocation, { suppressUI: true })
+                        await commands.executeCommand(Command.modifyProcedureContent, document, methodIdentifierRange, PublisherToAdd.OnAfter, methodIdentifierLocation, { suppressUI: true })
+                    }
+                }
+            } else
+                await workspace.applyEdit(edit.workspaceEdit!);
+        }
 
         if (edit.snippetString || edit.selectionToPlaceCursor || edit.rangeToReveal) {
             let editor: TextEditor = await CreateProcedureCommands.getEditor(document);
@@ -89,13 +113,13 @@ export class CreateProcedureCommands {
                 editor.revealRange(edit.rangeToReveal);
         }
     }
-    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation, appInsightsEntryProperties);
+    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation, options, appInsightsEntryProperties);
         if (!position)
             return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
 
-        if (procedure.isReturnTypeRequired()) {
+        if (procedure.isReturnTypeRequired() && !options.suppressUI) {
             appInsightsEntryProperties.askUserForMandatoryReturnType = true;
             procedure.returnType = await CreateProcedureCommands.askUserForMandatoryReturnType()
         }

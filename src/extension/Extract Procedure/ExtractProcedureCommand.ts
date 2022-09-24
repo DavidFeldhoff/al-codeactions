@@ -10,21 +10,26 @@ import { ALProcedure } from "../Entities/alProcedure";
 import { ALVariable } from "../Entities/alVariable";
 import { Command } from "../Entities/Command";
 import { RenameMgt } from "../renameMgt";
+import { PublisherToAdd } from "../Services/CodeActionProviderModifyProcedureContent";
 import { ALSourceCodeHandler } from "../Utils/alSourceCodeHandler";
 import { Config, FindNewProcedureLocation } from "../Utils/config";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { WorkspaceEditUtils } from "../Utils/WorkspaceEditUtils";
 
 export class ExtractProcedureCommand {
-    static async extract(document: TextDocument, procedureCallingText: string, procedure: ALProcedure, rangeExpanded: Range) {
+    static async extract(document: TextDocument, procedureCallingText: string, procedure: ALProcedure, rangeExpanded: Range, options: { advancedProcedureCreation: boolean }) {
         let appInsightsEntryProperties: any = {};
         let callRename: boolean = true
-        if (Config.getFindNewProcedureLocation(document.uri) == FindNewProcedureLocation["Sort by type, access modifier, name"]) {
+        let addOnBeforeOnAfterPublishers: boolean = false;
+        if (options.advancedProcedureCreation)
+            addOnBeforeOnAfterPublishers = (await window.showQuickPick(['Yes', 'No'], { title: 'Add OnBefore and OnAfter publishers to the new procedure?' })) == 'Yes'
+        if (Config.getFindNewProcedureLocation(document.uri) == FindNewProcedureLocation["Sort by type, access modifier, name"] || addOnBeforeOnAfterPublishers) {
             callRename = false
             appInsightsEntryProperties.askforNewName = true
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), appInsightsEntryProperties);
+        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), { advancedProcedureCreation: options.advancedProcedureCreation, suppressUI: false }, appInsightsEntryProperties);
         if (!position)
             return
         if (window.activeTextEditor)
@@ -39,7 +44,21 @@ export class ExtractProcedureCommand {
 
         await this.removeLocalVariables(workspaceEdit, document, rangeExpanded.start, procedure.variables);
         workspaceEdit.replace(document.uri, rangeExpanded, procedureCallingText);
-        await workspace.applyEdit(workspaceEdit);
+        if (addOnBeforeOnAfterPublishers) {
+            await WorkspaceEditUtils.applyWorkspaceEditWithoutUndoStack(workspaceEdit);
+            syntaxTree = await SyntaxTree.getInstance(document);
+            const methodNode: ALFullSyntaxTreeNode | undefined = syntaxTree.collectNodesOfKindXInWholeDocument(FullSyntaxTreeNodeKind.getMethodDeclaration()).find((node) => node.name == procedure.name)
+            if (methodNode) {
+                const identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNode, FullSyntaxTreeNodeKind.getIdentifierName(), false)
+                if (identifierNode) {
+                    const methodIdentifierRange = TextRangeExt.createVSCodeRange(identifierNode.fullSpan)
+                    const methodIdentifierLocation = new Location(document.uri, methodIdentifierRange)
+                    await commands.executeCommand(Command.modifyProcedureContent, document, methodIdentifierRange, PublisherToAdd.OnBefore, methodIdentifierLocation, { suppressUI: true })
+                    await commands.executeCommand(Command.modifyProcedureContent, document, methodIdentifierRange, PublisherToAdd.OnAfter, methodIdentifierLocation, { suppressUI: true })
+                }
+            }
+        } else
+            await workspace.applyEdit(workspaceEdit);
         Telemetry.trackEvent(Telemetry.EventName.ExtractToProcedure, appInsightsEntryProperties)
 
         if (callRename)

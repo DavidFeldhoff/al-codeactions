@@ -1,4 +1,4 @@
-import { Position, Range, TextDocument, TextEdit, WorkspaceEdit } from "vscode";
+import { Position, Range, TextDocument, TextEdit, TextEditor, TextEditorEdit, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -7,6 +7,32 @@ import { ALVariable } from "../Entities/alVariable";
 import { DocumentUtils } from "./documentUtils";
 
 export class WorkspaceEditUtils {
+    public static async applyWorkspaceEditWithoutUndoStack(workspaceEdit: WorkspaceEdit): Promise<boolean> {
+        let successful: boolean = true;
+        for (const entry of workspaceEdit.entries()) {
+            let textEditor: TextEditor | undefined = window.visibleTextEditors.find((textEditor) => textEditor.document.uri.fsPath == entry[0].fsPath)
+            if (!textEditor) {
+                let doc: TextDocument | undefined = workspace.textDocuments.find((document) => document.uri.fsPath == entry[0].fsPath)
+                if (!doc)
+                    doc = await workspace.openTextDocument(entry[0])
+                textEditor = await window.showTextDocument(doc, undefined, true)
+            }
+            const textEdits = entry[1]
+            const textEditsSorted = textEdits.sort((a, b) => b.range.end.compareTo(a.range.end))
+            let successfulTemp: boolean
+            for (const textEdit of textEditsSorted) {
+                successfulTemp = await textEditor.edit((editBuilder: TextEditorEdit) => {
+                    if (textEdit.range.start.compareTo(textEdit.range.end) == 0)
+                        editBuilder.insert(textEdit.range.start, textEdit.newText)
+                    else
+                        editBuilder.replace(textEdit.range, textEdit.newText)
+                }, { undoStopBefore: false, undoStopAfter: false })
+                if(!successfulTemp)
+                    successful = false
+            }
+        }
+        return successful;
+    }
     static addVariableToLocalVarSection(methodOrTriggerTreeNode: ALFullSyntaxTreeNode, variable: ALVariable, document: TextDocument) {
         let varSection: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getVarSection(), false);
         let textEdit: TextEdit;

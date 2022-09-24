@@ -66,26 +66,27 @@ export class CodeActionProviderModifyProcedureContent {
         if (createOnBeforeCodeAction)
             codeActions.push({
                 title: 'Add OnBefore Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore, sourceLocation], title: 'Create Publisher' },
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnBefore, sourceLocation, { suppressUI: false }], title: 'Create Publisher' },
                 kind: vscode.CodeActionKind.QuickFix
             });
         if (createOnAfterCodeAction)
             codeActions.push({
                 title: 'Add OnAfter Publisher',
-                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter, sourceLocation], title: 'Create Publisher' },
+                command: { command: Command.modifyProcedureContent, arguments: [this.document, this.range, PublisherToAdd.OnAfter, sourceLocation, { suppressUI: false }], title: 'Create Publisher' },
                 kind: vscode.CodeActionKind.QuickFix
             });
+
         return codeActions;
     }
-    async executeCommand(publisherToAdd: PublisherToAdd, sourceLocation: Location): Promise<void> {
+    async executeCommand(publisherToAdd: PublisherToAdd, sourceLocation: Location, options: { suppressUI: boolean }): Promise<void> {
         let appInsightsEntryProperties: any = {};
-        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation, appInsightsEntryProperties);
+        let workspaceEdit: WorkspaceEdit | undefined = await this.getWorkspaceEditComplete(publisherToAdd, sourceLocation, options.suppressUI, appInsightsEntryProperties);
         if (workspaceEdit) {
             Telemetry.trackEvent(Telemetry.EventName.AddPublisher, appInsightsEntryProperties);
-            await workspace.applyEdit(workspaceEdit);
+            await WorkspaceEditUtils.applyWorkspaceEditWithoutUndoStack(workspaceEdit)
         }
     }
-    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, sourceLocation: Location, appInsightsEntryProperties: any, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
+    async getWorkspaceEditComplete(publisherToAdd: PublisherToAdd, sourceLocation: Location, suppressUI: boolean, appInsightsEntryProperties: any, vscodeInstance: any = vscode): Promise<WorkspaceEdit | undefined> {
         appInsightsEntryProperties.publisherToAdd = publisherToAdd.toString();
         let sourceSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let methodOrTriggerNode: ALFullSyntaxTreeNode | undefined = sourceSyntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
@@ -94,7 +95,7 @@ export class CodeActionProviderModifyProcedureContent {
         let identifierNameSanitized: string | undefined = ALFullSyntaxTreeNodeExt.getIdentifierValue(this.document, methodOrTriggerNode, true);
         if (!identifierNameSanitized)
             return
-        identifierNameSanitized = identifierNameSanitized.substr(0, 1).toUpperCase() + identifierNameSanitized.substr(1);
+        identifierNameSanitized = identifierNameSanitized.substring(0, 1).toUpperCase() + identifierNameSanitized.substring(1);
         let parameterList: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getParameterList(), false);
         if (!parameterList)
             return;
@@ -132,11 +133,11 @@ export class CodeActionProviderModifyProcedureContent {
         switch (publisherToAdd) {
             case PublisherToAdd.OnBefore:
                 publisherName = 'OnBefore' + identifierNameSanitized;
-                selection = await this.getWorkspaceEditForOnBeforePublisher(localVariables, parameters, returnVariable, globalVariables, recAndXRecVariables, methodOrTriggerNode, workspaceEdit, rangeOfBlockNode, publisherName, vscodeInstance);
+                selection = await this.getWorkspaceEditForOnBeforePublisher(localVariables, parameters, returnVariable, globalVariables, recAndXRecVariables, methodOrTriggerNode, workspaceEdit, rangeOfBlockNode, publisherName, suppressUI, vscodeInstance);
                 break;
             case PublisherToAdd.OnAfter:
                 publisherName = 'OnAfter' + identifierNameSanitized;
-                selection = await this.getWorkspaceEditForOnAfterPublisher(rangeOfBlockNode, methodOrTriggerNode, localVariables, parameters, returnVariable, lastExitStatementData, globalVariables, recAndXRecVariables, publisherName, workspaceEdit, vscodeInstance);
+                selection = await this.getWorkspaceEditForOnAfterPublisher(rangeOfBlockNode, methodOrTriggerNode, localVariables, parameters, returnVariable, lastExitStatementData, globalVariables, recAndXRecVariables, publisherName, suppressUI, workspaceEdit, vscodeInstance);
                 break;
         }
         if (!selection)
@@ -144,7 +145,7 @@ export class CodeActionProviderModifyProcedureContent {
         let publisherParameters: ALVariable[] = selection;
         let procedure: ALProcedure = await this.getProcedureToCreate(rangeOfBlockNode, publisherName, publisherParameters);
 
-        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation, appInsightsEntryProperties);
+        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation, { advancedProcedureCreation: false, suppressUI: suppressUI }, appInsightsEntryProperties);
         if (edits && edits.workspaceEdit) {
             for (const entry of edits.workspaceEdit.entries()) {
                 for (const textEditEntry of entry[1])
@@ -195,7 +196,7 @@ export class CodeActionProviderModifyProcedureContent {
         }
         return undefined;
     }
-    async getWorkspaceEditForOnBeforePublisher(localVariables: ALVariable[], parameters: ALVariable[], returnVariable: ALVariable | undefined, globalVariables: ALVariable[], recAndXRecVariables: { rec: ALVariable | undefined; xRec: ALVariable | undefined }, methodOrTriggerNode: ALFullSyntaxTreeNode, workspaceEdit: WorkspaceEdit, rangeOfBlockNode: Range, publisherName: string, vscodeInstance: any = vscode): Promise<ALVariable[] | undefined> {
+    async getWorkspaceEditForOnBeforePublisher(localVariables: ALVariable[], parameters: ALVariable[], returnVariable: ALVariable | undefined, globalVariables: ALVariable[], recAndXRecVariables: { rec: ALVariable | undefined; xRec: ALVariable | undefined }, methodOrTriggerNode: ALFullSyntaxTreeNode, workspaceEdit: WorkspaceEdit, rangeOfBlockNode: Range, publisherName: string, suppressUI: boolean, vscodeInstance: any = vscode): Promise<ALVariable[] | undefined> {
         let possibleParameters: { reason: string, variable: ALVariable, pickDefault: boolean, parameterPositionPrio: number }[] = []
         let isHandledVariable: ALVariable = new ALVariable('IsHandled', 'Boolean', undefined, true);
         let isHandledExists: boolean = localVariables.some((variable) => variable.getNameOrEmpty().toLowerCase() == isHandledVariable.getNameOrEmpty().toLowerCase());
@@ -204,7 +205,7 @@ export class CodeActionProviderModifyProcedureContent {
         if (returnVariable) {
             if (!returnVariable.name) {
                 let returnNode: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getReturnValue(), false)!;
-                returnVariable.name = await this.askForReturnVariableName(localVariables, parameters, globalVariables, vscodeInstance);
+                returnVariable.name = await this.askForReturnVariableName(localVariables, parameters, globalVariables, suppressUI, vscodeInstance);
                 if (returnVariable.name === undefined)
                     return undefined;
                 if (returnVariable.name)
@@ -226,7 +227,7 @@ export class CodeActionProviderModifyProcedureContent {
                 possibleParameters.push({ reason: 'local variable', variable: localVariable, pickDefault: false, parameterPositionPrio: 70 });
         for (let i = 0; i < possibleParameters.length; i++)
             possibleParameters[i].variable = ALParameterParser.enhanceParametersToVarParameters(this.document, [possibleParameters[i].variable], publisherName, Config.getPublisherHasVarParametersOnly(this.document.uri)).pop()!
-        let selection: ALVariable[] | undefined = await this.selectParameters(possibleParameters, vscodeInstance);
+        let selection: ALVariable[] | undefined = await this.selectParameters(possibleParameters, suppressUI, vscodeInstance);
         if (!selection)
             return undefined;
         let publisherParameters: ALVariable[] = selection;
@@ -237,7 +238,7 @@ export class CodeActionProviderModifyProcedureContent {
         }
         let indent: string = "".padStart(rangeOfBlockNode.start.character + 4, " ");
         let textToInsert: string = ""
-        if(isHandledSelected)
+        if (isHandledSelected)
             textToInsert += `IsHandled := false;\r\n${indent}`;
         textToInsert += `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
         if (isHandledSelected)
@@ -253,7 +254,7 @@ export class CodeActionProviderModifyProcedureContent {
         workspaceEdit.insert(this.document.uri, insertAt, textToInsert);
         return publisherParameters;
     }
-    async getWorkspaceEditForOnAfterPublisher(rangeOfBlockNode: Range, methodOrTriggerNode: ALFullSyntaxTreeNode, localVariables: ALVariable[], parameters: ALVariable[], returnVariable: ALVariable | undefined, lastExitStatementData: { rangeOfExitStatement: Range; variable: ALVariable | undefined; exitContent: string; } | undefined, globalVariables: ALVariable[], recAndXRecVariables: { rec: ALVariable | undefined; xRec: ALVariable | undefined }, onAfterPublisherName: string, onAfterWorkspaceEdit: WorkspaceEdit, vscodeInstance: any) {
+    async getWorkspaceEditForOnAfterPublisher(rangeOfBlockNode: Range, methodOrTriggerNode: ALFullSyntaxTreeNode, localVariables: ALVariable[], parameters: ALVariable[], returnVariable: ALVariable | undefined, lastExitStatementData: { rangeOfExitStatement: Range; variable: ALVariable | undefined; exitContent: string; } | undefined, globalVariables: ALVariable[], recAndXRecVariables: { rec: ALVariable | undefined; xRec: ALVariable | undefined }, onAfterPublisherName: string, suppressUI: boolean, onAfterWorkspaceEdit: WorkspaceEdit, vscodeInstance: any) {
         let possibleParameters: { reason: string, variable: ALVariable, pickDefault: boolean, parameterPositionPrio: number }[] = []
         if (lastExitStatementData && lastExitStatementData.variable) {
             let reason: string = 'used in exit statement';
@@ -272,7 +273,7 @@ export class CodeActionProviderModifyProcedureContent {
             let returnVariableIsRequiredButMissing: boolean = !returnVariable.name && !lastExitStatementData;
             if (returnVariableIsRequiredButMissing) {
                 let returnNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getReturnValue(), false);
-                returnVariable.name = await this.askForReturnVariableName(localVariables, parameters, globalVariables, vscodeInstance);
+                returnVariable.name = await this.askForReturnVariableName(localVariables, parameters, globalVariables, suppressUI, vscodeInstance);
                 if (returnVariable.name === undefined)
                     return undefined;
                 if (returnVariable.name)
@@ -294,7 +295,7 @@ export class CodeActionProviderModifyProcedureContent {
                 possibleParameters.push({ reason: 'local variable', variable: localVariable, pickDefault: false, parameterPositionPrio: 70 });
         for (let i = 0; i < possibleParameters.length; i++)
             possibleParameters[i].variable = ALParameterParser.enhanceParametersToVarParameters(this.document, [possibleParameters[i].variable], onAfterPublisherName, Config.getPublisherHasVarParametersOnly(this.document.uri)).pop()!
-        let selection: ALVariable[] | undefined = await this.selectParameters(possibleParameters, vscodeInstance);
+        let selection: ALVariable[] | undefined = await this.selectParameters(possibleParameters, suppressUI, vscodeInstance);
         if (!selection)
             return undefined;
         let publisherParameters: ALVariable[] = selection;
@@ -310,7 +311,9 @@ export class CodeActionProviderModifyProcedureContent {
         onAfterWorkspaceEdit.insert(this.document.uri, data.addAtPosition, textToInsert);
         return publisherParameters;
     }
-    async askForReturnVariableName(localVariables: any[], parameters: any[], globalVariables: any[], vscodeInstance: any = vscode): Promise<string | undefined> {
+    async askForReturnVariableName(localVariables: any[], parameters: any[], globalVariables: any[], suppressUI: boolean, vscodeInstance: any = vscode): Promise<string | undefined> {
+        if (suppressUI)
+            return 'returnVar'
         return await vscodeInstance.window.showInputBox({
             placeHolder: 'returnVar',
             prompt: 'Please specify a name for the return variable.',
@@ -341,7 +344,7 @@ export class CodeActionProviderModifyProcedureContent {
             };
         }
     }
-    async selectParameters(possibleParameters: { reason: string, variable: ALVariable, pickDefault: boolean, parameterPositionPrio: number }[], vscodeInstance: any): Promise<ALVariable[] | undefined> {
+    async selectParameters(possibleParameters: { reason: string, variable: ALVariable, pickDefault: boolean, parameterPositionPrio: number }[], suppressUI: boolean, vscodeInstance: any): Promise<ALVariable[] | undefined> {
         if (possibleParameters.length == 0)
             return []
 
@@ -355,7 +358,11 @@ export class CodeActionProviderModifyProcedureContent {
                 parameterPositionPrio: entry.parameterPositionPrio
             };
         });
-        let answer: MyQuickPickItem[] | undefined = await vscodeInstance.window.showQuickPick(quickPickItems, { canPickMany: true, placeHolder: "Select parameters to add" });
+        let answer: MyQuickPickItem[] | undefined
+        if (suppressUI)
+            answer = quickPickItems.filter((item) => item.picked)
+        else
+            answer = await vscodeInstance.window.showQuickPick(quickPickItems, { canPickMany: true, placeHolder: "Select parameters to add" });
         if (!answer)
             return undefined;
         else

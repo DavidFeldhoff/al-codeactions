@@ -259,12 +259,22 @@ export class DocumentUtils {
     public static getEolByContent(content: string): string {
         let regexCRLF: RegExp = /\r\n/g
         let countCRLF = regexCRLF.test(content) ? content.match(regexCRLF)!.length : 0
-        let regexLF: RegExp = /\r\n/g
+        let regexLF: RegExp = /(?<!\r)\n/g
         let countLF = regexLF.test(content) ? content.match(regexLF)!.length : 0
-        if (countCRLF > countLF / 2)
+        if (countCRLF >= countLF)
             return '\r\n'
         else
             return '\n'
+    }
+    public static getEolByContentAsEnum(content: string): EndOfLine {
+        let regexCRLF: RegExp = /\r\n/g
+        let countCRLF = regexCRLF.test(content) ? content.match(regexCRLF)!.length : 0
+        let regexLF: RegExp = /\n/g
+        let countLF = regexLF.test(content) ? content.match(regexLF)!.length : 0
+        if (countCRLF > countLF)
+            return EndOfLine.CRLF
+        else
+            return EndOfLine.LF
     }
     public static getPositionOfFileContent(fileContent: string, index: number | undefined): Position {
         let textUntilIndex: string = fileContent.substring(0, index)
@@ -307,5 +317,12 @@ export class DocumentUtils {
             editor = await window.showTextDocument(document.uri);
         }
         return editor;
+    }
+    static getWordRangeAtPosition(fileContent: string, position: Position, regex: RegExp | undefined): Range | undefined {
+        const index = this.getIndexOfFileContent(fileContent, position);
+        regex = new RegExp(`.{,${index}}(\\w+)`)
+        if (!regex.test(fileContent))
+            return undefined
+        const regexpMatchArr: RegExpMatchArray = fileContent.match(regex)!
     }
 }

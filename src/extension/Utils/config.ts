@@ -5,7 +5,13 @@ export class Config {
         return workspace.getConfiguration('alCodeActions', uri);
     }
     static getFindNewProcedureLocation(uri?: Uri): FindNewProcedureLocation {
-        return FindNewProcedureLocation[this.getConfig(uri).get('findNewProcedureLocation', "Sort by type, access modifier, range")]
+        const enumValues = Object.keys(FindNewProcedureLocation).filter(k => isNaN(Number(k)));
+        const settingValue: string | undefined = this.getConfig(uri).get('findNewProcedureLocation')
+        if (settingValue && enumValues.includes(settingValue)) {
+            return FindNewProcedureLocation[settingValue as keyof typeof FindNewProcedureLocation]
+        }
+        else
+            return FindNewProcedureLocation["Sort by type, access modifier, range"]
     }
     static async setFindNewProcedureLocation(uri: Uri | undefined, newValue: string | undefined) {
         await this.getConfig(uri).update('findNewProcedureLocation', newValue);
@@ -32,6 +38,5 @@ export class Config {
 
 export enum FindNewProcedureLocation {
     "Sort by type, access modifier, name",
-    "Sort by type, access modifier, range",
-    "Always ask"
+    "Sort by type, access modifier, range"
 }

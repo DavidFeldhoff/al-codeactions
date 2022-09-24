@@ -4,8 +4,11 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 1.0.21
 
-- Use webpack to increase performance
+- Use webpack to increase performance #141
 - Add "Extract to locked Label"
+- Add "Create .. with advanced options" code actions with that a few more options are available like adding publishers directly to that procedure or placing the procedure at a specific place. That's also the reason why the property "alCodeActions.findNewProcedureLocation": "Always ask" was removed.
+- Improve working with regions #144
+
 
 ## 1.0.20
 

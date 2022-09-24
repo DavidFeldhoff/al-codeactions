@@ -52,7 +52,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -63,7 +63,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeNoParametersNoVarSectionNoReturn(IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeNoParametersNoVarSectionNoReturn(var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -109,7 +109,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -120,7 +120,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersNoVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersNoVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -168,7 +168,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -179,7 +179,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNoReturn(CustomerNo, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNoReturn(CustomerNo: Code[20]; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -227,7 +227,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 				}
 			]
 		})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -237,7 +237,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'OnBeforeParametersVarSectionNoReturn(Customer2, CustomerNo);\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNoReturn(Customer2: Record Customer; CustomerNo: Code[20])\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -298,7 +298,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -310,7 +310,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -363,7 +363,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -374,7 +374,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNamedReturn(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturn(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -427,7 +427,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -438,7 +438,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo, Customer3, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionNamedReturnDifferentExit(CustomerNo: Code[20]; var Customer3: Record Customer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -499,7 +499,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -511,7 +511,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo, Amount, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnMemberAccess(CustomerNo: Code[20]; var Amount: Decimal; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -572,7 +572,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -584,7 +584,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnSimpleType(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -644,7 +644,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 					}
 				]
 			})
-		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), {}, mock);
+		let workspaceEdit: WorkspaceEdit | undefined = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnBefore, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 
@@ -656,7 +656,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		assert.strictEqual(textEdits.shift()!.newText, 'IsHandled := false;\r\n        OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo, rInt, IsHandled);\r\n        if IsHandled then\r\n            exit;\r\n        \r\n        ')
 		assert.strictEqual(textEdits.shift()!.newText, '\r\n    [IntegrationEvent(false, false)]\r\n    local procedure OnBeforeParametersVarSectionUnnamedReturnConstant(CustomerNo: Code[20]; var rInt: Integer; var IsHandled: Boolean)\r\n    begin\r\n    end;\r\n')
 
-		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), {}, mock);
+		workspaceEdit = await codeActionProvider.getWorkspaceEditComplete(PublisherToAdd.OnAfter, new Location(doc.uri, procedureStartPos), false, {}, mock);
 		assert.notStrictEqual(workspaceEdit, undefined)
 		workspaceEdit = workspaceEdit!
 

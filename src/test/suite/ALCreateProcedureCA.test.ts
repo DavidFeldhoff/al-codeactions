@@ -948,9 +948,11 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
-		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
+		assert.strictEqual(codeActions.length, 4, 'Code action should be created');
 		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
 		assert.strictEqual(codeActions[0].title, 'Create procedure testproc on source table');
+		assert.strictEqual(codeActions[1].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[1].title, 'Create procedure testproc on source table with advanced options');
 		let document: TextDocument = codeActions[0].command.arguments![0]
 		let procedure: ALProcedure = codeActions[0].command.arguments![1]
 		assert.strictEqual(document.uri.fsPath.endsWith('MyTable.al'), true)
@@ -958,10 +960,12 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyTable')
 		assert.strictEqual(procedure.ObjectOfProcedure.type, 'Table')
 
-		assert.strictEqual(codeActions[1].command?.command, Command.createProcedureCommand);
-		assert.strictEqual(codeActions[1].title, 'Create procedure testproc');
-		document = codeActions[1].command.arguments![0]
-		procedure = codeActions[1].command.arguments![1]
+		assert.strictEqual(codeActions[2].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[2].title, 'Create procedure testproc');
+		assert.strictEqual(codeActions[3].command?.command, Command.createProcedureCommand);
+		assert.strictEqual(codeActions[3].title, 'Create procedure testproc with advanced options');
+		document = codeActions[2].command.arguments![0]
+		procedure = codeActions[2].command.arguments![1]
 		assert.strictEqual(document.uri.fsPath.endsWith('MyPage2.al'), true)
 		assert.strictEqual(procedure.accessModifier, AccessModifier.local)
 		assert.strictEqual(procedure.ObjectOfProcedure.name, 'MyPage2')
@@ -976,9 +980,12 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let consider: boolean = await codeActionProvider.considerLine();
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
-		assert.strictEqual(codeActions.length, 1, 'Code action should be created');
+		assert.strictEqual(codeActions.length, 4, 'Code action should be created');
 		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
 		assert.strictEqual(codeActions[0].title, 'Create procedure testproc2 on source table');
+		assert.strictEqual(codeActions[1].title, 'Create procedure testproc2 on source table with advanced options');
+		assert.strictEqual(codeActions[2].title, 'Create procedure testproc2');
+		assert.strictEqual(codeActions[3].title, 'Create procedure testproc2 with advanced options');
 		let document: TextDocument = codeActions[0].command.arguments![0]
 		let procedure: ALProcedure = codeActions[0].command.arguments![1]
 		assert.strictEqual(document.uri.fsPath.endsWith('MyTable.al'), true)
@@ -997,10 +1004,11 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		WorkspaceUtils.addNoImplicitWithToAppJson();
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		WorkspaceUtils.onAppJsonFound = undefined
-		assert.strictEqual(codeActions.length, 1, 'Code action should be created');
+		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
 
 		assert.strictEqual(codeActions[0].command?.command, Command.createProcedureCommand);
 		assert.strictEqual(codeActions[0].title, 'Create procedure testproc');
+		assert.strictEqual(codeActions[1].title, 'Create procedure testproc with advanced options');
 		let document: TextDocument = codeActions[0].command.arguments![0]
 		let procedure: ALProcedure = codeActions[0].command.arguments![1]
 		assert.strictEqual(document.uri.fsPath.endsWith('MyPage2.al'), true)

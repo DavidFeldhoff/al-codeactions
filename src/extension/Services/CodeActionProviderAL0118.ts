@@ -32,12 +32,14 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         let createprocedureAL0118: CreateProcedureAL0118 = new CreateProcedureAL0118(this.document, this.diagnostic);
         let procedure: ALProcedure = await CreateProcedure.createProcedure(createprocedureAL0118);
         let sourceLocation = new Location(this.document.uri, this.diagnostic.range);
-        let codeActionProcedure: CodeAction = await this.createCodeAction(procedure, 'Create procedure ' + procedure.name, this.document, sourceLocation);
+        let codeActionProcedure: CodeAction = await this.createCodeAction(procedure, 'Create procedure ' + procedure.name, this.document, sourceLocation, false);
+        let codeActionProcedureWithPublishers: CodeAction = await this.createCodeAction(procedure, `Create procedure ${procedure.name} with advanced options`, this.document, sourceLocation, true);
 
         if (procedure.ObjectOfProcedure.type.toLowerCase() == 'page') {
-            let codeActionSourceTable: CodeAction | undefined = await new CodeActionProviderAL0132(this.document, this.diagnostic).createCodeActionSourceRec(procedure)
-            if (codeActionSourceTable)
-                codeActions.push(codeActionSourceTable);
+            let codeActionsSourceTable: CodeAction[] | undefined = await new CodeActionProviderAL0132(this.document, this.diagnostic).createCodeActionSourceRec(procedure)
+            if (codeActionsSourceTable)
+                for (const codeActionSourceTable of codeActionsSourceTable)
+                    codeActions.push(codeActionSourceTable);
         }
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
@@ -47,27 +49,28 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
 
             let createProcedureAL0118IntegrationEvent: CreateProcedureAL0118IntegrationEvent = new CreateProcedureAL0118IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118IntegrationEvent);
-            let codeActionIntegrationEvent: CodeAction = await this.createCodeAction(integrationEvent, 'Create IntegrationEvent Publisher ' + integrationEvent.name, this.document, sourceLocation);
+            let codeActionIntegrationEvent: CodeAction = await this.createCodeAction(integrationEvent, `Create IntegrationEvent Publisher ${integrationEvent.name}`, this.document, sourceLocation, false);
             codeActionIntegrationEvent.isPreferred = true;
             codeActions.push(codeActionIntegrationEvent);
 
             let createProcedureAL0118BusinessEvent: CreateProcedureAL0118BusinessEvent = new CreateProcedureAL0118BusinessEvent(this.document, this.diagnostic);
             let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0118BusinessEvent);
-            let codeActionBusinessEvent: CodeAction = await this.createCodeAction(businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, sourceLocation);
+            let codeActionBusinessEvent: CodeAction = await this.createCodeAction(businessEvent, `Create BusinessEvent Publisher ${businessEvent.name}`, this.document, sourceLocation, false);
             codeActions.push(codeActionBusinessEvent);
         } else
             codeActionProcedure.isPreferred = true;
 
         codeActions.push(codeActionProcedure);
+        codeActions.push(codeActionProcedureWithPublishers);
         return codeActions;
     }
 
-    private async createCodeAction(procedure: ALProcedure, msg: string, document: TextDocument, sourceLocation: Location): Promise<CodeAction> {
+    private async createCodeAction(procedure: ALProcedure, msg: string, document: TextDocument, sourceLocation: Location, advancedProcedureCreation: boolean): Promise<CodeAction> {
         const codeAction = new CodeAction(msg, CodeActionKind.QuickFix);
         codeAction.command = {
             command: Command.createProcedureCommand,
             title: 'Create Procedure',
-            arguments: [document, procedure, sourceLocation]
+            arguments: [document, procedure, sourceLocation, { suppressUI: false, advancedProcedureCreation: advancedProcedureCreation }]
         };
         return codeAction;
     }

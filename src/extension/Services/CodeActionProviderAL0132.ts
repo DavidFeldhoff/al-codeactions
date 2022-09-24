@@ -48,12 +48,14 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         let procedure: ALProcedure = await CreateProcedure.createProcedure(this.createProcedureAL0132);
         if (!this.isValidDocument(procedure))
             return []
-        let codeActionProcedure: CodeAction = await this.createCodeAction('Create procedure ' + procedure.name, procedure);
+        const codeActionProcedure: CodeAction = await this.createCodeAction('Create procedure ' + procedure.name, procedure, false);
+        const codeActionProcedureWithPublishers: CodeAction = await this.createCodeAction(`Create procedure ${procedure.name} with advanced options`, procedure, true);
 
         if (procedure.ObjectOfProcedure.type.toLowerCase() == 'page') {
-            let codeActionSourceTable: CodeAction | undefined = await this.createCodeActionSourceRec(procedure)
-            if (codeActionSourceTable)
-                codeActionProcedure = codeActionSourceTable
+            let codeActionsSourceTable: CodeAction[] | undefined = await this.createCodeActionSourceRec(procedure)
+            if (codeActionsSourceTable)
+                for (const codeActionSourceTable of codeActionsSourceTable)
+                    codeActions.push(codeActionSourceTable)
         }
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
@@ -61,20 +63,21 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         if (procedure.name.match(regexPattern)) {
             let createProcedureAL0132IntegrationEvent: CreateProcedureAL0132IntegrationEvent = new CreateProcedureAL0132IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132IntegrationEvent);
-            let codeActionIntegrationEvent: CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, integrationEvent);
+            let codeActionIntegrationEvent: CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, integrationEvent, false);
             codeActionIntegrationEvent.isPreferred = true;
             codeActions.push(codeActionIntegrationEvent);
 
             let createProcedureAL0132BusinessEvent: CreateProcedureAL0132BusinessEvent = new CreateProcedureAL0132BusinessEvent(this.document, this.diagnostic);
             let businessEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132BusinessEvent);
-            let codeActionBusinessEvent: CodeAction = await this.createCodeAction('Create BusinessEvent Publisher ' + businessEvent.name, businessEvent);//businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
+            let codeActionBusinessEvent: CodeAction = await this.createCodeAction('Create BusinessEvent Publisher ' + businessEvent.name, businessEvent, false);//businessEvent, 'Create BusinessEvent Publisher ' + businessEvent.name, this.document, this.diagnostic);
             codeActions.push(codeActionBusinessEvent);
         } else
             codeActionProcedure.isPreferred = true
         codeActions.push(codeActionProcedure)
+        codeActions.push(codeActionProcedureWithPublishers)
         return codeActions;
     }
-    async createCodeActionSourceRec(procedure: ALProcedure): Promise<CodeAction | undefined> {
+    async createCodeActionSourceRec(procedure: ALProcedure): Promise<CodeAction[] | undefined> {
         let sourceSyntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document)
         let node = sourceSyntaxTree.findTreeNode(this.diagnostic.range.start, [FullSyntaxTreeNodeKind.getMemberAccessExpression(), FullSyntaxTreeNodeKind.getInvocationExpression()]);
         if (!node || !node.childNodes)
@@ -115,7 +118,10 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
             let tableALObject: ALObject = ALObjectParser.parseObjectTreeNodeToALObject(sourceTableDoc, objectNode)
             procCopy.ObjectOfProcedure = tableALObject
             procCopy.accessModifier = AccessModifier.internal
-            return await this.createCodeAction(`Create procedure ${procCopy.name} on source table`, procCopy);
+            return [
+                await this.createCodeAction(`Create procedure ${procCopy.name} on source table`, procCopy, false),
+                await this.createCodeAction(`Create procedure ${procCopy.name} on source table with advanced options`, procCopy, true)
+            ]
         }
     }
 
@@ -133,18 +139,18 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
             return false
         return true
     }
-    private async createCodeAction(msg: string, procedureToCreate: ALProcedure): Promise<CodeAction> {
+    private async createCodeAction(msg: string, procedureToCreate: ALProcedure, advancedProcedureCreation: boolean): Promise<CodeAction> {
         let otherDocument: TextDocument = await workspace.openTextDocument(procedureToCreate.ObjectOfProcedure.documentUri!);
-        let codeActionToCreateProcedure: CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, new Location(this.document.uri, this.diagnostic.range));
+        let codeActionToCreateProcedure: CodeAction = this.createFixToCreateProcedure(msg, procedureToCreate, otherDocument, new Location(this.document.uri, this.diagnostic.range), advancedProcedureCreation);
         return codeActionToCreateProcedure;
     }
 
-    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: TextDocument, sourceLocation: Location): CodeAction {
+    private createFixToCreateProcedure(msg: string, procedure: ALProcedure, document: TextDocument, sourceLocation: Location, advancedProcedureCreation: boolean): CodeAction {
         const codeAction = new CodeAction(msg, CodeActionKind.QuickFix);
         codeAction.command = {
             command: Command.createProcedureCommand,
-            title: 'Create Procedure',
-            arguments: [document, procedure, sourceLocation]
+            title: msg,
+            arguments: [document, procedure, sourceLocation, { suppressUI: false, advancedProcedureCreation: advancedProcedureCreation }]
         };
         return codeAction;
     }

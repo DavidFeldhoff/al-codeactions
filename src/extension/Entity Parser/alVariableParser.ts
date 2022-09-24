@@ -8,6 +8,7 @@ import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import { ALVariable } from "../Entities/alVariable";
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
+import { TypeDetective } from '../Utils/typeDetective';
 
 export class ALVariableParser {
     public static simpleDataTypesAndDefaultValues: Map<string, string> = new Map([
@@ -82,6 +83,17 @@ export class ALVariableParser {
             Err._throw('Variable declaration has no child nodes.');
         }
     }
+    static async parseDataItemToALVariable(document: TextDocument, dataItemTreeNode: ALFullSyntaxTreeNode, modifyVarNames: boolean): Promise<ALVariable> {
+        if (!dataItemTreeNode.parentNode || !dataItemTreeNode.parentNode.kind || dataItemTreeNode.parentNode.kind !== FullSyntaxTreeNodeKind.getReportDataItem())
+            Err._throw('That\'s not a report data item tree node.');
+        const typeDetective = new TypeDetective(document, dataItemTreeNode)
+        await typeDetective.analyzeTypeOfTreeNode();
+
+        let variable: ALVariable = new ALVariable(dataItemTreeNode.identifier, typeDetective.getType(), undefined, true);
+        if (modifyVarNames)
+            variable.sanitizeName();
+        return variable;
+    }
     static createVariableNameByType(typeText: string): string | undefined {
         let parseResult = this.parseType(typeText);
         if (parseResult) {
@@ -109,7 +121,7 @@ export class ALVariableParser {
             varName = 'Temp' + varName;
         return varName;
     }
-    private static  removeAffixes(varName: string) {
+    private static removeAffixes(varName: string) {
         let ignoreALPrefix: string = workspace.getConfiguration('alVarHelper').get<string>('ignoreALPrefix', '');
         let ignoreALPrefixes: string[] = ignoreALPrefix.split(';');
         let ignoreALSuffix: string = workspace.getConfiguration('alVarHelper').get<string>('ignoreALSuffix', '');

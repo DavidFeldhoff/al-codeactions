@@ -97,13 +97,11 @@
                         "default": "Sort by type, access modifier, range",
                         "enum": [
                             "Sort by type, access modifier, name",
-                            "Sort by type, access modifier, range",
-                            "Always ask"
+                            "Sort by type, access modifier, range"
                         ],
                         "enumDescriptions": [
                             "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally the sort by name is self-explanatory.",
-                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range.",
-                            "You are always asked where to place the procedure in the document"
+                            "Types are e.g. trigger, method, publisher, subscriber, .., Access modifiers are public, internal, protected and local and finally it's sorted by range."
                         ],
                         "description": "Specifies the search criteria to find an anchor to add the new procedure in the document.",
                         "scope": "resource"

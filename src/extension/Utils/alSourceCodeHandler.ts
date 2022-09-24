@@ -1,4 +1,4 @@
-import { Location, Position, Range, Selection, TextDocument, TextEditorRevealType, window } from 'vscode';
+import { Location, Position, Range, Selection, TextDocument, TextEditorRevealType, ThemeIcon, window } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -19,7 +19,11 @@ export class ALSourceCodeHandler {
     constructor(document: TextDocument) {
         this.document = document;
     }
-    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, appInsightsEntryProperties: any, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
+    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, appInsightsEntryProperties: any, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
+        let askForProcedurePosition: boolean = false
+        if (options.advancedProcedureCreation) {
+            askForProcedurePosition = (await window.showQuickPick(['Yes', 'No'], { title: 'Place procedure at specific position?' })) == 'Yes'
+        }
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let rootNode: ALFullSyntaxTreeNode = syntaxTree.getRoot();
         let objectNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(rootNode, FullSyntaxTreeNodeKind.getAllObjectKinds(), false);
@@ -43,7 +47,7 @@ export class ALSourceCodeHandler {
         }
 
 
-        let result: { anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, regions, targetObjectNode, sourceLocation, appInsightsEntryProperties)
+        let result: { anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined, userCanceled: boolean } = await this.getAnchorNode(config, procedureToInsert, classifiedNodes, regions, targetObjectNode, sourceLocation, askForProcedurePosition, appInsightsEntryProperties)
         if (result.userCanceled)
             return undefined
 
@@ -54,7 +58,17 @@ export class ALSourceCodeHandler {
                 if (globalVarSections.length > 1)
                     result.anchorNode = globalVarSections.pop()!
             }
-            return TextRangeExt.createVSCodeRange(result.anchorNode.fullSpan).end
+            let endPositionOfAnchor: Position = TextRangeExt.createVSCodeRange(result.anchorNode.fullSpan).end
+
+            const userSelectedProcedureIntentionally = askForProcedurePosition
+            if (!userSelectedProcedureIntentionally) {
+                if (result.anchorNode.name) {
+                    const endregionWithSameName = regions.find((entry) => entry.range.start.compareTo(endPositionOfAnchor) >= 0 && entry.regionName == `#endregion ${(result.anchorNode as ALFullSyntaxTreeNode).name}`)
+                    if (endregionWithSameName)
+                        endPositionOfAnchor = endregionWithSameName.range.end
+                }
+            }
+            return endPositionOfAnchor
         }
         else if (result.anchorNode !== undefined) {
             result.anchorNode = result.anchorNode as { range: Range, regionName: string }
@@ -70,9 +84,16 @@ export class ALSourceCodeHandler {
                 return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(targetObjectNode.fullSpan)).end.translate(0, -1);
         }
     }
-    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], regions: { range: Range, regionName: string }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location, appInsightsEntryProperties: any): Promise<{ anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined, userCanceled: boolean }> {
+    private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], regions: { range: Range, regionName: string }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location, askForProcedurePosition: boolean, appInsightsEntryProperties: any): Promise<{ anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined, userCanceled: boolean }> {
         let anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined
-        if ([FindNewProcedureLocation['Sort by type, access modifier, name'], FindNewProcedureLocation['Sort by type, access modifier, range']].includes(config)) {
+        if (askForProcedurePosition) {
+            if (classifiedNodes.length + regions.length > 1)
+                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, regions, this.document, sourceLocation, appInsightsEntryProperties)
+            else if (classifiedNodes.length == 1)
+                anchorNode = classifiedNodes[0].node
+            else if (regions.length == 1)
+                anchorNode = regions[0]
+        } else {
             let procedureToInsertType: MethodType = MethodClassifier.classifyMethodAsType(procedureToInsert)
             if (config == FindNewProcedureLocation['Sort by type, access modifier, name'])
                 anchorNode = classifiedNodes.filter(node =>
@@ -98,13 +119,6 @@ export class ALSourceCodeHandler {
                     .sort(this.sortByType)
                     .map(entry => entry.node)
                     .pop()
-        } else if (config == FindNewProcedureLocation['Always ask']) {
-            if (classifiedNodes.length + regions.length > 1)
-                return await this.findPositionByAsking(targetObjectNode, classifiedNodes, regions, this.document, sourceLocation, appInsightsEntryProperties)
-            else if (classifiedNodes.length == 1)
-                anchorNode = classifiedNodes[0].node
-            else if (regions.length == 1)
-                anchorNode = regions[0]
         }
         return { anchorNode, userCanceled: false }
     }
@@ -138,7 +152,7 @@ export class ALSourceCodeHandler {
         }
         let itemChosen: ownQuickPickItem | undefined = await window.showQuickPick(methodQPItems,
             {
-                placeHolder: 'Select an anchor after which you want to place your new function.',
+                title: 'Select an anchor after which you want to place your new function.',
                 ignoreFocusOut: true,
                 matchOnDetail: true,
                 onDidSelectItem: (item: ownQuickPickItem) => {

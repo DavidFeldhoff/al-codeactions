@@ -29,6 +29,7 @@ import { DocumentUtils } from './extension/Utils/documentUtils';
 import './extension/Utils/StringPrototype';
 
 export function activate(context: ExtensionContext) {
+
 	OwnConsole.ownConsole = window.createOutputChannel("AL CodeActions");
 	if (env.isTelemetryEnabled)
 		Telemetry.start();
@@ -42,8 +43,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.renameCommand,
 		(location: Location) => DocumentUtils.executeRename(location)));
 	context.subscriptions.push(commands.registerCommand(Command.extractProcedure,
-		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range) =>
-			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded)))
+		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, options: { advancedProcedureCreation: boolean }) =>
+			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, options)))
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls,
 		() => FindRelated.exec(1)))
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber,
@@ -51,8 +52,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers,
 		() => FindRelated.exec(3)))
 	context.subscriptions.push(commands.registerCommand(Command.createProcedureCommand,
-		(document: TextDocument, procedure: ALProcedure, sourceLocation: Location) =>
-			CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation)));
+		(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }) =>
+			CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation, options)));
 	context.subscriptions.push(commands.registerCommand(Command.createHandlerCommand,
 		(document: TextDocument, diagnostic: Diagnostic) => CreateProcedureCommands.addHandler(document, diagnostic)));
 	context.subscriptions.push(commands.registerCommand(Command.fixCop,
@@ -66,8 +67,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.showError,
 		(message: string) => window.showInformationMessage(message)))
 	context.subscriptions.push(commands.registerCommand(Command.modifyProcedureContent,
-		(document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location) =>
-			new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation)))
+		(document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location, options: { suppressUI: boolean }) =>
+			new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation, options)))
 	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum,
 		async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
 			await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
