@@ -25,6 +25,12 @@ export class Config {
     static async setPublisherHasVarParametersOnly(uri: Uri | undefined, newValue: boolean | undefined) {
         await this.getConfig(uri).update('publisherHasVarParametersOnly', newValue);
     }
+    static getInitializeIsHandledVariableWhenCreatingOnBeforePublisher(uri?: Uri): boolean {
+        return this.getConfig(uri).get('initializeIsHandledVariableWhenCreatingOnBeforePublisher', false);
+    }
+    static async setInitializeIsHandledVariableWhenCreatingOnBeforePublisher(uri: Uri | undefined, newValue: boolean | undefined) {
+        await this.getConfig(uri).update('initializeIsHandledVariableWhenCreatingOnBeforePublisher', newValue);
+    }
     static getCommentsContainTranslations(uri?: Uri): boolean {
         return this.getConfig(uri).get('commentsContainTranslations', true);
     }

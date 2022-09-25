@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.22
+
+- Add `IsHandled := false` before OnBeforePublishers only if the new setting is activated: `alCodeActions.initializeIsHandledVariableWhenCreatingOnBeforePublisher` 
+
 ## 1.0.21
 
 - Use webpack to increase performance #141

@@ -238,7 +238,7 @@ export class CodeActionProviderModifyProcedureContent {
         }
         let indent: string = "".padStart(rangeOfBlockNode.start.character + 4, " ");
         let textToInsert: string = ""
-        if (isHandledSelected)
+        if (isHandledSelected && Config.getInitializeIsHandledVariableWhenCreatingOnBeforePublisher(this.document.uri))
             textToInsert += `IsHandled := false;\r\n${indent}`;
         textToInsert += `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
         if (isHandledSelected)

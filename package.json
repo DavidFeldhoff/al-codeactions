@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "1.0.21",
+    "version": "1.0.22",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -120,6 +120,12 @@
                         "default": false,
                         "description": "All parameters of new publishers will be declared as var-parameters.",
                         "scope": "resource"
+                    },
+                    "alCodeActions.initializeIsHandledVariableWhenCreatingOnBeforePublisher": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "When creating an OnBefore-Publisher, a 'IsHandled := false;' statement is added before it.",
+                        "scope": "window"
                     },
                     "alCodeActions.commentsContainTranslations": {
                         "type": "boolean",
