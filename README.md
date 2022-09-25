@@ -64,9 +64,9 @@
 
 ### Extract Procedure
 
-![demo](images/ExtractIf2.gif)
-
 ![demo](images/ExtractProcedure.gif)  
+
+![demo](images/ExtractIf2.gif)
 
 ### Extract to Label
 
