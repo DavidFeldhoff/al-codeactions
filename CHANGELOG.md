@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.23
+
+- Trying to fix #145 where nothing was working because of an error `Cannot read properties of undefined (reading 'trackEvent')`
+
 ## 1.0.22
 
 - Add `IsHandled := false` before OnBeforePublishers only if the new setting is activated: `alCodeActions.initializeIsHandledVariableWhenCreatingOnBeforePublisher` 

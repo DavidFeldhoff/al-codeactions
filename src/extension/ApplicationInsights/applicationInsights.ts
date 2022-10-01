@@ -8,13 +8,17 @@ export function start() {
 }
 
 export function trackTrace(message: string) {
-    appInsights.defaultClient.trackTrace({ message: message });
+    const client = appInsights.defaultClient
+    if (client)
+        client.trackTrace({ message: message });
 }
 export function trackCommand(command: string) {
     trackTrace(`Command ${command} was executed.`)
 }
 export function trackEvent(name: EventName, properties: any) {
-    appInsights.defaultClient.trackEvent({ name: name.toString(), properties: properties });
+    const client = appInsights.defaultClient
+    if (client)
+        client.trackEvent({ name: name.toString(), properties: properties });
 }
 
 export enum EventName {
