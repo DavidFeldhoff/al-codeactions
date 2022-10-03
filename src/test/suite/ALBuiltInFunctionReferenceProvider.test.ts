@@ -2,9 +2,9 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { TextDocument, workspace, window, Position, Location, Range } from 'vscode';
 import { BuiltInFunctions } from '../../extension/DefinitionsOnInsert/BuiltInFunctions';
-import { FindRelatedCalls, showInsertConfig } from '../../extension/Services/FindRelatedCalls';
-import { FindRelatedEventSubscribers } from '../../extension/Services/FindRelatedEventSubscribers';
-import { FindRelatedTriggersOfTableExt } from '../../extension/Services/FindRelatedTriggersOfTableExt';
+import { FindRelatedCalls, showInsertConfig } from '../../extension/FindRelated/FindRelatedCalls';
+import { FindRelatedEventSubscribers } from '../../extension/FindRelated/FindRelatedEventSubscribers';
+import { FindRelatedTriggersOfTableExt } from '../../extension/FindRelated/FindRelatedTriggersOfTableExt';
 import { ALLanguageExtension } from '../alExtension';
 import { ALTestProject } from './ALTestProject';
 
@@ -37,8 +37,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
 		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
-		FindRelatedCalls.activateListener(BuiltInFunctions.Insert, showInsertConfig['Insert(true)-Calls only'])
-		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls(BuiltInFunctions.Insert, showInsertConfig['Insert(true)-Calls only']).provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\TableTriggers.Table.al', 4);
@@ -54,8 +53,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
 		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
-		FindRelatedCalls.activateListener(BuiltInFunctions.Insert, showInsertConfig['All Insert-Calls'])
-		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls(BuiltInFunctions.Insert, showInsertConfig['All Insert-Calls']).provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\TableTriggers.Table.al', 6);
@@ -71,8 +69,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
 		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
-		FindRelatedEventSubscribers.activateListener(BuiltInFunctions.Insert)
-		let locations: Location[] = await new FindRelatedEventSubscribers().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedEventSubscribers(BuiltInFunctions.Insert).provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\CodeunitWithDifferentTableNo.Codeunit.al', 1);
@@ -84,8 +81,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let rangeOfLine = getRangeOfLine(ItemExtDoc, lineTextToSearch);
 		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
-		FindRelatedTriggersOfTableExt.activateListener(BuiltInFunctions.Insert)
-		let locations: Location[] = await new FindRelatedTriggersOfTableExt().provideReferences(ItemExtDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedTriggersOfTableExt(BuiltInFunctions.Insert).provideReferences(ItemExtDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\ItemExt.TableExt.al', 3);
@@ -98,8 +94,7 @@ suite('ALBuiltInFunctionReferenceProvider Test Suite', function () {
 		let rangeOfLine = getRangeOfLine(tableTriggersTableDoc, lineTextToSearch);
 		let positionToExecuteRefProvider: Position = rangeOfLine.start.translate(0, textToSkip.length);
 		let cancellationToken: any;
-		FindRelatedCalls.activateListener(BuiltInFunctions.Validate)
-		let locations: Location[] = await new FindRelatedCalls().provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
+		let locations: Location[] = await new FindRelatedCalls(BuiltInFunctions.Validate).provideReferences(tableTriggersTableDoc, positionToExecuteRefProvider, { includeDeclaration: true }, cancellationToken)
 
 		let expected: Map<string, number> = new Map();
 		expected.set('\\CodeunitWithDifferentTableNo.Codeunit.al', 3);

@@ -8,6 +8,7 @@ import { ALProcedure } from './extension/Entities/alProcedure';
 import { ALVariable } from './extension/Entities/alVariable';
 import { Command } from './extension/Entities/Command';
 import { ExtractProcedureCommand } from './extension/Extract Procedure/ExtractProcedureCommand';
+import { FindRelated, FindRelatedEnum } from './extension/FindRelated/FindRelated';
 import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
 import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
@@ -19,10 +20,6 @@ import { ContextSetter } from './extension/Services/ContextSetter';
 import { DefinitionProviderHandlerFunctions } from './extension/Services/DefinitionProviderHandlerFunctions';
 import { DefinitionProviderIntegrationEvent } from './extension/Services/DefinitionProviderIntegrationEvent';
 import { DefinitionProviderCallToTrigger } from './extension/Services/DefinitionProviderOnInsert';
-import { FindRelated } from './extension/Services/FindRelated';
-import { FindRelatedCalls } from './extension/Services/FindRelatedCalls';
-import { FindRelatedEventSubscribers } from './extension/Services/FindRelatedEventSubscribers';
-import { FindRelatedTriggersOfTableExt } from './extension/Services/FindRelatedTriggersOfTableExt';
 import { ReferenceProviderHandlerFunctions } from './extension/Services/ReferenceProviderHandlerFunctions';
 import { ReferenceProviderTriggerParameter } from './extension/Services/ReferenceProviderTriggerParameter';
 import { DocumentUtils } from './extension/Utils/documentUtils';
@@ -45,12 +42,9 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.extractProcedure,
 		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, options: { advancedProcedureCreation: boolean }) =>
 			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, options)))
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls,
-		() => FindRelated.exec(1)))
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber,
-		() => FindRelated.exec(2)))
-	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers,
-		() => FindRelated.exec(3)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls, () => FindRelated.exec(FindRelatedEnum.Calls)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber, () => FindRelated.exec(FindRelatedEnum.EventSubscriber)))
+	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers, () => FindRelated.exec(FindRelatedEnum.Triggers)))
 	context.subscriptions.push(commands.registerCommand(Command.createProcedureCommand,
 		(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }) =>
 			CreateProcedureCommands.addProcedureToSourceCode(document, procedure, sourceLocation, options)));
@@ -77,9 +71,6 @@ export function activate(context: ExtensionContext) {
 			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode, lockLabel)))
 
 	// Reference/Definition Provider
-	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedCalls))
-	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedEventSubscribers()))
-	context.subscriptions.push(languages.registerReferenceProvider('al', new FindRelatedTriggersOfTableExt()))
 	context.subscriptions.push(languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions()));
 	context.subscriptions.push(languages.registerDefinitionProvider('al', new DefinitionProviderHandlerFunctions()));
 	context.subscriptions.push(languages.registerDefinitionProvider('al', new DefinitionProviderCallToTrigger()));
@@ -91,7 +82,12 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(languages.registerCompletionItemProvider('al', new CompletionItemProviderVariable()))
 
 	// Others
-	context.subscriptions.push(window.onDidChangeTextEditorSelection(ContextSetter.onDidChangeTextEditorSelection))
+	context.subscriptions.push(languages.registerHoverProvider('al', {
+		provideHover(document, position, token) {
+			ContextSetter.onDidChangeTextEditorSelection(document, position)
+			return undefined;
+		}
+	}))
 }
 
 

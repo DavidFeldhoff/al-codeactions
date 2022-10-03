@@ -11,15 +11,14 @@ import { Document } from "../Entities/document";
 import { DocumentUtils } from "../Utils/documentUtils";
 
 export class FindRelatedCalls implements ReferenceProvider {
-    private static _show?: showInsertConfig
-    private static _search: BuiltInFunctions;
-    private static active: boolean;
+    private _show?: showInsertConfig
+    private _search: BuiltInFunctions;
+    constructor(search: BuiltInFunctions, show?: showInsertConfig){
+        this._show = show;
+        this._search = search;
+    }
 
     async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[]> {
-        if (!FindRelatedCalls.active)
-            return []
-        FindRelatedCalls.deactivateListener()
-
         let references = await this.getTableOrFieldReferences(document, position)
         if (!references) return []
 
@@ -32,18 +31,8 @@ export class FindRelatedCalls implements ReferenceProvider {
         }
         return uniqueLocations;
     }
-    public static activateListener(search: BuiltInFunctions, show?: showInsertConfig) {
-        FindRelatedCalls._search = search
-        if (search != BuiltInFunctions.Validate && show === undefined)
-            throw new Error('It has to be specified if only the methods with RunTrigger=true should be listed.')
-        FindRelatedCalls._show = show
-        FindRelatedCalls.active = true
-    }
-    public static deactivateListener() {
-        FindRelatedCalls.active = false
-    }
     private async searchCalls(references: Location[], document: TextDocument): Promise<Location[]> {
-        if (FindRelatedCalls._search == BuiltInFunctions.Validate)
+        if (this._search == BuiltInFunctions.Validate)
             return await this.searchCallsField(references);
         else
             return await this.searchCallsTable(references, document);
@@ -63,12 +52,12 @@ export class FindRelatedCalls implements ReferenceProvider {
         for (const tableReference of tableReferences) {
             let docReferenced: Document = await Document.load(tableReference.uri);
 
-            locs = locs.concat(await this.checkVariableDeclarations(docReferenced, FindRelatedCalls._search, tableReference.range));
-            locs = locs.concat(await this.checkSourceTableProperty(docReferenced, FindRelatedCalls._search, tableReference.range));
-            locs = locs.concat(await this.checkTableNoProperty(docReferenced, FindRelatedCalls._search, tableReference.range));
-            locs = locs.concat(await this.checkSourceTable(docReferenced, FindRelatedCalls._search, tableReference.range, document.uri));
-            locs = locs.concat(await this.checkDataItem(docReferenced, FindRelatedCalls._search, tableReference.range));
-            locs = locs.concat(await this.checkReturnTypes(docReferenced, FindRelatedCalls._search, tableReference.range));
+            locs = locs.concat(await this.checkVariableDeclarations(docReferenced, this._search, tableReference.range));
+            locs = locs.concat(await this.checkSourceTableProperty(docReferenced, this._search, tableReference.range));
+            locs = locs.concat(await this.checkTableNoProperty(docReferenced, this._search, tableReference.range));
+            locs = locs.concat(await this.checkSourceTable(docReferenced, this._search, tableReference.range, document.uri));
+            locs = locs.concat(await this.checkDataItem(docReferenced, this._search, tableReference.range));
+            locs = locs.concat(await this.checkReturnTypes(docReferenced, this._search, tableReference.range));
         }
         return locs;
     }
@@ -76,7 +65,7 @@ export class FindRelatedCalls implements ReferenceProvider {
     private async getTableOrFieldReferences(document: TextDocument, position: Position): Promise<Location[] | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance2(document.uri.fsPath, document.getText());
         let rangeToFindReferences: Range
-        if (FindRelatedCalls._search == BuiltInFunctions.Validate) {
+        if (this._search == BuiltInFunctions.Validate) {
             let fieldNode = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getField(), FullSyntaxTreeNodeKind.getFieldModification()])
             if (!fieldNode) return
             let fieldIdentifier = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(fieldNode, FullSyntaxTreeNodeKind.getIdentifierName(), false)
@@ -316,7 +305,7 @@ export class FindRelatedCalls implements ReferenceProvider {
     }
 
     private getValidTableTriggerRegex(builtInFunction: BuiltInFunctions, procedureNameOnly: boolean = false): RegExp {
-        if (FindRelatedCalls._show == showInsertConfig["All Insert-Calls"])
+        if (this._show == showInsertConfig["All Insert-Calls"])
             procedureNameOnly = true
 
         switch (builtInFunction) {

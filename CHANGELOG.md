@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.23
 
 - Trying to fix #145 where nothing was working because of an error `Cannot read properties of undefined (reading 'trackEvent')`
+- Improve "Find Related"-menus, so that it is now in its own view container and that its now able to start searching from a table directly.
 
 ## 1.0.22
 

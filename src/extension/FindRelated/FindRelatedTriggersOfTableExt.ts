@@ -5,17 +5,12 @@ import { ALObjectParser } from "../Entity Parser/alObjectParser";
 import { WorkspaceUtils } from "../Utils/workspaceUtils";
 
 export class FindRelatedTriggersOfTableExt implements ReferenceProvider {
-    public static show: boolean;
-    public static search: BuiltInFunctions | undefined
-    private static _search: BuiltInFunctions
-    private static active: boolean
-    async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[]> {
-        if (!FindRelatedTriggersOfTableExt.active)
-            return []
-        let al = await extensions.getExtension('ms-dynamics-smb.al')
-        let expo = al?.exports
-        FindRelatedTriggersOfTableExt.deactivateListener()
+    private _search: BuiltInFunctions
 
+    constructor(search: BuiltInFunctions){
+        this._search = search;
+    }
+    async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, token: CancellationToken): Promise<Location[]> {
         let tableName: string | undefined = await ALObjectParser.getBaseObjectName(document, position)
         if (!tableName) return []
         let fieldName: string | undefined = await this.getFieldName(document, position)
@@ -29,24 +24,17 @@ export class FindRelatedTriggersOfTableExt implements ReferenceProvider {
         }
         return uniqueLocations;
     }
-    public static activateListener(search: BuiltInFunctions) {
-        FindRelatedTriggersOfTableExt._search = search
-        FindRelatedTriggersOfTableExt.active = true
-    }
-    public static deactivateListener() {
-        FindRelatedTriggersOfTableExt.active = false
-    }
     private async getFieldName(document: TextDocument, position: Position): Promise<string | undefined> {
-        if (FindRelatedTriggersOfTableExt._search != BuiltInFunctions.Validate)
+        if (this._search != BuiltInFunctions.Validate)
             return
         return await ALObjectParser.findTableFieldAndReturnFieldName(document, position)
     }
     private async getTriggersOfTableExtensions(tableName: string, fieldName: string | undefined): Promise<Location[]> {
         let documents: TextDocument[] = await WorkspaceUtils.getTableExtensions(tableName);
         let validTriggers: string[] = [
-            'on' + FindRelatedTriggersOfTableExt._search.toLowerCase(),
-            'onbefore' + FindRelatedTriggersOfTableExt._search.toLowerCase(),
-            'onafter' + FindRelatedTriggersOfTableExt._search.toLowerCase()
+            'on' + this._search.toLowerCase(),
+            'onbefore' + this._search.toLowerCase(),
+            'onafter' + this._search.toLowerCase()
         ]
         let tableExtensionTriggerLocations: Location[] = [];
         for (const document of documents) {

@@ -141,7 +141,25 @@
                     }
                 }
             }
-        ]
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "al-codeActions",
+                    "title": "AL CodeActions",
+                    "icon": "images/bulb_black.png"
+                }
+            ]
+        },
+        "views": {
+            "al-codeActions": [
+                {
+                    "id": "al-codeActions-references",
+                    "name": "References",
+                    "when": "show-al-codeactions-references"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run package",
