@@ -53,7 +53,7 @@ export class CodeActionProviderModifyProcedureContent {
         let identifierNameSanitized: string | undefined = ALFullSyntaxTreeNodeExt.getIdentifierValue(this.document, methodOrTriggerNode, true);
         if (!identifierNameSanitized)
             return []
-        identifierNameSanitized = identifierNameSanitized.substr(0, 1).toUpperCase() + identifierNameSanitized.substr(1);
+        identifierNameSanitized = identifierNameSanitized.substring(0, 1).toUpperCase() + identifierNameSanitized.substring(1);
         let methodOrTriggerRange: Range = TextRangeExt.createVSCodeRange(methodOrTriggerNode.fullSpan);
         let onBeforePublisherName: string = 'OnBefore' + identifierNameSanitized;
         let onAfterPublisherName: string = 'OnAfter' + identifierNameSanitized;
@@ -102,7 +102,7 @@ export class CodeActionProviderModifyProcedureContent {
         let parameters: ALVariable[] = [];
         if (parameterList.childNodes)
             for (const parameterNode of parameterList.childNodes)
-                parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(this.document, parameterNode, true));
+                parameters.push(await ALParameterParser.parseParameterTreeNodeToALVariable(this.document, parameterNode, false));
 
         let varSection: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodOrTriggerNode, FullSyntaxTreeNodeKind.getVarSection(), false);
         let variableNodes: ALFullSyntaxTreeNode[] = [];

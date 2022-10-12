@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.24
+
+- Do not sanitize parameter names in onBefore publishers. #146
+
 ## 1.0.23
 
 - Trying to fix #145 where nothing was working because of an error `Cannot read properties of undefined (reading 'trackEvent')`
