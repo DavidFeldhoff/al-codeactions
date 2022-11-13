@@ -3,6 +3,7 @@ import { ALFullSyntaxTreeNode } from './extension/AL Code Outline/alFullSyntaxTr
 import { ALStudioExtension } from './extension/ALStudio/ALStudioExtension';
 import * as Telemetry from './extension/ApplicationInsights/applicationInsights';
 import { OwnConsole } from './extension/console';
+import { IConvertOptionToEnumProvider } from './extension/ConvertOptionToEnum/IConvertOptionToEnumProvider';
 import { CreateProcedureCommands } from './extension/Create Procedure/CreateProcedureCommands';
 import { ALProcedure } from './extension/Entities/alProcedure';
 import { ALVariable } from './extension/Entities/alVariable';
@@ -64,8 +65,8 @@ export function activate(context: ExtensionContext) {
 		(document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location, options: { suppressUI: boolean }) =>
 			new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation, options)))
 	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum,
-		async (document: TextDocument, range: Range, fieldTreeNode: ALFullSyntaxTreeNode) =>
-			await new CodeActionProviderOptionToEnum(document, range).runCommand(fieldTreeNode)))
+		async (document: TextDocument, range: Range, convertProvider: IConvertOptionToEnumProvider) =>
+			await new CodeActionProviderOptionToEnum(document, range).runCommand(convertProvider)))
 	context.subscriptions.push(commands.registerCommand(Command.extractLabel,
 		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) =>
 			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode, lockLabel)))
