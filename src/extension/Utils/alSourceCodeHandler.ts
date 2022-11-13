@@ -19,11 +19,8 @@ export class ALSourceCodeHandler {
     constructor(document: TextDocument) {
         this.document = document;
     }
-    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, appInsightsEntryProperties: any, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
-        let askForProcedurePosition: boolean = false
-        if (options.advancedProcedureCreation) {
-            askForProcedurePosition = (await window.showQuickPick(['Yes', 'No'], { title: 'Place procedure at specific position?' })) == 'Yes'
-        }
+    public async getPositionToInsertProcedure(procedureToInsert: ALProcedure, sourceLocation: Location, askForProcedurePosition: boolean, appInsightsEntryProperties: any, config: FindNewProcedureLocation = Config.getFindNewProcedureLocation(this.document.uri)): Promise<Position | undefined> {
+
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         let rootNode: ALFullSyntaxTreeNode = syntaxTree.getRoot();
         let objectNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(rootNode, FullSyntaxTreeNodeKind.getAllObjectKinds(), false);
@@ -83,6 +80,11 @@ export class ALSourceCodeHandler {
             else
                 return DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(targetObjectNode.fullSpan)).end.translate(0, -1);
         }
+    }
+    public async askIfPlaceProcedureManually(suppressUI?: boolean, advancedProcedureCreation?: boolean): Promise<boolean> {
+        if (!suppressUI && advancedProcedureCreation === true)
+            return (await window.showQuickPick(['Yes', 'No'], { title: 'Place procedure at specific position?' })) == 'Yes';
+        return false
     }
     private async getAnchorNode(config: FindNewProcedureLocation, procedureToInsert: ALProcedure, classifiedNodes: { type: MethodType; accessModifier: AccessModifier; range: Range; node: ALFullSyntaxTreeNode; }[], regions: { range: Range, regionName: string }[], targetObjectNode: ALFullSyntaxTreeNode, sourceLocation: Location, askForProcedurePosition: boolean, appInsightsEntryProperties: any): Promise<{ anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined, userCanceled: boolean }> {
         let anchorNode: ALFullSyntaxTreeNode | { range: Range, regionName: string } | undefined

@@ -114,7 +114,10 @@ export class CreateProcedureCommands {
         }
     }
     static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, sourceLocation, options, appInsightsEntryProperties);
+        const alSourceCodeHandler = new ALSourceCodeHandler(document)
+        const askForProcedurePosition = await alSourceCodeHandler.askIfPlaceProcedureManually(options.suppressUI, options.advancedProcedureCreation);
+
+        let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, sourceLocation, askForProcedurePosition, appInsightsEntryProperties);
         if (!position)
             return
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);

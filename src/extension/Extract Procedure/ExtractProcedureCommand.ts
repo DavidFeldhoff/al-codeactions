@@ -23,13 +23,16 @@ export class ExtractProcedureCommand {
         let addOnBeforeOnAfterPublishers: boolean = false;
         if (options.advancedProcedureCreation)
             addOnBeforeOnAfterPublishers = (await window.showQuickPick(['Yes', 'No'], { title: 'Add OnBefore and OnAfter publishers to the new procedure?' })) == 'Yes'
+        const alSourceCodeHandler = new ALSourceCodeHandler(document);
+        const askForProcedurePosition = await alSourceCodeHandler.askIfPlaceProcedureManually(false, options.advancedProcedureCreation);
+
         if (Config.getFindNewProcedureLocation(document.uri) == FindNewProcedureLocation["Sort by type, access modifier, name"] || addOnBeforeOnAfterPublishers) {
             callRename = false
             appInsightsEntryProperties.askforNewName = true
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
-        let position: Position | undefined = await new ALSourceCodeHandler(document).getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), { advancedProcedureCreation: options.advancedProcedureCreation, suppressUI: false }, appInsightsEntryProperties);
+        let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), askForProcedurePosition, appInsightsEntryProperties);
         if (!position)
             return
         if (window.activeTextEditor)
@@ -63,6 +66,10 @@ export class ExtractProcedureCommand {
 
         if (callRename)
             await ExtractProcedureCommand.callRename(document);
+
+        async function askIfPlaceProcedureManually(): Promise<boolean> {
+            return (await window.showQuickPick(['Yes', 'No'], { title: 'Place procedure at specific position?' })) == 'Yes';
+        }
     }
     private static async askForNewName(procedureCallingText: string, procedure: ALProcedure) {
         let newName: string | undefined = await window.showInputBox({ prompt: 'Enter the name for the new method.', placeHolder: RenameMgt.newProcedureName });
