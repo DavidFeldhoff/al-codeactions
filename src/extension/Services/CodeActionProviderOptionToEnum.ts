@@ -25,27 +25,37 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         return convertTablefieldOptionToEnum.canConvertFastCheck() || convertOptionVariableToEnum.canConvertFastCheck()
     }
     async createCodeActions(): Promise<CodeAction[]> {
-        const codeActions = []
+        let codeActions: CodeAction[] = []
         const convertTablefieldOptionToEnum = new ConvertTablefieldOptionToEnum(this.document, this.range);
         if (await convertTablefieldOptionToEnum.canConvert())
-            codeActions.push(this.createCodeAction(convertTablefieldOptionToEnum));
+            codeActions = codeActions.concat(this.createCodeActionsForProvider(convertTablefieldOptionToEnum));
 
         const convertOptionVariableToEnum = new ConvertOptionVariableToEnum(this.document, this.range);
         if (await convertOptionVariableToEnum.canConvert())
-            codeActions.push(this.createCodeAction(convertOptionVariableToEnum));
+            codeActions = codeActions.concat(this.createCodeActionsForProvider(convertOptionVariableToEnum));
         return codeActions;
     }
-    private createCodeAction(convertOptionToEnumProvider: IConvertOptionToEnumProvider) {
+    private createCodeActionsForProvider(convertOptionToEnumProvider: IConvertOptionToEnumProvider): CodeAction[] {
+        const codeActionsForProvider = []
         let codeAction: CodeAction = new CodeAction('Refactor to enum', CodeActionKind.RefactorRewrite);
         codeAction.command = {
             command: Command.refactorOptionToEnum,
-            arguments: [this.document, this.range, convertOptionToEnumProvider],
+            arguments: [this.document, this.range, convertOptionToEnumProvider, false],
             title: 'Refactor to enum'
         };
-        return codeAction;
+        codeActionsForProvider.push(codeAction);
+
+        let extensibleCodeAction: CodeAction = new CodeAction('Refactor to extensible enum', CodeActionKind.RefactorRewrite);
+        extensibleCodeAction.command = {
+            command: Command.refactorOptionToEnum,
+            arguments: [this.document, this.range, convertOptionToEnumProvider, true],
+            title: 'Refactor to extensible enum'
+        };
+        codeActionsForProvider.push(extensibleCodeAction);
+        return codeActionsForProvider;
     }
 
-    async runCommand(convertProvider: IConvertOptionToEnumProvider) {
+    async runCommand(convertProvider: IConvertOptionToEnumProvider, extensible: boolean) {
         let enumName: string | undefined = await window.showInputBox({ prompt: 'Please specify a name for the new enum' })
         if (!enumName)
             return
@@ -63,7 +73,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         let enumId = await alCodeOutlineApi.toolsLangServerClient.getNextObjectId(baseFolder, "enum");
         convertProvider.appInsightsEntryProperties.enumIdReceivedFromAZALDevTools = enumId > 0
 
-        const alEnum: alEnum = this.createEnumObject(enumId, enumName, identifierNameOrEmptyNodes, optionCaptionStrings, translations);
+        const alEnum: alEnum = this.createEnumObject(enumId, enumName, extensible, identifierNameOrEmptyNodes, optionCaptionStrings, translations);
         let textForEnumObject: string = this.getTextToWriteEnumObject(alEnum);
         let fileName = this.getEnumFilename(alEnum);
 
@@ -90,11 +100,11 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         return fileName;
     }
 
-    private createEnumObject(enumId: any, enumName: string, identifierNameOrEmptyNodes: string[], optionCaptionStrings: string[], translations: { language: string; translatedValues: string[]; }[]) {
+    private createEnumObject(enumId: any, enumName: string, extensible: boolean, identifierNameOrEmptyNodes: string[], optionCaptionStrings: string[], translations: { language: string; translatedValues: string[]; }[]) {
         let alEnum: alEnum = {
             id: enumId,
             name: enumName,
-            properties: [new alEnumProperty(alPropertyName.Extensible, false)],
+            properties: [new alEnumProperty(alPropertyName.Extensible, extensible)],
             values: []
         };
         for (let i = 0; i < identifierNameOrEmptyNodes.length; i++) {

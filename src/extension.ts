@@ -65,8 +65,8 @@ export function activate(context: ExtensionContext) {
 		(document: TextDocument, range: Range, publisherToAdd: PublisherToAdd, sourceLocation: Location, options: { suppressUI: boolean }) =>
 			new CodeActionProviderModifyProcedureContent(document, range).executeCommand(publisherToAdd, sourceLocation, options)))
 	context.subscriptions.push(commands.registerCommand(Command.refactorOptionToEnum,
-		async (document: TextDocument, range: Range, convertProvider: IConvertOptionToEnumProvider) =>
-			await new CodeActionProviderOptionToEnum(document, range).runCommand(convertProvider)))
+		async (document: TextDocument, range: Range, convertProvider: IConvertOptionToEnumProvider, extensible: boolean) =>
+			await new CodeActionProviderOptionToEnum(document, range).runCommand(convertProvider, extensible)))
 	context.subscriptions.push(commands.registerCommand(Command.extractLabel,
 		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) =>
 			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode, lockLabel)))
