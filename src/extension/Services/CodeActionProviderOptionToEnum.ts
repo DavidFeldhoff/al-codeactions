@@ -7,7 +7,9 @@ import { ConvertOptionVariableToEnum } from "../ConvertOptionToEnum/ConvertOptio
 import { ConvertTablefieldOptionToEnum } from "../ConvertOptionToEnum/ConvertTablefieldOptionToEnum";
 import { IConvertOptionToEnumProvider } from "../ConvertOptionToEnum/IConvertOptionToEnumProvider";
 import { ALCodeOutlineExtension } from "../devToolsExtensionContext";
+import { ALEnum, ALEnumProperty, ALEnumValueProperty } from "../Entities/alEnum";
 import { Command } from '../Entities/Command';
+import { ALPropertyName } from "../Entities/properties";
 import { ICodeActionProvider } from "./ICodeActionProvider";
 
 export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
@@ -73,7 +75,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         let enumId = await alCodeOutlineApi.toolsLangServerClient.getNextObjectId(baseFolder, "enum");
         convertProvider.appInsightsEntryProperties.enumIdReceivedFromAZALDevTools = enumId > 0
 
-        const alEnum: alEnum = this.createEnumObject(enumId, enumName, extensible, identifierNameOrEmptyNodes, optionCaptionStrings, translations);
+        const alEnum: ALEnum = this.createEnumObject(enumId, enumName, extensible, identifierNameOrEmptyNodes, optionCaptionStrings, translations);
         let textForEnumObject: string = this.getTextToWriteEnumObject(alEnum);
         let fileName = this.getEnumFilename(alEnum);
 
@@ -94,23 +96,23 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
 
         window.showTextDocument(enumDocument, ViewColumn.Beside);
     }
-    private getEnumFilename(alEnum: alEnum) {
+    private getEnumFilename(alEnum: ALEnum) {
         let crsApi: ICRSExtensionPublicApi = extensions.getExtension('waldo.crs-al-language-extension')?.exports;
         let fileName = crsApi.ObjectNamesApi.GetObjectFileName('enum', alEnum.id.toString(), alEnum.name);
         return fileName;
     }
 
-    private createEnumObject(enumId: any, enumName: string, extensible: boolean, identifierNameOrEmptyNodes: string[], optionCaptionStrings: string[], translations: { language: string; translatedValues: string[]; }[]) {
-        let alEnum: alEnum = {
+    private createEnumObject(enumId: any, enumName: string, isExtensible: boolean, identifierNameOrEmptyNodes: string[], optionCaptionStrings: string[], translations: { language: string; translatedValues: string[]; }[]) {
+        let alEnum: ALEnum = {
             id: enumId,
             name: enumName,
-            properties: [new alEnumProperty(alPropertyName.Extensible, extensible)],
+            properties: [new ALEnumProperty(ALPropertyName.Extensible, isExtensible)],
             values: []
         };
         for (let i = 0; i < identifierNameOrEmptyNodes.length; i++) {
             if (identifierNameOrEmptyNodes[i].length > 0) {
                 let enumValueName = identifierNameOrEmptyNodes[i];
-                let enumProperties: alEnumValueProperty[] = [];
+                let enumProperties: ALEnumValueProperty[] = [];
                 if (optionCaptionStrings && optionCaptionStrings.length > i) {
                     let caption = optionCaptionStrings[i];
                     if (translations.length > 0)
@@ -118,7 +120,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                     if (caption == `' '`)
                         caption += ', Locked = true';
 
-                    enumProperties.push(new alEnumValueProperty(alPropertyName.Caption, caption));
+                    enumProperties.push(new ALEnumValueProperty(ALPropertyName.Caption, caption));
                 }
 
                 alEnum.values.push({
@@ -169,20 +171,20 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         return commentText;
     }
 
-    getTextToWriteEnumObject(alEnum: alEnum): string {
+    getTextToWriteEnumObject(alEnum: ALEnum): string {
         let tab: string = ''.padStart(4, ' ');
         let text: string = `enum ${alEnum.id} ${alEnum.name}\r\n`
         text += '{\r\n';
         if (alEnum.properties.length > 0) {
             for (let property of alEnum.properties)
-                text += `${tab}${alPropertyName[property.name]} = ${property.value};\r\n`
+                text += `${tab}${ALPropertyName[property.name]} = ${property.value};\r\n`
             text += '\r\n'
         }
         for (let value of alEnum.values) {
             text += `${tab}value(${value.id}; ${value.name})\r\n`
             text += `${tab}{\r\n`
             for (let property of value.properties)
-                text += `${tab}${tab}${alPropertyName[property.name]} = ${property.value};\r\n`
+                text += `${tab}${tab}${ALPropertyName[property.name]} = ${property.value};\r\n`
             text += `${tab}}\r\n`
         }
         text += `}\r\n`

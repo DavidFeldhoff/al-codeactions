@@ -1,43 +1,37 @@
-interface alEnum {
+import { ALProperty, ALPropertyName } from "./properties";
+
+export interface ALEnum {
     id: number
     name: string
-    properties: alEnumProperty[]
-    values: alEnumValue[]
+    properties: ALEnumProperty[]
+    values: ALEnumValue[]
 }
-interface alProperty {
-    name: alPropertyName
+export class ALEnumProperty implements ALProperty {
+    name: ALPropertyName;
     value: any
-}
-enum alPropertyName {
-    Caption,
-    Extensible
-}
-class alEnumProperty implements alProperty {
-    name: alPropertyName;
-    value: any
-    private validProperties: alPropertyName[] = [
-        alPropertyName.Caption,
-        alPropertyName.Extensible
+    private validProperties: ALPropertyName[] = [
+        ALPropertyName.Caption,
+        ALPropertyName.Extensible
     ]
-    constructor(name: alPropertyName, value: any) {
+    constructor(name: ALPropertyName, value: any) {
         if (!this.validProperties.includes(name))
             throw new Error('Invalid Property')
         this.name = name;
         this.value = value;
     }
 }
-interface alEnumValue {
+export interface ALEnumValue {
     id: number,
     name: string,
-    properties: alEnumValueProperty[]
+    properties: ALEnumValueProperty[]
 }
-class alEnumValueProperty implements alProperty {
-    name: alPropertyName;
+export class ALEnumValueProperty implements ALProperty {
+    name: ALPropertyName;
     value: any
-    private validProperties: alPropertyName[] = [
-        alPropertyName.Caption
+    private validProperties: ALPropertyName[] = [
+        ALPropertyName.Caption
     ]
-    constructor(name: alPropertyName, value: any) {
+    constructor(name: ALPropertyName, value: any) {
         if (!this.validProperties.includes(name))
             throw new Error('Invalid Property')
         this.name = name;
