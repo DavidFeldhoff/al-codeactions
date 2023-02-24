@@ -76,12 +76,12 @@ suite('Extract to Label with Placeholders Config On Test Suite', function () {
 			let command = codeActions[i].command!;
 			assert.strictEqual(command.command, Command.extractLabel, 'ExtractLabel Command expected');
 			assert.notStrictEqual(command.arguments, undefined)
-			let { snippetMode, edit, snippetParams } = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3], command.arguments![4]);
-			assert.strictEqual(snippetMode, expectedResult.snippetMode, 'SnippetMode');
+			let result = await new CodeActionProviderExtractLabel(command.arguments![0], command.arguments![1]).getWorkspaceEditAndSnippetString(command.arguments![2], command.arguments![3], command.arguments![4]);
+			assert.strictEqual(result!.snippetMode, expectedResult.snippetMode, 'SnippetMode');
 			if (expectedResult.snippetMode)
-				assert.strictEqual(snippetParams!.snippetString.value, expectedResult.newText);
+				assert.strictEqual(result!.snippetParams!.snippetString.value, expectedResult.newText);
 			else
-				assert.strictEqual(edit.entries().pop()![1].pop()!.newText, expectedResult.newText);
+				assert.strictEqual(result!.edit.entries().pop()![1].pop()!.newText, expectedResult.newText);
 		}
 	}
 

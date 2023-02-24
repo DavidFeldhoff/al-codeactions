@@ -1,4 +1,5 @@
-import { CodeAction, CodeActionKind, commands, Location, Position, Range, SnippetString, TextDocument, TextEdit, TextLine, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionKind, commands, Location, Position, Range, Selection, SnippetString, TextDocument, TextEdit, TextEditorRevealType, TextLine, window, workspace, WorkspaceEdit } from "vscode";
+import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from '../AL Code Outline/alFullSyntaxTreeNode';
@@ -48,7 +49,12 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         return [codeAction, codeActionLockedLabel];
     }
     public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) {
-        let { snippetMode, edit, snippetParams } = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode, lockLabel);
+        let result = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode, lockLabel);
+        if (!result)
+            return
+        let snippetMode = result.snippetMode;
+        let edit = result.edit;
+        let snippetParams = result.snippetParams;
 
         if (snippetMode && snippetParams) {
             if (snippetParams.snippetString.value.match(/\{%\d+:\}/))
@@ -63,7 +69,11 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         }
     }
 
-    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean) {
+    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean): Promise<{
+        snippetMode: boolean; edit: WorkspaceEdit; snippetParams: {
+            snippetString: SnippetString; position: Position; options: { undoStopBefore: boolean; undoStopAfter: boolean; };
+        } | undefined;
+    } | undefined> {
         let extractLabelCreatesComment: boolean = Config.getExtractToLabelCreatesComment(this.document.uri);
         let commentText: string = '', lockText: string = '';
         if (extractLabelCreatesComment)
@@ -72,15 +82,26 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         if (lockTranslation)
             lockText = ", Locked = true"
 
+        let result: { stringLiteralsToReplaceToo: ALFullSyntaxTreeNode[], aborted: boolean } = await this.askForReplacementOfFurtherLiteralsWithSameText(stringLiteralRange);
+        if (result.aborted)
+            return undefined
+        let stringLiteralsToReplaceToo = result.stringLiteralsToReplaceToo
+        const globalVariableRequired: boolean = stringLiteralsToReplaceToo.some(node => ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()])?.fullSpan?.start?.line != methodOrTriggerTreeNode.fullSpan!.start!.line)
+
         let cleanVariableName = 'newLabel';
         let edit: WorkspaceEdit = new WorkspaceEdit();
         edit.replace(this.document.uri, stringLiteralRange, cleanVariableName);
+        stringLiteralsToReplaceToo.forEach(literalNode => edit.replace(this.document.uri, DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(literalNode.fullSpan)), cleanVariableName));
 
         let variableName = cleanVariableName;
         if (snippetMode)
             variableName = '${0:' + cleanVariableName + '}';
         let variable: ALVariable = new ALVariable(variableName, 'Label ' + this.document.getText(stringLiteralRange) + commentText + lockText);
-        let textEdit: TextEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
+        let textEdit: TextEdit;
+        if (globalVariableRequired)
+            textEdit = WorkspaceEditUtils.addVariableToGlobalVarSection(ALFullSyntaxTreeNodeExt.findParentNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getAllObjectKinds())!, variable, this.document);
+        else
+            textEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
         let snippetParams: { snippetString: SnippetString, position: Position, options: { undoStopBefore: boolean; undoStopAfter: boolean; } } | undefined
         if (snippetMode)
             snippetParams = {
@@ -91,5 +112,51 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         else
             edit.insert(this.document.uri, textEdit.range.start, textEdit.newText);
         return { snippetMode, edit, snippetParams };
+    }
+
+    private async askForReplacementOfFurtherLiteralsWithSameText(stringLiteralRange: Range): Promise<{ stringLiteralsToReplaceToo: ALFullSyntaxTreeNode[], aborted: boolean }> {
+        if (!window.activeTextEditor)
+            return { stringLiteralsToReplaceToo: [], aborted: true }
+        this.syntaxTree = await SyntaxTree.getInstance(this.document);
+        const stringToExtract = this.document.getText(stringLiteralRange);
+        const stringLiteralNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(this.syntaxTree.getRoot(), [FullSyntaxTreeNodeKind.getStringLiteralValue()], true);
+        const sameLiterals = stringLiteralNodes.filter(node => {
+            const nodeRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(node.fullSpan));
+            if (this.document.getText(nodeRange) == stringToExtract)
+                return true;
+            return false;
+        });
+        interface myPick { label: string; picked: boolean, range: Range, node: ALFullSyntaxTreeNode; };
+        let stringLiteralsToReplaceToo: myPick[] | undefined = undefined;
+        if (sameLiterals.length > 1) {
+            const items: myPick[] = sameLiterals.map(node => {
+                const nodeRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(node.fullSpan));
+                return {
+                    label: `Line ${nodeRange.start.line + 1} - ${this.document.lineAt(nodeRange.start.line).text}`,
+                    picked: nodeRange.contains(stringLiteralRange),
+                    range: nodeRange,
+                    node: node
+                };
+            });
+
+            const currentSelection = window.activeTextEditor.selection
+            stringLiteralsToReplaceToo = await window.showQuickPick(items,
+                {
+                    canPickMany: true,
+                    title: 'There are further occurences with the same label. Please select the ones you want to replace as well.',
+                    onDidSelectItem: (item: myPick) => {
+                        window.activeTextEditor!.revealRange(item.range, TextEditorRevealType.InCenter);
+                        window.activeTextEditor!.selection = new Selection(item.range.start, item.range.end)
+                    }
+                });
+            await window.showTextDocument(this.document)
+            window.activeTextEditor.selection = currentSelection;
+            window.activeTextEditor.revealRange(currentSelection, TextEditorRevealType.InCenter)
+            if (!stringLiteralsToReplaceToo || stringLiteralsToReplaceToo.length == 0)
+                return { stringLiteralsToReplaceToo: [], aborted: true }
+
+            stringLiteralsToReplaceToo = stringLiteralsToReplaceToo.filter(entry => !entry.range.contains(stringLiteralRange))
+        }
+        return stringLiteralsToReplaceToo ? { stringLiteralsToReplaceToo: stringLiteralsToReplaceToo.map(entry => entry.node), aborted: false } : { stringLiteralsToReplaceToo: [], aborted: false }
     }
 }

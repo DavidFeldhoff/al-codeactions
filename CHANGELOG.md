@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.25
+
+- Enhancement to Extract to label: If there are further occurences of the same string literal, then you're asked if you want to replace these as well. #149
+
 ## 1.0.24
 
 - Do not sanitize parameter names in onBefore publishers. #146

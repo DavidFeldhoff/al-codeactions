@@ -10,6 +10,7 @@ export class ALFullSyntaxTreeNodeExt {
     public static collectChildNodes(treeNode: ALFullSyntaxTreeNode, kindOfSyntaxTreeNode: string, searchAllLevels: boolean, outList: ALFullSyntaxTreeNode[]) {
         if (treeNode.childNodes) {
             for (let i = 0; i < treeNode.childNodes.length; i++) {
+                if (!treeNode.childNodes[i]) continue; //somehow it happened that for an if statement it said it has a length of 3, but it had only 2 array entries
                 if (treeNode.childNodes[i].kind === kindOfSyntaxTreeNode) {
                     outList.push(treeNode.childNodes[i]);
                 }
@@ -195,6 +196,27 @@ export class ALFullSyntaxTreeNodeExt {
                 }
                 return deeperResult ? deeperResult : cn;
             }
+        }
+        return undefined;
+    }
+    public static getRootOfNode(node: ALFullSyntaxTreeNode): ALFullSyntaxTreeNode {
+        let root = node;
+        while (root.parentNode) {
+            root = root.parentNode;
+        }
+        return root;
+    }
+    public static findParentNodeOfKind(node: ALFullSyntaxTreeNode, kinds: FullSyntaxTreeNodeKind | FullSyntaxTreeNodeKind[]): ALFullSyntaxTreeNode | undefined {
+        let _kinds: FullSyntaxTreeNodeKind[]
+        if (Array.isArray(kinds))
+            _kinds = kinds;
+        else
+            _kinds = [kinds]
+        let parentNode = node;
+        while (parentNode.parentNode) {
+            parentNode = parentNode.parentNode;
+            if (parentNode.kind && _kinds.includes(parentNode.kind))
+                return parentNode;
         }
         return undefined;
     }
