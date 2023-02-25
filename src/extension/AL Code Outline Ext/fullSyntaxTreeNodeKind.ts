@@ -26,6 +26,15 @@ export class FullSyntaxTreeNodeKind {
     public static getPageAction(): string {
         return 'PageAction';
     }
+    public static getPageActionArea(): string {
+        return 'PageActionArea';
+    }
+    public static getPageActionGroup(): string {
+        return 'PageActionGroup';
+    }
+    public static getPageActionRef(): string {
+        return 'PageActionRef';
+    }
     public static getPagePart(): string {
         return 'PagePart';
     }
@@ -88,6 +97,9 @@ export class FullSyntaxTreeNodeKind {
     }
     public static getProperty(): string {
         return 'Property';
+    }
+    public static getPropertyName(): string {
+        return 'PropertyName';
     }
     public static getLabelPropertyValue(): string {
         return 'LabelPropertyValue';

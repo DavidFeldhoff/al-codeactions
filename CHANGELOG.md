@@ -7,6 +7,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 - Enhancement to Extract to label: If there are further occurences of the same string literal, then you're asked if you want to replace these as well. #149
 - Extract procedure with the advanced creation: Ask for the procedure name at the latest possible moment (not in between)
 - Convert Option to enum now also working for option variables. Earlier it was only possible for tablefields of type option
+- Promote an action as actionref. #151
 
 ## 1.0.24
 

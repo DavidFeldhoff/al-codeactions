@@ -9,6 +9,7 @@ import { CodeActionProvider, TextDocument, Range, CodeActionContext, Cancellatio
 import { CodeActionProviderModifyProcedureDeclaration } from './CodeActionProviderModifyProcedureDeclaration';
 import { CodeActionProviderModifyProcedureContent } from './CodeActionProviderModifyProcedureContent';
 import { CodeActionProviderOptionToEnum } from './CodeActionProviderOptionToEnum';
+import { CodeActionProviderPromoteAction } from './CodeActionProviderPromoteAction';
 
 export class CodeActionProvider_General implements CodeActionProvider {
     async provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Promise<CodeAction[] | undefined> {
@@ -21,6 +22,7 @@ export class CodeActionProvider_General implements CodeActionProvider {
         myCodeActionProviders.push(new CodeActionProviderModifyProcedureDeclaration(document, range));
         myCodeActionProviders.push(new CodeActionProviderModifyProcedureContent(document, range));
         myCodeActionProviders.push(new CodeActionProviderOptionToEnum(document, range));
+        myCodeActionProviders.push(new CodeActionProviderPromoteAction(document, range));
 
         let codeActions: CodeAction[] = [];
 

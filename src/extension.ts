@@ -13,6 +13,7 @@ import { FindRelated, FindRelatedEnum } from './extension/FindRelated/FindRelate
 import { CodeActionProviderExtractLabel } from './extension/Services/CodeActionProviderExtractLabel';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from './extension/Services/CodeActionProviderModifyProcedureContent';
 import { CodeActionProviderOptionToEnum } from './extension/Services/CodeActionProviderOptionToEnum';
+import { CodeActionProviderPromoteAction } from './extension/Services/CodeActionProviderPromoteAction';
 import { CodeActionProvider_General } from './extension/Services/CodeActionProvider_General';
 import { FixCop } from './extension/Services/CommandFixCop';
 import { CommandModifyProcedure } from './extension/Services/CommandModifyProcedure';
@@ -70,6 +71,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.extractLabel,
 		async (document: TextDocument, range: Range, stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) =>
 			await new CodeActionProviderExtractLabel(document, range).runCommand(stringLiteralRange, methodOrTriggerTreeNode, lockLabel)))
+	context.subscriptions.push(commands.registerCommand(Command.promoteAction,
+		async (document: TextDocument, range: Range) => await new CodeActionProviderPromoteAction(document, range).runCommand()))
 
 	// Reference/Definition Provider
 	context.subscriptions.push(languages.registerReferenceProvider('al', new ReferenceProviderHandlerFunctions()));

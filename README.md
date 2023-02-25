@@ -11,6 +11,7 @@
 |**Create overload of existing procedure**|If there is an existing procedure with one parameter, but you call that with more variables, then you can create an overload of that procedure and you're asked if you directly want to obsolete the old one. [Demo](#create-overload)|
 |**Add OnBefore/OnAfter Publisher**|You can add OnBefore/OnAfter Publishers to an existing procedure. Then, while creating the publisher, you're able to select the parameters you wish to have inside and go ahead. In addition you can add a return variable on the fly, if you wish. Just "enter" it away, if you don't want to add it. [Demo](https://user-images.githubusercontent.com/53570297/127767658-58568f49-b6f1-45a8-8642-f4a9848fd559.mp4) (not in demo-section as this one is a video)|
 |**Extract Procedure**     |Select some code and extract it to a new procedure. It checks which local variables and parameters are needed inside the selected text and hands them over as parameter or adds them as local variables. For the moment the parameters are always var-Parameters, but I'm considering to improve it to check if the "var" is necessary. After the new procedure is created you can rename it directly. Before showing this feature in action in the demo section at the end of this file I would like to thank Andrzej for his support. [Demo](#extract-procedure) |
+|**Promote action**|With the **Modern Action Bar Experience** we have more power about how we want to promote our actions, but it is also more time-consuming to promote an action now. This action helps you with it. [Demo](#promote-action)|
 |**Extract to Label**|If you're inside a method or trigger and there's a string literal you can extract that one directly to a label. In case the label should be locked, then there's also a second code action that does it directly for you. Furthermore there's a config which allows you to explain placeholders if there are any in the text to be extracted. And last but not least: If there are further occurences of the same string literal then you're asked if they should be replaced as well directly. [Demo](#extract-to-label)|
 |**Refactor to Validate**|You can refactor a single assignment statement to a validate statement by selecting the '`:=`' operator or by selecting the range of the assignment statement. And you can refactor multiple assignment statements to validate statements if all assignments are underneath each other. [Demo](#refactor-to-validate) |
 |**Refactor Option to Enum**|With this you're able to convert an option table field or an option variable to an enum. If it was a table field, the values in the OptionCaption property become the caption of the enum values. If you're working with the extension 'Xliff Sync' or 'AL Language Tools' to maintain your translations in the comments, these translations are considered as well. [Demo](#refactor-option-to-enum)|
@@ -67,6 +68,10 @@
 ![demo](images/ExtractProcedure.gif)  
 
 ![demo](images/ExtractIf2.gif)
+
+### Promote action
+
+![demo](images/promoteAction.gif)
 
 ### Extract to Label
 
