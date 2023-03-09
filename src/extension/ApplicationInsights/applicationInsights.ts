@@ -25,7 +25,7 @@ export enum EventName {
     AddPublisher = "AddPublisher",
     CreateProcedure = "CreateProcedure",
     ExtractToProcedure = "ExtractToProcedure",
-    CreateLabel = "CreateLabel",
+    ExtractToLabel = "ExtractToLabel",
     LocalVariableToGlobal = "LocalVariableToGlobal",
     ConvertOptionToEnum = "ConvertOptionToEnum",
     AddParameter = "AddParameter",

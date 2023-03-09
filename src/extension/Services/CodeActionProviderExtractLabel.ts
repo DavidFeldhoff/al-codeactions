@@ -56,17 +56,25 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         let edit = result.edit;
         let snippetParams = result.snippetParams;
 
+        let telemetryOptions = { multipleReplacements: false, createdCommentWithPlaceholders: false, snippetMode: false }
         if (snippetMode && snippetParams) {
-            if (snippetParams.snippetString.value.match(/\{%\d+:\}/))
-                Telemetry.trackEvent(Telemetry.EventName.CreateLabel, { originalText: this.document.lineAt(stringLiteralRange.start.line) })
+            telemetryOptions.snippetMode = true;
+            telemetryOptions.createdCommentWithPlaceholders = /\{%\d+:\}/.test(snippetParams.snippetString.value)
+            telemetryOptions.multipleReplacements = edit.entries().length >= 2;
             await workspace.applyEdit(edit);
             await window.activeTextEditor!.insertSnippet(snippetParams.snippetString, snippetParams.position, snippetParams.options)
         } else {
             await workspace.applyEdit(edit);
+            telemetryOptions.multipleReplacements = edit.entries().length >= 3;
             let lastTextEdit = edit.entries().pop()?.[1].pop()!
-            let linesAdded: number = (lastTextEdit.newText.length - lastTextEdit.newText.replace(/\r\n/g, '').length) / 2;
-            await commands.executeCommand(Command.renameCommand, new Location(this.document.uri, stringLiteralRange.start.translate(linesAdded)));
+            let lineDelta = 0
+            if (lastTextEdit.range.start.line <= stringLiteralRange.start.line) {
+                let linesAddedByVariableDeclaration: number = (lastTextEdit.newText.length - lastTextEdit.newText.replace(/\r\n/g, '').length) / 2;
+                lineDelta = linesAddedByVariableDeclaration;
+            }
+            await commands.executeCommand(Command.renameCommand, new Location(this.document.uri, stringLiteralRange.start.translate(lineDelta)));
         }
+        Telemetry.trackEvent(Telemetry.EventName.ExtractToLabel, telemetryOptions)
     }
 
     public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean): Promise<{
