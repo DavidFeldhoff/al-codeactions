@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, Position, Range, Selection, SnippetString, TextDocument, TextEditorRevealType, TreeItemCollapsibleState, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionKind, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, TreeItemCollapsibleState, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -38,10 +38,40 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
     async runCommand(): Promise<void> {
         const syntaxTree = await SyntaxTree.getInstance(this.document);
         const currentPageActionName = this.getCurrentPageActionName(syntaxTree)!;
+        const usersTextEditor = window.activeTextEditor!
+        const pageExtensionNode = ALFullSyntaxTreeNodeExt.findTreeNode(syntaxTree.getRoot(), this.range.start, [FullSyntaxTreeNodeKind.getPageExtensionObject()])
+        if (pageExtensionNode) {
+            const locationOfBasePage = await ALFullSyntaxTreeNodeExt.getExtendedObjectLocation(this.document, pageExtensionNode);
+            if (locationOfBasePage) {
+                let extendedObjectDoc: TextDocument = await workspace.openTextDocument(locationOfBasePage.uri);
+                const textEditorOfBaseDoc = await window.showTextDocument(extendedObjectDoc, ViewColumn.Beside)
+                let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(extendedObjectDoc);
+                const pageNode = ALFullSyntaxTreeNodeExt.findTreeNode(syntaxTree.getRoot(), locationOfBasePage.range.start, [FullSyntaxTreeNodeKind.getPageObject()]);
+                if (pageNode) {
+                    const actionAreaNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(pageNode, [FullSyntaxTreeNodeKind.getPageActionArea()], true)
+                    const promotedActionArea = actionAreaNodes.find(node => node.name && node.name.toLowerCase() == 'promoted')
+                    if (!promotedActionArea) {
+                        window.showErrorMessage('The base page does not have a promoted action area, therefore it cannot be promoted on this page extension.')
+                        return;
+                    } else {
+                        const pageExtensionActionListNodes = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(pageExtensionNode, FullSyntaxTreeNodeKind.getPageExtensionActionList(), true)!
+                        const { aborted, chosenNode } = await this.askIfActionShouldBePromotedToExistingNode(usersTextEditor, textEditorOfBaseDoc, promotedActionArea)
+                        if (aborted)
+                            return
+                        if (chosenNode)
+                            // hier muss ein actionref gemacht werden. also addlast(Category_Process). Wenn der noch nicht da ist, anlegen. Ggf. sogar addlast(Promoted){ addlast(Category_Process}
+                            this.addToAddLastOfActionGroup(currentPageActionName, chosenNode, pageExtensionActionListNodes);
+                        else
+                            this.addToAddLastOfPromotedActionArea(currentPageActionName, promotedActionArea);
+                        return;
+                    }
+                }
+            }
+        }
         const actionAreaNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(syntaxTree.getRoot(), [FullSyntaxTreeNodeKind.getPageActionArea()], true)
         const promotedActionArea = actionAreaNodes.find(node => node.name && node.name.toLowerCase() == 'promoted')
         if (promotedActionArea) {
-            const { aborted, chosenNode } = await this.askIfActionShouldBePromotedToExistingNode(promotedActionArea)
+            const { aborted, chosenNode } = await this.askIfActionShouldBePromotedToExistingNode(usersTextEditor, usersTextEditor, promotedActionArea)
             if (aborted)
                 return
             if (chosenNode)
@@ -51,7 +81,7 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         } else
             this.addPromotedActionAreaAfterNormalActionArea(currentPageActionName, actionAreaNodes.pop()!)
     }
-    private async askIfActionShouldBePromotedToExistingNode(promotedActionArea: ALFullSyntaxTreeNode) {
+    private async askIfActionShouldBePromotedToExistingNode(usersTextEditor: TextEditor, textEditorOfBaseDoc: TextEditor, promotedActionArea: ALFullSyntaxTreeNode) {
         const pageActionGroupNodes: ALFullSyntaxTreeNode[] = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(promotedActionArea, [FullSyntaxTreeNodeKind.getPageActionGroup()], false)
         if (pageActionGroupNodes.length == 0)
             return { aborted: false, chosenNode: undefined }
@@ -66,17 +96,17 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         const newGroupLbl = 'Create new action group...';
         const rangeOfNewGroup = new Range(items[items.length - 1].range!.end, items[items.length - 1].range!.end)
         items.push({ label: newGroupLbl, node: undefined, range: rangeOfNewGroup })
-        const selectionSave = window.activeTextEditor!.selection;
+        const selectionSave = usersTextEditor.selection;
         const pickedItem: myPick | undefined = await window.showQuickPick(items, {
             canPickMany: false,
             title: 'To which action group should it be promoted?',
             onDidSelectItem(item: myPick) {
-                window.activeTextEditor!.revealRange(item.range, TextEditorRevealType.InCenter)
-                window.activeTextEditor!.selection = new Selection(item.range.start, item.range.end);
+                textEditorOfBaseDoc.revealRange(item.range, TextEditorRevealType.InCenter)
+                textEditorOfBaseDoc.selection = new Selection(item.range.start, item.range.end);
             },
         })
         await window.showTextDocument(this.document);
-        window.activeTextEditor!.selection = selectionSave;
+        usersTextEditor.selection = selectionSave;
         if (!pickedItem)
             return { aborted: true, chosenNode: undefined }
         if (pickedItem.label != newGroupLbl && pickedItem.node)
@@ -110,14 +140,39 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         await window.activeTextEditor!.insertSnippet(snippetString, new Position(lineToInsert, 0));
         this.revealRange(lineToInsert, newLines)
     }
-    private getTextToInsert(addArea: boolean, addGroup: boolean, pageActionNameToPromote: string, node: ALFullSyntaxTreeNode) {
-        let pageActionAreaNode: ALFullSyntaxTreeNode
-        if (node.kind === FullSyntaxTreeNodeKind.getPageActionArea())
-            pageActionAreaNode = node;
+    private async addToAddLastOfActionGroup(pageActionNameToPromote: string, anchorActionGroupNode: ALFullSyntaxTreeNode, pageExtensionActionListNode: ALFullSyntaxTreeNode) {
+        const actionAddChangeNodes = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(pageExtensionActionListNode, [FullSyntaxTreeNodeKind.getActionAddChange()], false)
+        const addLastToAnchorActionGroupNode = actionAddChangeNodes.find(node => node.ChangeKeyword && node.ChangeKeyword.toLowerCase() == 'addlast' && node.Anchor && node.Anchor.toLowerCase() == anchorActionGroupNode.name!.toLowerCase())
+
+        const { textToInsert, newLines } = this.getTextToInsertToAddLastOfActionGroup(pageActionNameToPromote, anchorActionGroupNode, addLastToAnchorActionGroupNode, pageExtensionActionListNode);
+        let lineToInsert
+        if (addLastToAnchorActionGroupNode)
+            lineToInsert = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(addLastToAnchorActionGroupNode.fullSpan)).end.line;
         else
-            pageActionAreaNode = ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, FullSyntaxTreeNodeKind.getPageActionArea())!
-        const pageActionAreaRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(pageActionAreaNode.fullSpan));
-        const indent = pageActionAreaRange.start.character
+            lineToInsert = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(pageExtensionActionListNode.fullSpan)).end.line;
+
+        const edit = new WorkspaceEdit();
+        edit.insert(this.document.uri, new Position(lineToInsert, 0), textToInsert);
+        await workspace.applyEdit(edit);
+        this.revealRange(lineToInsert, newLines)
+    }
+    private async addToAddLastOfPromotedActionArea(pageActionNameToPromote: string, pageExtensionActionListNode: ALFullSyntaxTreeNode) {
+        const actionAddChangeNodes = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(pageExtensionActionListNode, [FullSyntaxTreeNodeKind.getActionAddChange()], false)
+        const addLastToPromotedNode = actionAddChangeNodes.find(node => node.ChangeKeyword && node.ChangeKeyword.toLowerCase() == 'addlast' && node.Anchor && node.Anchor.toLowerCase() == "promoted")
+
+        const { textToInsert, newLines } = this.getTextToInsertToAddLastOfPromotedActionArea(pageActionNameToPromote, addLastToPromotedNode, pageExtensionActionListNode)
+        let lineToInsert
+        if (addLastToPromotedNode)
+            lineToInsert = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(addLastToPromotedNode.fullSpan)).end.line
+        else
+            lineToInsert = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(pageExtensionActionListNode.fullSpan)).end.line
+
+        const snippetString = new SnippetString(textToInsert);
+        await window.activeTextEditor!.insertSnippet(snippetString, new Position(lineToInsert, 0));
+        this.revealRange(lineToInsert, newLines)
+    }
+    private getTextToInsert(addArea: boolean, addGroup: boolean, pageActionNameToPromote: string, node: ALFullSyntaxTreeNode) {
+        const indent = this.getActionsContainerIndent(node);
 
         let textToInsert: string
         const promotedName = this.getPromotedActionName(pageActionNameToPromote);
@@ -148,6 +203,81 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         }
         const newLines = textToInsert.split("\n").length
         return { textToInsert, newLines }
+    }
+    private getTextToInsertToAddLastOfActionGroup(pageActionNameToPromote: string, anchorActionGroupNode: ALFullSyntaxTreeNode, addLastToAnchorActionGroupNode: ALFullSyntaxTreeNode | undefined, pageExtensionActionListNode: ALFullSyntaxTreeNode) {
+        const indent = this.getActionsContainerIndent(pageExtensionActionListNode);
+
+        let textToInsert: string
+        const promotedName = this.getPromotedActionName(pageActionNameToPromote);
+
+        // const appendToExistingGroup = !this.document.getText().split('\n').some(entry => new RegExp(`/^\s+addlast\("?${anchorActionGroupNode.name!.replace(/"(.*)"/, '$1')}"?\)`).test(entry));
+        if (addLastToAnchorActionGroupNode) {
+            let textToInsertArrActionRef = [
+                `actionref(${promotedName}; ${pageActionNameToPromote})`,
+                `{`,
+                `}`
+            ]
+            textToInsert = this.indentAndMakeItOneliner(textToInsertArrActionRef, indent + 8)
+        } else {
+            const part1 = [
+                `addlast(${anchorActionGroupNode.name})`,
+                `{`,
+                `    actionref(${promotedName}; ${pageActionNameToPromote})`,
+                `    {`,
+                `    }`,
+                `}`
+            ]
+            textToInsert = this.indentAndMakeItOneliner(part1, indent + 4)
+        }
+        const newLines = textToInsert.split("\n").length
+        return { textToInsert, newLines }
+    }
+    private getTextToInsertToAddLastOfPromotedActionArea(pageActionNameToPromote: string, addLastToPromotedNode: ALFullSyntaxTreeNode | undefined, pageExtensionActionListNode: ALFullSyntaxTreeNode) {
+        const indent = this.getActionsContainerIndent(pageExtensionActionListNode);
+
+        let textToInsert: string
+        const promotedName = this.getPromotedActionName(pageActionNameToPromote);
+
+        if (addLastToPromotedNode) {
+            const part = [
+                `group(Category_\${1})`,
+                `{`,
+                `    Caption = '\${2:\${1/Category_//}}';`,
+                `    `,
+                `    actionref(${promotedName}; ${pageActionNameToPromote})`,
+                `    {`,
+                `    }`,
+                `}`,
+            ]
+            textToInsert = this.indentAndMakeItOneliner(part, indent + 4)
+        } else {
+            const part = [
+                `addlast(Promoted)`,
+                `{`,
+                `    group(Category_\${1})`,
+                `    {`,
+                `        Caption = '\${2:\${1/Category_//}}';`,
+                `        `,
+                `        actionref(${promotedName}; ${pageActionNameToPromote})`,
+                `        {`,
+                `        }`,
+                `    }`,
+                `}`,
+            ]
+            textToInsert = this.indentAndMakeItOneliner(part, indent + 4)
+        }
+        const newLines = textToInsert.split("\n").length
+        return { textToInsert, newLines }
+    }
+    private getActionsContainerIndent(node: ALFullSyntaxTreeNode) {
+        let pageActionAreaNode: ALFullSyntaxTreeNode
+        const actionContainerKinds = [FullSyntaxTreeNodeKind.getPageActionArea(), FullSyntaxTreeNodeKind.getPageExtensionActionList()]
+        if (node.kind && actionContainerKinds.includes(node.kind))
+            pageActionAreaNode = node;
+        else
+            pageActionAreaNode = ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, actionContainerKinds)!
+        const pageActionAreaRange = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(pageActionAreaNode.fullSpan));
+        return pageActionAreaRange.start.character
     }
     private revealRange(lineToInsert: number, newLines: number) {
         window.activeTextEditor!.revealRange(new Range(lineToInsert, 0, lineToInsert + newLines, 0), TextEditorRevealType.InCenter)

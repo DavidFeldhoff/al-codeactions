@@ -26,6 +26,12 @@ export class FullSyntaxTreeNodeKind {
     public static getPageAction(): string {
         return 'PageAction';
     }
+    public static getPageExtensionActionList(): string {
+        return 'PageExtensionActionList';
+    }
+    public static getActionAddChange(): string {
+        return 'ActionAddChange'; //addlast(promoted) e.g.
+    }
     public static getPageActionArea(): string {
         return 'PageActionArea';
     }
