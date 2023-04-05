@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.27
+
+- comply with AL Language version 11.* (temporary keyword was added twice if used in a procedure)
+
 ## 1.0.26
 
 - fix for multiple `Extract to Label`: If multiple labels have been selected and the global variable was at the bottom of the file, the `rename` was executed at a wrong position. Related to #149

@@ -1,4 +1,4 @@
-import { TextDocument, Range, Hover, commands, Position, Location, SignatureHelp } from 'vscode';
+import { TextDocument, Range, Hover, commands, Position, Location, SignatureHelp, extensions } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -179,9 +179,14 @@ export class TypeDetective {
                             this.canBeVar = true;
 
                             this.checkIsVar(this.hoverMessageFirstLine);
-                            await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
-                            if (this.isTemporary) {
-                                this.type += " temporary";
+                            const alVersion = extensions.getExtension('ms-dynamics-smb.al')?.packageJSON.version
+                            if (alVersion && (+alVersion.split('.')[0] >= 11))
+                                this.isTemporary = this.type.trim().toLowerCase().endsWith('temporary');
+                            else {
+                                await this.checkIsTemporary(this.hoverMessageFirstLine, document, position);
+                                if (this.isTemporary) {
+                                    this.type += " temporary";
+                                }
                             }
                             return true;
                         } else if (this.hoverMessageFirstLine.startsWith('Enum')) {
