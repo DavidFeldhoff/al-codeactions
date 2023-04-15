@@ -9,7 +9,7 @@ import { ALVariable } from '../Entities/alVariable';
 import { Command } from '../Entities/Command';
 import { Config } from '../Utils/config';
 import { DocumentUtils } from "../Utils/documentUtils";
-import { LabelComment } from "../Utils/labelComment";
+import { LabelComment } from "../Utils/LabelComment";
 import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
 import { ICodeActionProvider } from "./ICodeActionProvider";
 

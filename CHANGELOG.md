@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.28
+
+- Promote action was only supported for pages, now it's also working for page extensions. #156
+
 ## 1.0.27
 
 - comply with AL Language version 11.* (temporary keyword was added twice if used in a procedure)

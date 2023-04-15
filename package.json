@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "1.0.27",
+    "version": "1.0.28",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -33,7 +33,6 @@
     },
     "main": "./dist/extension.js",
     "activationEvents": [
-        "onCommand:alCodeActions.fixCop",
         "onLanguage:al"
     ],
     "contributes": {
