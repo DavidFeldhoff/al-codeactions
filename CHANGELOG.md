@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.29
+
+- Fix "Extract single line to procedure does not ask for new procedure name" #155
+
 ## 1.0.28
 
 - Promote action was only supported for pages, now it's also working for page extensions. #156

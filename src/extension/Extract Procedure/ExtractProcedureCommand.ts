@@ -83,18 +83,11 @@ export class ExtractProcedureCommand {
     }
 
     private static async callRename(document: TextDocument) {
-        let wordRange: Range | undefined = document.getWordRangeAtPosition(window.activeTextEditor!.selection.start)
-        if (wordRange) {
-            let executeRenameAt: Position = wordRange.start
-            commands.executeCommand(Command.renameCommand, new Location(document.uri, executeRenameAt));
-        }
-        else {
-            let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
-            let invocationNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(window.activeTextEditor!.selection.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
-            if (invocationNode) {
-                let invocationRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(invocationNode.fullSpan));
-                commands.executeCommand(Command.renameCommand, new Location(document.uri, invocationRange.start));
-            }
+        let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
+        let invocationNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(window.activeTextEditor!.selection.start, [FullSyntaxTreeNodeKind.getInvocationExpression()]);
+        if (invocationNode) {
+            let invocationRange: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(invocationNode.fullSpan));
+            commands.executeCommand(Command.renameCommand, new Location(document.uri, invocationRange.start));
         }
     }
 
