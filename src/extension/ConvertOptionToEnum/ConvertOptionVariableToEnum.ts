@@ -21,7 +21,7 @@ export class ConvertOptionVariableToEnum implements IConvertOptionToEnumProvider
         if (wordRange) {
             const word: string = this.document.getText(wordRange);
             if (/\bOption\b/i.test(word))
-                if (!word.trimStart().toLowerCase().startsWith('field'))
+                if (!this.document.lineAt(this.range.start)!.text.trimStart().toLowerCase().startsWith('field'))
                     return true
         }
         return false
