@@ -169,7 +169,7 @@ export class TypeDetective {
                 for (const hover of hovers) {
                     let hoverMessage: string = hover.contents.values().next().value.value;
                     allHoverMessages.push(hoverMessage);
-                    let hoverMessageLines: string[] = hoverMessage.split('\r\n');
+                    let hoverMessageLines: string[] = hoverMessage.split(/\r?\n/);
                     let startIndex = hoverMessageLines.indexOf('```al');
                     if (startIndex >= 0) {
                         this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
