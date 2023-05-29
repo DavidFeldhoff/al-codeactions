@@ -40,7 +40,7 @@ export class ExtractProcedureCommand {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
-        let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
+        let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface, DocumentUtils.getEolByTextDocument(document));
         textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
         let workspaceEdit: WorkspaceEdit = new WorkspaceEdit();
         workspaceEdit.insert(document.uri, position, textToInsert);

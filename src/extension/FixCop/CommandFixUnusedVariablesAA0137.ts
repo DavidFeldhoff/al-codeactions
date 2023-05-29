@@ -24,6 +24,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
     }
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
         let errorLogIssuesAA0137: ErrorLog.Issue[] = errorLogIssues.filter(errorLogIssue => errorLogIssue.ruleId == 'AA0137')
+        const eol = DocumentUtils.getEolBySetting();
 
         let analyzedBuildOutputLines: { filePath: string; range: Range; variableName: string; }[] = this.analyzeAndSortBuildOutputLines(errorLogIssuesAA0137);
         let analyzedOutputLinesMappedToFile: Map<string, { range: Range; variableName: string; }[]> = this.getAnalyzedOutputLinesMappedToFile(analyzedBuildOutputLines);
@@ -76,7 +77,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
                             fileLines = result.fileLines
                             variablesRemoved += result.variablesRemoved
                         }
-                        let newFileContent: string = fileLines.join('\r\n')
+                        let newFileContent: string = fileLines.join(eol)
                         if (newFileContent != orgFileContent)
                             writeFileSync(filePath, newFileContent, { encoding: 'utf8' })
                         progress.report({ increment: 100 / analyzedOutputLinesMappedToFile.size, message: (++fileCounter) + '/' + analyzedOutputLinesMappedToFile.size })
@@ -133,6 +134,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
     }
 
     private filterValidAnalyzedOutputLinesOnly(fileLines: string[], objectTreeNode: ALFullSyntaxTreeNode, analyzedOutputLinesOfFile: { range: Range; variableName: string; }[]): { range: Range; variableName: string; }[] {
+        const eol = DocumentUtils.getEolBySetting();
         let pageObject: ALFullSyntaxTreeNode | undefined
         if (objectTreeNode.kind == FullSyntaxTreeNodeKind.getPageObject())
             pageObject = objectTreeNode
@@ -147,7 +149,7 @@ export class CommandFixUnusedVariablesAA0137 implements IFixCop {
 
         let textOfPageLabels: string = ''
         for (const pageLabelNode of pageLabelNodes) {
-            textOfPageLabels += fileLines.slice(pageLabelNode.fullSpan!.start!.line, pageLabelNode.fullSpan!.end!.line).join('\r\n')
+            textOfPageLabels += fileLines.slice(pageLabelNode.fullSpan!.start!.line, pageLabelNode.fullSpan!.end!.line).join(eol)
         }
         for (let i = 0; i < analyzedOutputLinesOfFile.length; i++) {
             let regexSafeVariableName: string = analyzedOutputLinesOfFile[i].variableName.replace(/(.)/g, '[$1]')

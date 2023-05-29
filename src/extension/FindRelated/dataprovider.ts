@@ -88,7 +88,7 @@ export class FindRelatedDataProvider implements TreeDataProvider<TreeItem>{
         if (endLine > doc.fileLines.length - 1)
             endLine = doc.fileLines.length - 1
         const tooltipArray = doc.fileLines.slice(startLine, endLine + 1)
-        const tooltip = ['```al'].concat(tooltipArray).concat('```').join('\r\n')
+        const tooltip = ['```al'].concat(tooltipArray).concat('```').join(doc.eol)
         return new MarkdownString(tooltip, true);
     }
     private getDescription(methodOrTriggerNode: ALFullSyntaxTreeNode | undefined) {

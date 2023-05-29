@@ -58,6 +58,7 @@ export class CommandModifyProcedure {
         }
     }
     static async getTextEditsToCreateOverloadOfProcedure(document: TextDocument, methodNode: ALFullSyntaxTreeNode, missingParameters: ALVariable[], obsoleteOldOne: Boolean): Promise<TextEdit[] | undefined> {
+        const eol = DocumentUtils.getEolByTextDocument(document);
         let methodName: string = ALFullSyntaxTreeNodeExt.getIdentifierValue(document, methodNode, false)!;
         let parameterList: ALFullSyntaxTreeNode = ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(methodNode, [FullSyntaxTreeNodeKind.getParameterList()], false).pop()!
         let parameterIdentifiers: string[] | undefined = parameterList.childNodes?.map(parameterNode => ALFullSyntaxTreeNodeExt.getIdentifierValue(document, parameterNode, false)!)
@@ -88,34 +89,34 @@ export class CommandModifyProcedure {
             let obsoletedInVersion = ''
             if (json && json.version)
                 obsoletedInVersion = `v${json.version}`
-            textToAdd += `\r\n${indentText}[Obsolete('Please use the overload with ${parameterIdentifiers.length + missingParameters.length} parameters.', '${obsoletedInVersion}')]`
+            textToAdd += `${eol}${indentText}[Obsolete('Please use the overload with ${parameterIdentifiers.length + missingParameters.length} parameters.', '${obsoletedInVersion}')]`
         }
-        textToAdd += '\r\n' + indentText + document.getText(rangeToCopy);
-        textToAdd += '\r\n'
+        textToAdd += eol + indentText + document.getText(rangeToCopy);
+        textToAdd += eol;
         let varSectionAdded: boolean = false;
         for (const missingParameter of missingParameters) {
             if (!CommandModifyProcedure.isVariableDeclarationNecessary(missingParameter))
                 parameterIdentifiers.push(CommandModifyProcedure.getDefaultValueOfVariable(missingParameter)!);
             else {
                 if (!varSectionAdded) {
-                    textToAdd += indentText + 'var\r\n';
+                    textToAdd += indentText + 'var' + eol;
                     varSectionAdded = true
                 }
-                textToAdd += indentText + tab + missingParameter.getVariableDeclarationString() + ';\r\n'
+                textToAdd += indentText + tab + missingParameter.getVariableDeclarationString(eol) + ';' + eol
                 parameterIdentifiers.push(missingParameter.getNameOrEmpty())
             }
         }
-        textToAdd += indentText + 'begin\r\n';
+        textToAdd += indentText + 'begin' + eol;
 
         let methodCall: string = methodName + '(' + parameterIdentifiers.join(', ') + ')';
         if (returnVariable.exists) {
             if (!returnVariable.name)
-                textToAdd += indentText + tab + 'exit(' + methodCall + ')' + ';\r\n';
+                textToAdd += indentText + tab + 'exit(' + methodCall + ')' + ';' + eol;
             else
-                textToAdd += indentText + tab + returnVariable.name + ' := ' + methodCall + ';\r\n';
+                textToAdd += indentText + tab + returnVariable.name + ' := ' + methodCall + ';' + eol;
         } else
-            textToAdd += indentText + tab + methodCall + ';\r\n';
-        textToAdd += indentText + 'end;\r\n';
+            textToAdd += indentText + tab + methodCall + ';' + eol;
+        textToAdd += indentText + 'end;' + eol;
 
         let textEdits = []
         let textEditsParameter: TextEdit[] | undefined = this.getTextEditsToAddParametersToProcedure(document, methodNode, missingParameters);

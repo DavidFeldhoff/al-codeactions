@@ -33,7 +33,7 @@ export class CreateProcedure {
         return procedure;
     }
 
-    public createProcedureDefinition(procedure: ALProcedure, withIndent: boolean, declarationOnly: boolean): string {
+    public createProcedureDefinition(procedure: ALProcedure, withIndent: boolean, declarationOnly: boolean, eol: string): string {
         withIndent = true;
         let returnType = procedure.getReturnTypeAsString();
         let returnString = "";
@@ -45,7 +45,7 @@ export class CreateProcedure {
         let procedureDefinition = "";
         let tab = ''.padStart(4, ' ');
         for (const memberAttribute of memberAttributes)
-            procedureDefinition += (withIndent ? tab : "") + "[" + memberAttribute + "]\r\n"
+            procedureDefinition += (withIndent ? tab : "") + "[" + memberAttribute + `]${eol}`
         let prefixAccessModifier: string;
         switch (procedure.accessModifier) {
             case AccessModifier.local:
@@ -66,17 +66,17 @@ export class CreateProcedure {
             this.lineOfBodyStart = 0 as number;
             return procedureDefinition + ';';
         }
-        procedureDefinition += "\r\n";
+        procedureDefinition += eol;
         if (procedure.variables && procedure.variables.length > 0) {
-            procedureDefinition += (withIndent ? tab : "") + "var\r\n";
+            procedureDefinition += (withIndent ? tab : "") + "var" + eol;
             procedure.variables.forEach(variable =>
-                procedureDefinition += (withIndent ? tab : "") + tab + variable.getVariableDeclarationString() + ";\r\n"
+                procedureDefinition += (withIndent ? tab : "") + tab + variable.getVariableDeclarationString(eol) + ";" + eol
             );
         }
-        procedureDefinition += (withIndent ? tab : "") + "begin\r\n";
+        procedureDefinition += (withIndent ? tab : "") + "begin" + eol;
         if (!this.skipBody(procedure)) {
-            this.lineOfBodyStart = procedureDefinition.match(/\r\n/g)?.length as number;
-            procedureDefinition += (withIndent ? tab : "") + tab + procedure.getBody() + "\r\n";
+            this.lineOfBodyStart = procedureDefinition.match(new RegExp(eol, 'g'))?.length as number;
+            procedureDefinition += (withIndent ? tab : "") + tab + procedure.getBody() + eol;
         }
         procedureDefinition += (withIndent ? tab : "") + "end;";
         return procedureDefinition;
@@ -122,11 +122,12 @@ export class CreateProcedure {
     }
 
     public addLineBreaksToProcedureCall(document: TextDocument, position: Position, textToInsert: string, isInterface: boolean) {
+        const eol = DocumentUtils.getEolByTextDocument(document)
         if (!isInterface) {
             this.lineOfBodyStart = this.lineOfBodyStart ? this.lineOfBodyStart + 1 : undefined;
-            textToInsert = "\r\n" + textToInsert;
+            textToInsert = eol + textToInsert;
         }
-        textToInsert += "\r\n";
+        textToInsert += eol;
         return textToInsert;
     }
     public getLineOfBodyStart(): number | undefined {

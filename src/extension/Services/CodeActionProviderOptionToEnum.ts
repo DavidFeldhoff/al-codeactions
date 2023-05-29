@@ -11,6 +11,7 @@ import { ALEnum, ALEnumProperty, ALEnumValueProperty } from "../Entities/alEnum"
 import { Command } from '../Entities/Command';
 import { ALPropertyName } from "../Entities/properties";
 import { ICodeActionProvider } from "./ICodeActionProvider";
+import { DocumentUtils } from "../Utils/documentUtils";
 
 export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
     range: Range;
@@ -173,21 +174,22 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
 
     getTextToWriteEnumObject(alEnum: ALEnum): string {
         let tab: string = ''.padStart(4, ' ');
-        let text: string = `enum ${alEnum.id} ${alEnum.name}\r\n`
-        text += '{\r\n';
+        const eol = DocumentUtils.getEolBySetting();
+        let text: string = `enum ${alEnum.id} ${alEnum.name}${eol}`
+        text += '{' + eol;
         if (alEnum.properties.length > 0) {
             for (let property of alEnum.properties)
-                text += `${tab}${ALPropertyName[property.name]} = ${property.value};\r\n`
-            text += '\r\n'
+                text += `${tab}${ALPropertyName[property.name]} = ${property.value};${eol}`
+            text += eol
         }
         for (let value of alEnum.values) {
-            text += `${tab}value(${value.id}; ${value.name})\r\n`
-            text += `${tab}{\r\n`
+            text += `${tab}value(${value.id}; ${value.name})${eol}`
+            text += `${tab}{${eol}`
             for (let property of value.properties)
-                text += `${tab}${tab}${ALPropertyName[property.name]} = ${property.value};\r\n`
-            text += `${tab}}\r\n`
+                text += `${tab}${tab}${ALPropertyName[property.name]} = ${property.value};${eol}`
+            text += `${tab}}${eol}`
         }
-        text += `}\r\n`
+        text += `}${eol}`
         return text;
     }
 }

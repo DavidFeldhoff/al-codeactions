@@ -1,4 +1,4 @@
-import { TextDocument, Range, Position, EndOfLine, Location, window, Selection, commands, TextEditor } from 'vscode';
+import { TextDocument, Range, Position, EndOfLine, Location, window, Selection, commands, TextEditor, Uri, workspace } from 'vscode';
 import { Err } from './Err';
 
 export class DocumentUtils {
@@ -265,6 +265,9 @@ export class DocumentUtils {
             return '\r\n'
         else
             return '\n'
+    }
+    public static getEolBySetting(uri?: Uri): string {
+        return workspace.getConfiguration('files').get<string>('eol', '\r\n')
     }
     public static getEolByContentAsEnum(content: string): EndOfLine {
         let regexCRLF: RegExp = /\r\n/g

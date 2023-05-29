@@ -33,7 +33,7 @@ export class ObjectCollectionImpl implements ObjectCollectionInterface {
         let returnArr: { uri: Uri; methodName: string; }[] = []
         for (let i = 0; i < alUris.length; i++) {
             let doc = await Document.load(alUris[i]);
-            let tableRegEx = /\[EventSubscriber\(ObjectType::Table,\s*Database::("[^"]+"|\w+),\s*'([^']+)',\s*'([^']*)',\s*(?:true|false),\s*(?:true|false)\)\]\s*\r\n\s*(?:local )?procedure ("[^"]+"|\w+)/
+            let tableRegEx = /\[EventSubscriber\(ObjectType::Table,\s*Database::("[^"]+"|\w+),\s*'([^']+)',\s*'([^']*)',\s*(?:true|false),\s*(?:true|false)\)\]\s*\r?\n\s*(?:local )?procedure ("[^"]+"|\w+)/
             let regexGlobalMatch: RegExpMatchArray | null = doc.fileContent.match(new RegExp(tableRegEx, 'ig'))
             if (regexGlobalMatch) {
                 for (let matchedString of regexGlobalMatch) {

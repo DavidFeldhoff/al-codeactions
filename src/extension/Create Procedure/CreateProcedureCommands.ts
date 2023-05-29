@@ -27,6 +27,7 @@ import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 
 import { SupportedHandlers } from './Procedure Creator/AL0499 Specifications/supportedHandlers';
 import { CreateProcedure } from './Procedure Creator/CreateProcedure';
 import { ICreateProcedure } from './Procedure Creator/ICreateProcedure';
+import { DocumentUtils } from '../Utils/documentUtils';
 export class CreateProcedureCommands {
 
     static async addHandler(document: TextDocument, diagnostic: Diagnostic): Promise<any> {
@@ -134,18 +135,20 @@ export class CreateProcedureCommands {
         let snippetString: SnippetString | undefined
         let workspaceEdit: WorkspaceEdit | undefined
         appInsightsEntryProperties.containsSnippet = procedure.getContainsSnippet();
+        const eol = DocumentUtils.getEolByTextDocument(document);
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
-            let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface);
+            let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface, eol);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            let linesInserted: number = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
+            
+            let linesInserted: number = textToInsert.length - textToInsert.replace(/\r?\n/g, ' ').length
             snippetString = new SnippetString(textToInsert);
             rangeToReveal = new Range(position, position.translate(linesInserted, undefined))
         } else {
-            let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface);
+            let textToInsert = createProcedure.createProcedureDefinition(procedure, true, isInterface, eol);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
             workspaceEdit = new WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
-            let linesInserted = textToInsert.length - textToInsert.replace(/\r\n/g, ' ').length
+            let linesInserted = textToInsert.length - textToInsert.replace(/\r?\n/g, ' ').length
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
                 if (lineOfBodyStart !== undefined) {

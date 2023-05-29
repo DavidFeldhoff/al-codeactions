@@ -495,7 +495,8 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         return pageActionNode.childNodes![0].identifier
     }
     private indentAndMakeItOneliner(textToInsertArr: string[], indent: number): string {
-        return textToInsertArr.map((entry) => { return "".padStart(indent, " ") + entry; }).join("\r\n") + "\r\n";
+        const eol = DocumentUtils.getEolByTextDocument(this.document)
+        return textToInsertArr.map((entry) => { return "".padStart(indent, " ") + entry; }).join(eol) + eol;
     }
 
     private checkIfPromotedPropertyOnActionsExist(syntaxTree: SyntaxTree): boolean {

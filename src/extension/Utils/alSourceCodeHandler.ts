@@ -129,7 +129,7 @@ export class ALSourceCodeHandler {
         let methodQPItems: ownQuickPickItem[] = classifiedNodes.map(entry => {
             const identifierRange = TextRangeExt.createVSCodeRange(ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(entry.node, FullSyntaxTreeNodeKind.getIdentifierName(), false)!.fullSpan);
             const procedureContentRange = new Range(identifierRange.start.line, 0, entry.range.end.line, entry.range.end.character)
-            let detail: string = document.getText(DocumentUtils.trimRange(document, procedureContentRange)).replace(/\r\n/g, '')
+            let detail: string = document.getText(DocumentUtils.trimRange(document, procedureContentRange)).replace(/\r?\n/g, '')
             let label = entry.node.name!
             if (sourceLocation) {
                 if (sourceLocation.uri.fsPath == document.uri.fsPath)

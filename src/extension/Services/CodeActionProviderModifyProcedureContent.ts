@@ -238,18 +238,19 @@ export class CodeActionProviderModifyProcedureContent {
         }
         let indent: string = "".padStart(rangeOfBlockNode.start.character + 4, " ");
         let textToInsert: string = ""
+        const eol = DocumentUtils.getEolByTextDocument(this.document);
         if (isHandledSelected && Config.getInitializeIsHandledVariableWhenCreatingOnBeforePublisher(this.document.uri))
-            textToInsert += `IsHandled := false;\r\n${indent}`;
-        textToInsert += `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${indent}`;
+            textToInsert += `IsHandled := false;${eol}${indent}`;
+        textToInsert += `${publisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});${eol}${indent}`;
         if (isHandledSelected)
-            textToInsert += `if IsHandled then\r\n${indent}    exit;\r\n${indent}`;
+            textToInsert += `if IsHandled then${eol}${indent}    exit;${eol}${indent}`;
         let insertAt: Position = rangeOfBlockNode.start.translate(1, 4)
         if (rangeOfBlockNode.start.line + 1 == rangeOfBlockNode.end.line) {
-            textToInsert = ''.padStart(4, ' ') + textToInsert + '\r\n' + "".padStart(rangeOfBlockNode.start.character, " ")
+            textToInsert = ''.padStart(4, ' ') + textToInsert + eol + "".padStart(rangeOfBlockNode.start.character, " ")
             insertAt = rangeOfBlockNode.start.translate(1, 0);
         }
         else if (!this.document.lineAt(rangeOfBlockNode.start.line + 1).isEmptyOrWhitespace) {
-            textToInsert += `\r\n${indent}`
+            textToInsert += `${eol}${indent}`
         }
         workspaceEdit.insert(this.document.uri, insertAt, textToInsert);
         return publisherParameters;
@@ -305,9 +306,10 @@ export class CodeActionProviderModifyProcedureContent {
         if (data.addTab)
             textToInsert += "".padStart(4, " ");
         indent += textToInsert;
+        const eol = DocumentUtils.getEolByTextDocument(this.document);
         if (!this.document.lineAt(data.addAtPosition.line - 1).isEmptyOrWhitespace)
-            textToInsert += `\r\n${indent}`
-        textToInsert += `${onAfterPublisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});\r\n${"".padStart(data.indentAfterwards, " ")}`;
+            textToInsert += `${eol}${indent}`
+        textToInsert += `${onAfterPublisherName}(${publisherParameters.map((param: { getNameOrEmpty: () => any; }) => param.getNameOrEmpty()).join(', ')});${eol}${"".padStart(data.indentAfterwards, " ")}`;
         onAfterWorkspaceEdit.insert(this.document.uri, data.addAtPosition, textToInsert);
         return publisherParameters;
     }

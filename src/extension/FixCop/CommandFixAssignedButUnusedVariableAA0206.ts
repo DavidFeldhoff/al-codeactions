@@ -28,6 +28,7 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
     public async compilationCallback(errorLogIssues: ErrorLog.Issue[]) {
         let assignmentsRemoved: number = 0
         let skippedLines: { reason: number, issue: ErrorLog.Issue }[] = []
+        const eol = DocumentUtils.getEolBySetting();
         await window.withProgress({
             location: ProgressLocation.Notification,
             title: 'Check documents',
@@ -73,13 +74,13 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
                                 skippedLines.push({ reason: skipResult.reason!, issue: analyzedLine.originalErrorLogIssue })
                             else {
                                 assignmentsRemoved++
-                                writeFileSync(analyzedLine.filePath, fileLines.join('\r\n'), { encoding: 'utf8' });
+                                writeFileSync(analyzedLine.filePath, fileLines.join(eol), { encoding: 'utf8' });
                             }
                         } else {
                             assignmentsRemoved++
                             let range: Range = DocumentUtils.trimRange2(fileLines, TextRangeExt.createVSCodeRange(assignmentStatementOrEvaluateExpression.fullSpan));
                             fileLines.splice(range.start.line, range.end.line - range.start.line + 1)
-                            writeFileSync(analyzedLine.filePath, fileLines.join('\r\n'), { encoding: 'utf8' });
+                            writeFileSync(analyzedLine.filePath, fileLines.join(eol), { encoding: 'utf8' });
                         }
                     } else {
                         this.logSkippedLine(skippedLines, analyzedLine, fileLines);
@@ -146,24 +147,6 @@ export class CommandFixAssignedButUnusedVariableAA0206 implements IFixCop {
             }
         }
     }
-    private removeEvaluate(argumentList: ALFullSyntaxTreeNode, assignmentsRemoved: number, fileLines: string[], analyzedLine: AnalyzedOutputLineAA0206): { removed: boolean, fileLines: string[] } {
-        if (argumentList.kind == FullSyntaxTreeNodeKind.getArgumentList()) {
-            let invocation = argumentList.parentNode;
-            if (invocation && invocation.childNodes && invocation.childNodes[0].identifier && invocation.childNodes[0].identifier.toLowerCase() == 'evaluate') {
-                if (invocation.parentNode && invocation.parentNode.kind == FullSyntaxTreeNodeKind.getExpressionStatement()) {
-                    if (!this.isOneLiner(invocation.parentNode)) {
-                        assignmentsRemoved++;
-                        let range: Range = DocumentUtils.trimRange2(fileLines, TextRangeExt.createVSCodeRange(invocation.parentNode.fullSpan));
-                        fileLines.splice(range.start.line, range.end.line - range.start.line + 1);
-                        writeFileSync(analyzedLine.filePath, fileLines.join('\r\n'), { encoding: 'utf8' });
-                        return { removed: true, fileLines };
-                    }
-                }
-            }
-        }
-        return { removed: false, fileLines }
-    }
-
     private compileAndRemove(preScript?: string[]) {
         let keepWarnings: string[] = ['AA0206','AA0008']
         if (!preScript)

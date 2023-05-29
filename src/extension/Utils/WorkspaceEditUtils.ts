@@ -27,7 +27,7 @@ export class WorkspaceEditUtils {
                     else
                         editBuilder.replace(textEdit.range, textEdit.newText)
                 }, { undoStopBefore: false, undoStopAfter: false })
-                if(!successfulTemp)
+                if (!successfulTemp)
                     successful = false
             }
         }
@@ -91,7 +91,8 @@ export class WorkspaceEditUtils {
     private static addVariableToExistingVarSection(varSection: ALFullSyntaxTreeNode, document: TextDocument, variable: ALVariable): TextEdit {
         let rangeOfVarSection: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(varSection.fullSpan));
         let indent: string = ''.padStart(rangeOfVarSection.start.character + 4, ' ');
-        let textToInsert: string = variable.getVariableDeclarationString(indent) + ';\r\n';
+        const eol = DocumentUtils.getEolByTextDocument(document);
+        let textToInsert: string = variable.getVariableDeclarationString(eol, indent) + ';' + eol;
 
         let positionToAdd: Position = WorkspaceEditUtils.getPositionToAddVariable(variable, document, varSection);
         let textEdit: TextEdit = new TextEdit(new Range(positionToAdd, positionToAdd), textToInsert);
@@ -101,8 +102,9 @@ export class WorkspaceEditUtils {
         let positionToAdd: Position = WorkspaceEditUtils.getPositionToAddLocalVarSection(methodOrTriggerTreeNode, document);
         let rangeOfMethodOrTrigger: Range = DocumentUtils.trimRange(document, TextRangeExt.createVSCodeRange(methodOrTriggerTreeNode.fullSpan));
         let indent: string = ''.padStart(rangeOfMethodOrTrigger.start.character, ' ')
-        let textToInsert: string = indent + 'var\r\n';
-        textToInsert += variable.getVariableDeclarationString(indent.padStart(indent.length + 4, ' ')) + ';\r\n';
+        const eol = DocumentUtils.getEolByTextDocument(document);
+        let textToInsert: string = indent + 'var' + eol;
+        textToInsert += variable.getVariableDeclarationString(eol, indent.padStart(indent.length + 4, ' ')) + ';' + eol;
         let textEdit: TextEdit = new TextEdit(new Range(positionToAdd, positionToAdd), textToInsert);
         return textEdit;
     }
@@ -112,8 +114,9 @@ export class WorkspaceEditUtils {
         if (documentNode.kind == FullSyntaxTreeNodeKind.getRequestPage()) {
             indent = ''.padStart(8, ' ')
         }
-        let textToInsert: string = indent + 'var\r\n';
-        textToInsert += variable.getVariableDeclarationString(''.padStart(indent.length + 4, ' ')) + ';\r\n\r\n';
+        const eol = DocumentUtils.getEolByTextDocument(document);
+        let textToInsert: string = indent + 'var' + eol;
+        textToInsert += variable.getVariableDeclarationString(eol, ''.padStart(indent.length + 4, ' ')) + ';' + eol + eol;
         let textEdit: TextEdit = new TextEdit(new Range(positionToAdd, positionToAdd), textToInsert);
         return textEdit;
     }

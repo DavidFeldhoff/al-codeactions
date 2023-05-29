@@ -37,10 +37,10 @@ export class ALVariable {
         this.isLocal = this.procedure !== undefined
     }
 
-    public getVariableDeclarationString(indent: string = ''): string {
+    public getVariableDeclarationString(eol: string, indent: string = ''): string {
         let declarationString = indent;
         for (const memberAttribute of this.memberAttributes)
-            declarationString += memberAttribute + '\r\n' + indent;
+            declarationString += memberAttribute + eol + indent;
         declarationString += this.name + ": " + this.type;
         return declarationString;
     }

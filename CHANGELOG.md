@@ -2,6 +2,11 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.30
+
+- Try to detect better if a LF only should be used (instead of CRLF) #160
+- Convert option to enum appeared twice in table fields
+
 ## 1.0.29
 
 - Fix "Extract single line to procedure does not ask for new procedure name" #155

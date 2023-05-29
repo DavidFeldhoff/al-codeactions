@@ -158,6 +158,7 @@ export class TypeDetective {
         if (identifierTreeNode.kind !== FullSyntaxTreeNodeKind.getIdentifierName()) {
             Err._throw('This is not an identifier');
         }
+        const eol = DocumentUtils.getEolByTextDocument(document);
         let range: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(identifierTreeNode.fullSpan));
         let position = range.start;
         if (identifierTreeNode && identifierTreeNode.kind && identifierTreeNode.kind === FullSyntaxTreeNodeKind.getIdentifierName()) {
@@ -169,7 +170,7 @@ export class TypeDetective {
                 for (const hover of hovers) {
                     let hoverMessage: string = hover.contents.values().next().value.value;
                     allHoverMessages.push(hoverMessage);
-                    let hoverMessageLines: string[] = hoverMessage.split('\r\n');
+                    let hoverMessageLines: string[] = hoverMessage.split(/\r?\n/g);
                     let startIndex = hoverMessageLines.indexOf('```al');
                     if (startIndex >= 0) {
                         this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
@@ -195,13 +196,13 @@ export class TypeDetective {
                         }
                     }
                 }
-                OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:\r\n' + allHoverMessages.join('\r\n'));
+                OwnConsole.ownConsole.appendLine('Unable to get type of hoverMessage:' + eol + allHoverMessages.join(eol));
                 return false;
             }
-            OwnConsole.ownConsole.appendLine('Unable to get hover of text:\r\n' + document.getText(range));
+            OwnConsole.ownConsole.appendLine('Unable to get hover of text:' + eol + document.getText(range));
             return false;
         } else {
-            OwnConsole.ownConsole.appendLine('Unable to get type of range:\r\n' + document.getText(range));
+            OwnConsole.ownConsole.appendLine('Unable to get type of range:' + eol + document.getText(range));
             return false;
         }
     }
