@@ -19,7 +19,7 @@ export class CreateProcedure {
             await procedureCreator.getParameters(),
             await procedureCreator.getVariables(),
             await procedureCreator.getReturnType(),
-            procedureCreator.getAccessModifier(),
+            await procedureCreator.getAccessModifier(),
             procedureCreator.getMemberAttributes(),
             procedureCreator.getJumpToCreatedProcedure(),
             procedureCreator.containsSnippet(),

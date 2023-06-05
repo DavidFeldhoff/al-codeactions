@@ -32,7 +32,7 @@ export class CreateProcedureAL0499 implements ICreateProcedure {
     getBody(): string | undefined {
         return undefined;
     }
-    getAccessModifier(): AccessModifier {
+    async getAccessModifier(): Promise<AccessModifier> {
         return AccessModifier.public
     }
     async getVariables(): Promise<ALVariable[]> {

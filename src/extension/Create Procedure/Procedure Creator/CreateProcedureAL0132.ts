@@ -39,8 +39,19 @@ export class CreateProcedureAL0132 implements ICreateProcedure {
     getBody(): string | undefined {
         return undefined;
     }
-    getAccessModifier(): AccessModifier {
-        return AccessModifier.internal;
+    async getAccessModifier(): Promise<AccessModifier> {
+        if (!this.syntaxTree) {
+            throw "SyntaxTree not initialized"
+        }
+        const alObject = await this.getObject();
+        if (!alObject.documentUri)
+            return AccessModifier.internal;
+        const currentWorkspaceFolder = workspace.getWorkspaceFolder(this.document.uri)
+        const workspaceFolderOfOtherObject = workspace.getWorkspaceFolder(alObject.documentUri)
+        if (currentWorkspaceFolder && workspaceFolderOfOtherObject && (currentWorkspaceFolder.uri.fsPath !== workspaceFolderOfOtherObject.uri.fsPath))
+            return AccessModifier.public
+        else
+            return AccessModifier.internal;
     }
     async getVariables(): Promise<ALVariable[]> {
         return [];

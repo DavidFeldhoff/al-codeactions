@@ -373,7 +373,7 @@ export class CodeActionProviderModifyProcedureContent {
     async getProcedureToCreate(rangeOfBlockNode: any, publisherName: any, publisherParameters: any): Promise<ALProcedure> {
         let createProcedureAL0118IntegrationEvent = new CreateProcedureAL0118IntegrationEvent(this.document, new Diagnostic(rangeOfBlockNode, 'dummy'));
         await createProcedureAL0118IntegrationEvent.initialize();
-        let procedure: ALProcedure = new ALProcedure(publisherName, publisherParameters, await createProcedureAL0118IntegrationEvent.getVariables(), await createProcedureAL0118IntegrationEvent.getReturnType(), createProcedureAL0118IntegrationEvent.getAccessModifier(), createProcedureAL0118IntegrationEvent.getMemberAttributes(), createProcedureAL0118IntegrationEvent.getJumpToCreatedProcedure(), createProcedureAL0118IntegrationEvent.containsSnippet(), await createProcedureAL0118IntegrationEvent.getObject(), await createProcedureAL0118IntegrationEvent.isReturnTypeRequired());
+        let procedure: ALProcedure = new ALProcedure(publisherName, publisherParameters, await createProcedureAL0118IntegrationEvent.getVariables(), await createProcedureAL0118IntegrationEvent.getReturnType(), await createProcedureAL0118IntegrationEvent.getAccessModifier(), createProcedureAL0118IntegrationEvent.getMemberAttributes(), createProcedureAL0118IntegrationEvent.getJumpToCreatedProcedure(), createProcedureAL0118IntegrationEvent.containsSnippet(), await createProcedureAL0118IntegrationEvent.getObject(), await createProcedureAL0118IntegrationEvent.isReturnTypeRequired());
         return procedure;
     }
 }

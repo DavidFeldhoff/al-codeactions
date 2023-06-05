@@ -5,7 +5,7 @@ import { ALVariable } from '../../Entities/alVariable';
 export interface ICreateProcedure {
     initialize(): Promise<void>;
     getProcedureName(): string;
-    getAccessModifier(): AccessModifier;
+    getAccessModifier(): Promise<AccessModifier>;
     getObject(): Promise<ALObject>;
     getParameters(): Promise<ALVariable[]>;
     getReturnType(): Promise<string | undefined>;
