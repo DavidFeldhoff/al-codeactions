@@ -90,7 +90,7 @@ export class CreateProcedureCommands {
             if (addOnBeforeOnAfterPublishers) {
                 await WorkspaceEditUtils.applyWorkspaceEditWithoutUndoStack(edit.workspaceEdit);
                 const syntaxTree = await SyntaxTree.getInstance(document);
-                const methodNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(edit.workspaceEdit.get(document.uri)[0].range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration()])
+                const methodNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(edit.workspaceEdit.get(document.uri)[0].range.start.translate(1, 0), [FullSyntaxTreeNodeKind.getMethodDeclaration()])
                 if (methodNode) {
                     const identifierNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.getFirstChildNodeOfKind(methodNode, FullSyntaxTreeNodeKind.getIdentifierName(), false)
                     if (identifierNode) {
