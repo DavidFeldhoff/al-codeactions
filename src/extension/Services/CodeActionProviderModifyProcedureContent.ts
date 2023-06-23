@@ -145,7 +145,7 @@ export class CodeActionProviderModifyProcedureContent {
         let publisherParameters: ALVariable[] = selection;
         let procedure: ALProcedure = await this.getProcedureToCreate(rangeOfBlockNode, publisherName, publisherParameters);
 
-        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation, { advancedProcedureCreation: false, suppressUI: suppressUI }, appInsightsEntryProperties);
+        let edits = await CreateProcedureCommands.getEditToAddProcedureToSourceCode(this.document, procedure, sourceLocation, { advancedProcedureCreation: false, suppressUI: suppressUI }, false, appInsightsEntryProperties);
         if (edits && edits.workspaceEdit) {
             for (const entry of edits.workspaceEdit.entries()) {
                 for (const textEditEntry of entry[1])

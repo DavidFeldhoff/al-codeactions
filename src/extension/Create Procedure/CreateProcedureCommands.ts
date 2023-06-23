@@ -1,4 +1,4 @@
-import { commands, Diagnostic, Location, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from 'vscode';
+import { commands, Diagnostic, Location, Position, QuickPickItem, Range, Selection, SnippetString, TextDocument, TextEditor, window, workspace, WorkspaceEdit } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -10,6 +10,8 @@ import { ALProcedure } from '../Entities/alProcedure';
 import { Command } from '../Entities/Command';
 import { PublisherToAdd } from '../Services/CodeActionProviderModifyProcedureContent';
 import { ALSourceCodeHandler } from '../Utils/alSourceCodeHandler';
+import { Config } from '../Utils/config';
+import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { WorkspaceEditUtils } from '../Utils/WorkspaceEditUtils';
 import { CreateProcedureAL0499ConfirmHandler } from './Procedure Creator/AL0499 Specifications/CreateProcedureAL0499ConfirmHandler';
@@ -27,7 +29,6 @@ import { CreateProcedureAL0499StrMenuHandler } from './Procedure Creator/AL0499 
 import { SupportedHandlers } from './Procedure Creator/AL0499 Specifications/supportedHandlers';
 import { CreateProcedure } from './Procedure Creator/CreateProcedure';
 import { ICreateProcedure } from './Procedure Creator/ICreateProcedure';
-import { DocumentUtils } from '../Utils/documentUtils';
 export class CreateProcedureCommands {
 
     static async addHandler(document: TextDocument, diagnostic: Diagnostic): Promise<any> {
@@ -78,10 +79,21 @@ export class CreateProcedureCommands {
         let appInsightsEntryProperties: any = {};
 
         let addOnBeforeOnAfterPublishers: boolean = false;
-        if (options.advancedProcedureCreation)
-            addOnBeforeOnAfterPublishers = (await window.showQuickPick(['Yes', 'No'], { title: 'Add OnBefore and OnAfter publishers to the new procedure?' })) == 'Yes'
+        let askForProcedurePosition: boolean = false;
+        if (options.advancedProcedureCreation && !options.suppressUI) {
+            const defaultAdvancedOptions = Config.getConfig(document.uri).get('defaultAdvancedOptions', []);
+            const addPublisherLbl = 'Add OnBefore and OnAfter publishers to the new procedure'
+            const placeProcedureManuallyLbl = 'Place procedure manually';
+            const addPublishers = { label: addPublisherLbl, picked: defaultAdvancedOptions.some(defaultOption => defaultOption === addPublisherLbl) }
+            const placeProcedureManually = { label: placeProcedureManuallyLbl, picked: defaultAdvancedOptions.some(defaultOption => defaultOption === placeProcedureManuallyLbl) }
+            const items: QuickPickItem[] = [addPublishers, placeProcedureManually]
+            const userResponse = await window.showQuickPick(items, { title: 'Please choose your advanced options (preselected based on your settings) Hint: Use arrow keys, space and enter keys to select options.', canPickMany: true })
+            addOnBeforeOnAfterPublishers = userResponse ? userResponse.some(response => response.label === addPublishers.label) : false
+            askForProcedurePosition = userResponse ? userResponse.some(response => response.label === placeProcedureManually.label) : false
+        }
+
         let edit: { position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined =
-            await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation, options, appInsightsEntryProperties);
+            await this.getEditToAddProcedureToSourceCode(document, procedure, sourceLocation, options, askForProcedurePosition, appInsightsEntryProperties);
         if (!edit)
             return
 
@@ -114,9 +126,8 @@ export class CreateProcedureCommands {
                 editor.revealRange(edit.rangeToReveal);
         }
     }
-    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
+    static async getEditToAddProcedureToSourceCode(document: TextDocument, procedure: ALProcedure, sourceLocation: Location, options: { suppressUI: boolean, advancedProcedureCreation: boolean }, askForProcedurePosition: boolean, appInsightsEntryProperties: any): Promise<{ position: Position; workspaceEdit: WorkspaceEdit | undefined; snippetString: SnippetString | undefined; selectionToPlaceCursor: Selection | undefined; rangeToReveal: Range | undefined } | undefined> {
         const alSourceCodeHandler = new ALSourceCodeHandler(document)
-        const askForProcedurePosition = await alSourceCodeHandler.askIfPlaceProcedureManually(options.suppressUI, options.advancedProcedureCreation);
 
         let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, sourceLocation, askForProcedurePosition, appInsightsEntryProperties);
         if (!position)
@@ -139,7 +150,7 @@ export class CreateProcedureCommands {
         if (procedure.getJumpToCreatedPosition() && procedure.getContainsSnippet()) {
             let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface, eol);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
-            
+
             let linesInserted: number = textToInsert.length - textToInsert.replace(/\r?\n/g, ' ').length
             snippetString = new SnippetString(textToInsert);
             rangeToReveal = new Range(position, position.translate(linesInserted, undefined))

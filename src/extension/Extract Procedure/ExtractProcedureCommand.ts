@@ -1,4 +1,4 @@
-import { commands, Location, Position, Range, Selection, TextDocument, window, workspace, WorkspaceEdit } from "vscode";
+import { commands, Location, Position, QuickPickItem, Range, Selection, TextDocument, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -21,17 +21,26 @@ export class ExtractProcedureCommand {
         let appInsightsEntryProperties: any = {};
         let callRename: boolean = true
         let addOnBeforeOnAfterPublishers: boolean = false;
-        if (options.advancedProcedureCreation)
-            addOnBeforeOnAfterPublishers = (await window.showQuickPick(['Yes', 'No'], { title: 'Add OnBefore and OnAfter publishers to the new procedure?' })) == 'Yes'
-        const alSourceCodeHandler = new ALSourceCodeHandler(document);
-        const askForProcedurePosition = await alSourceCodeHandler.askIfPlaceProcedureManually(false, options.advancedProcedureCreation);
-
+        let askForProcedurePosition: boolean = false;
+        if (options.advancedProcedureCreation) {
+            const defaultAdvancedOptions = Config.getConfig(document.uri).get('defaultAdvancedOptions', []);
+            const addPublisherLbl = 'Add OnBefore and OnAfter publishers to the new procedure'
+            const placeProcedureManuallyLbl = 'Place procedure manually';
+            const addPublishers = { label: addPublisherLbl, picked: defaultAdvancedOptions.some(defaultOption => defaultOption === addPublisherLbl) }
+            const placeProcedureManually = { label: placeProcedureManuallyLbl, picked: defaultAdvancedOptions.some(defaultOption => defaultOption === placeProcedureManuallyLbl) }
+            const items: QuickPickItem[] = [addPublishers, placeProcedureManually]
+            const userResponse = await window.showQuickPick(items, { title: 'Please choose your advanced options (preselected based on your settings) Hint: Use arrow keys, space and enter keys to select options.', canPickMany: true })
+            addOnBeforeOnAfterPublishers = userResponse ? userResponse.some(response => response.label === addPublishers.label) : false
+            askForProcedurePosition = userResponse ? userResponse.some(response => response.label === placeProcedureManually.label) : false
+        }        
+        
         if (Config.getFindNewProcedureLocation(document.uri) == FindNewProcedureLocation["Sort by type, access modifier, name"] || addOnBeforeOnAfterPublishers) {
             callRename = false
             appInsightsEntryProperties.askforNewName = true
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
+        const alSourceCodeHandler = new ALSourceCodeHandler(document);
         let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, new Location(document.uri, trimmedSelectedRangeWithComments), askForProcedurePosition, appInsightsEntryProperties);
         if (!position)
             return

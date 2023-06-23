@@ -114,6 +114,21 @@
                         "description": "Parameters with these names will always be declared as var-parameters. You can also enter a regular expression as e.g. /Handled$/i to make a parameter a var-parameter if it ends with 'handled' and with an activated ignoreCase-regex-flag.",
                         "scope": "resource"
                     },
+                    "alCodeActions.defaultAdvancedOptions": {
+                        "description": "Specify which options are selected by default when you execute 'Create/Extract procedure with advanced options'",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "Add OnBefore and OnAfter publishers to the new procedure",
+                                "Place procedure manually"
+                            ]
+                        },
+                        "default": [
+                            "Place procedure manually"
+                        ],
+                        "uniqueItems": true
+                    },
                     "alCodeActions.publisherHasVarParametersOnly": {
                         "type": "boolean",
                         "default": false,

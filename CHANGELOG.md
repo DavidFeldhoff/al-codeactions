@@ -4,6 +4,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 1.0.30
 
+- Change the UX of "Create/Extract procedure with advanced options", so that you now select which option you want to activate instead of having multiple questions which you had to answer with Yes and No
 - Adding publishers to a newly created procedure sometimes added the publishers to the wrong procedure
 - Extract procedure now also extracts comments if they were selected.
 - Fix Create Procedure added "internal" even if the caller was in a different app #162

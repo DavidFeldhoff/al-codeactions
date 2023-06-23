@@ -1,7 +1,7 @@
 import { Uri, workspace } from "vscode";
 
 export class Config {
-    private static getConfig(uri?: Uri) {
+    static getConfig(uri?: Uri) {
         return workspace.getConfiguration('alCodeActions', uri);
     }
     static getFindNewProcedureLocation(uri?: Uri): FindNewProcedureLocation {
