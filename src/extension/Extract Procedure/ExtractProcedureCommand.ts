@@ -17,7 +17,7 @@ import { DocumentUtils } from "../Utils/documentUtils";
 import { WorkspaceEditUtils } from "../Utils/WorkspaceEditUtils";
 
 export class ExtractProcedureCommand {
-    static async extract(document: TextDocument, procedureCallingText: string, procedure: ALProcedure, rangeExpanded: Range, options: { advancedProcedureCreation: boolean }) {
+    static async extract(document: TextDocument, procedureCallingText: string, procedure: ALProcedure, rangeExpanded: Range, trimmedSelectedRangeWithComments: Range, options: { advancedProcedureCreation: boolean }) {
         let appInsightsEntryProperties: any = {};
         let callRename: boolean = true
         let addOnBeforeOnAfterPublishers: boolean = false;
@@ -32,11 +32,11 @@ export class ExtractProcedureCommand {
             procedureCallingText = await ExtractProcedureCommand.askForNewName(procedureCallingText, procedure);
         }
 
-        let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, new Location(document.uri, rangeExpanded), askForProcedurePosition, appInsightsEntryProperties);
+        let position: Position | undefined = await alSourceCodeHandler.getPositionToInsertProcedure(procedure, new Location(document.uri, trimmedSelectedRangeWithComments), askForProcedurePosition, appInsightsEntryProperties);
         if (!position)
             return
         if (window.activeTextEditor)
-            window.activeTextEditor.selection = new Selection(rangeExpanded.start, rangeExpanded.end);
+            window.activeTextEditor.selection = new Selection(trimmedSelectedRangeWithComments.start, trimmedSelectedRangeWithComments.end);
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(document);
         let isInterface: boolean = syntaxTree.findTreeNode(position, [FullSyntaxTreeNodeKind.getInterface()]) !== undefined;
         let createProcedure: CreateProcedure = new CreateProcedure();
@@ -46,7 +46,7 @@ export class ExtractProcedureCommand {
         workspaceEdit.insert(document.uri, position, textToInsert);
 
         await this.removeLocalVariables(workspaceEdit, document, rangeExpanded.start, procedure.variables);
-        workspaceEdit.replace(document.uri, rangeExpanded, procedureCallingText);
+        workspaceEdit.replace(document.uri, trimmedSelectedRangeWithComments, procedureCallingText);
         if (addOnBeforeOnAfterPublishers) {
             await WorkspaceEditUtils.applyWorkspaceEditWithoutUndoStack(workspaceEdit);
             syntaxTree = await SyntaxTree.getInstance(document);

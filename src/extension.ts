@@ -42,8 +42,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(commands.registerCommand(Command.renameCommand,
 		(location: Location) => DocumentUtils.executeRename(location)));
 	context.subscriptions.push(commands.registerCommand(Command.extractProcedure,
-		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, options: { advancedProcedureCreation: boolean }) =>
-			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, options)))
+		(currentDocument: TextDocument, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, trimmedSelectedRangeWithComments: Range, options: { advancedProcedureCreation: boolean }) =>
+			ExtractProcedureCommand.extract(currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, trimmedSelectedRangeWithComments, options)))
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedCalls, () => FindRelated.exec(FindRelatedEnum.Calls)))
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedEventSubscriber, () => FindRelated.exec(FindRelatedEnum.EventSubscriber)))
 	context.subscriptions.push(commands.registerCommand(Command.findRelatedTriggers, () => FindRelated.exec(FindRelatedEnum.Triggers)))

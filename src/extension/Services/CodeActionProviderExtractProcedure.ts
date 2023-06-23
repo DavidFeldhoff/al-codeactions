@@ -24,9 +24,11 @@ import { ICodeActionProvider } from './ICodeActionProvider';
 export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     document: TextDocument;
     range: Range;
+    selectedRange: Range;
     constructor(document: TextDocument, range: Range) {
         this.document = document;
         this.range = range;
+        this.selectedRange = range;
     }
     async considerLine(): Promise<boolean> {
         if (this.range.start.compareTo(this.range.end) === 0) { //performance
@@ -34,19 +36,20 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         }
         if (this.document.uri.scheme == 'al-preview')
             return false
-        this.range = DocumentUtils.trimRange(this.document, this.range)
+        this.range = DocumentUtils.trimRange(this.document, this.selectedRange)
         if (this.document.lineAt(this.range.start).firstNonWhitespaceCharacterIndex <= 4 ||
             this.document.lineAt(this.range.end).firstNonWhitespaceCharacterIndex <= 4)
             return false;
         return true;
     }
     async createCodeActions(): Promise<CodeAction[]> {
-        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(this.document, this.range);
+        let rangeAnalyzer: RangeAnalyzer = new RangeAnalyzer(this.document, this.selectedRange);
         await rangeAnalyzer.analyze();
         if (!rangeAnalyzer.isValidToExtract()) {
             return [];
         }
         let rangeExpanded: Range = rangeAnalyzer.getExpandedRange();
+        const trimmedSelectedRangeWithComments: Range = rangeAnalyzer.getTrimmedSelectedRangeWithComments();
         let treeNodeStart: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractStart();
         let treeNodeEnd: ALFullSyntaxTreeNode = rangeAnalyzer.getTreeNodeToExtractEnd();
 
@@ -55,17 +58,17 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         if (rangeAnalyzer.isValidToExtractOnlyWithReturnType() && !returnTypeAnalyzer.getReturnType()) {
             return [];
         }
-        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(rangeExpanded, returnTypeAnalyzer);
+        let procedureObject: ALProcedure | undefined = await this.provideProcedureObjectForCodeAction(rangeExpanded, trimmedSelectedRangeWithComments, returnTypeAnalyzer);
         if (!procedureObject) {
             return [];
         }
         let procedureCallingText: string = await CreateProcedure.createProcedureCallDefinition(this.document, rangeExpanded, RenameMgt.newProcedureName, procedureObject.parameters, returnTypeAnalyzer);
 
-        let codeActionToCreateProcedure: CodeAction = this.createCodeAction(this.document, 'Extract to procedure', procedureCallingText, procedureObject, rangeExpanded, false);
-        let codeActionToCreateProcedureWithPublishers: CodeAction = this.createCodeAction(this.document, 'Extract to procedure with advanced options', procedureCallingText, procedureObject, rangeExpanded, true);
+        let codeActionToCreateProcedure: CodeAction = this.createCodeAction(this.document, 'Extract to procedure', procedureCallingText, procedureObject, rangeExpanded, trimmedSelectedRangeWithComments, false);
+        let codeActionToCreateProcedureWithPublishers: CodeAction = this.createCodeAction(this.document, 'Extract to procedure with advanced options', procedureCallingText, procedureObject, rangeExpanded, trimmedSelectedRangeWithComments, true);
         return [codeActionToCreateProcedure, codeActionToCreateProcedureWithPublishers];
     }
-    public async provideProcedureObjectForCodeAction(rangeExpanded: Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
+    public async provideProcedureObjectForCodeAction(rangeExpanded: Range, trimmedSelectedRangeWithComments: Range, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
         const objectNode = ALFullSyntaxTreeNodeExt.findTreeNode(syntaxTree.getRoot(), rangeExpanded.start, FullSyntaxTreeNodeKind.getAllObjectKinds())!;
         const procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = SyntaxTreeExt.getMethodOrTriggerTreeNodeOfCurrentPosition(syntaxTree, rangeExpanded.start);
@@ -96,7 +99,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         let typeOfRecWhichBecomesVarParameter: string | undefined = await this.getSourceTableTypeOfCodeunitOnRunTrigger(this.document, rangeExpanded);
 
         let procedureToCreate: ALProcedure | undefined;
-        procedureToCreate = await this.createProcedureObject(this.document, rangeExpanded,
+        procedureToCreate = await this.createProcedureObject(this.document, rangeExpanded, trimmedSelectedRangeWithComments,
             variableTreeNodesWhichBecomeVarParameters,
             variableTreeNodesWhichBecomeNormalParameters,
             variableTreeNodesWhichStayLocalVariables,
@@ -110,7 +113,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         return procedureToCreate;
     }
 
-    async createProcedureObject(document: TextDocument, rangeExpanded: Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, dataItemsWhichBecomeVarParameters: ALFullSyntaxTreeNode[], typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
+    async createProcedureObject(document: TextDocument, rangeExpanded: Range, trimmedSelectedRangeWithComments: Range, variableTreeNodesWhichBecomeVarParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], variableTreeNodesWhichStayLocalVariables: ALFullSyntaxTreeNode[], parametersWhichBecomeVarParameters: ALFullSyntaxTreeNode[], parametersWhichBecomeNormalParameters: ALFullSyntaxTreeNode[], returnVariableWhichBecomesVarParameter: ALFullSyntaxTreeNode | undefined, dataItemsWhichBecomeVarParameters: ALFullSyntaxTreeNode[], typeOfRecWhichBecomesVarParameter: string | undefined, returnTypeAnalyzer: ReturnTypeAnalyzer): Promise<ALProcedure | undefined> {
         let procedure: ALProcedure;
         let parameters: ALVariable[] = [];
         let variables: ALVariable[] = [];
@@ -142,7 +145,7 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         alVariablesWhichStayLocalVariables.forEach(variable => {
             variables.push(variable);
         });
-        for(const dataItemWhichBecomesVarParameter of dataItemsWhichBecomeVarParameters){
+        for (const dataItemWhichBecomesVarParameter of dataItemsWhichBecomeVarParameters) {
             parameters.push(await ALVariableParser.parseDataItemToALVariable(document, dataItemWhichBecomesVarParameter, false))
         }
         if (returnVariableWhichBecomesVarParameter) {
@@ -169,6 +172,8 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
             procedure.setReturnVariableName(returnVariableName);
             selectedText = returnVariableName + ' := ' + selectedText;
         }
+        if (rangeExpanded.start.compareTo(trimmedSelectedRangeWithComments.start) !== 0)
+            selectedText = this.document.getText(new Range(trimmedSelectedRangeWithComments.start, rangeExpanded.start)) + selectedText;
         if (!selectedText.endsWith(';')) {
             selectedText += ';';
         }
@@ -389,11 +394,11 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     private getDataItemsOfTreeNode(objectTreeNode: ALFullSyntaxTreeNode): ALFullSyntaxTreeNode[] {
         return ALFullSyntaxTreeNodeExt.collectChildNodesOfKinds(objectTreeNode, [FullSyntaxTreeNodeKind.getReportDataItem()], true)
     }
-    private createCodeAction(currentDocument: TextDocument, title: string, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, advancedProcedureCreation: boolean): CodeAction {
+    private createCodeAction(currentDocument: TextDocument, title: string, procedureCallingText: string, procedureToCreate: ALProcedure, rangeExpanded: Range, trimmedSelectedRangeWithComments: Range, advancedProcedureCreation: boolean): CodeAction {
         let codeAction = new CodeAction(title, CodeActionKind.RefactorExtract);
         codeAction.command = {
             command: Command.extractProcedure,
-            arguments: [currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, { advancedProcedureCreation: advancedProcedureCreation }],
+            arguments: [currentDocument, procedureCallingText, procedureToCreate, rangeExpanded, trimmedSelectedRangeWithComments, { advancedProcedureCreation: advancedProcedureCreation }],
             title: title
         };
         return codeAction;

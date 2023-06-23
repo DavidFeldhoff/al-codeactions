@@ -9,7 +9,9 @@ import { Err } from '../Utils/Err';
 export class RangeAnalyzer {
     private document: TextDocument;
     private selectedRange: Range;
+    private selectedRangeTrimmed: Range;
     private expandedRange: Range | undefined;
+    private trimmedSelectedRangeWithComments: Range | undefined;
     private analyzed: boolean;
     private validToExtractAsStandalone: boolean | undefined;
     private validToExtractOnlyWithReturnType: boolean | undefined;
@@ -18,22 +20,23 @@ export class RangeAnalyzer {
     constructor(document: TextDocument, selectedRange: Range) {
         this.document = document;
         this.selectedRange = selectedRange;
+        this.selectedRangeTrimmed = DocumentUtils.trimRange(document, selectedRange);
         this.analyzed = false;
     }
 
     public async analyze() {
         this.analyzed = true;
-        if (this.selectedRange.start.isEqual(this.selectedRange.end)) {
+        if (this.selectedRangeTrimmed.start.isEqual(this.selectedRangeTrimmed.end)) {
             return;
         }
         let syntaxTree: SyntaxTree = await SyntaxTree.getInstance(this.document);
-        let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRange.start, [FullSyntaxTreeNodeKind.getTriggerDeclaration(), FullSyntaxTreeNodeKind.getMethodDeclaration()]);
+        let procedureOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRangeTrimmed.start, [FullSyntaxTreeNodeKind.getTriggerDeclaration(), FullSyntaxTreeNodeKind.getMethodDeclaration()]);
         if (!procedureOrTriggerTreeNode) {
             return;
         }
 
-        let startSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRange.start);
-        let endSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRange.end);
+        let startSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRangeTrimmed.start);
+        let endSyntaxTreeNode: ALFullSyntaxTreeNode | undefined = syntaxTree.findTreeNode(this.selectedRangeTrimmed.end);
         if (!startSyntaxTreeNode || !endSyntaxTreeNode) {
             return;
         }
@@ -53,7 +56,7 @@ export class RangeAnalyzer {
         this.log(pathToStart, pathToEnd, blockNode);
 
         if (this.treeNodeToExtractStart === this.treeNodeToExtractEnd) {
-            if (!this.isWholeTreeNodeWithChildsSelected(this.treeNodeToExtractStart, this.selectedRange)) {
+            if (!this.isWholeTreeNodeWithChildsSelected(this.treeNodeToExtractStart, this.selectedRangeTrimmed)) {
                 return;
             }
         }
@@ -66,9 +69,14 @@ export class RangeAnalyzer {
         // check if start and end kinds are valid
         this.checkNodesAreValidToExtract(this.treeNodeToExtractStart, this.treeNodeToExtractEnd);
         if (this.isValidToExtract()) {
-            let startRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractStart.fullSpan));
+            const startRangeUntrimmed = TextRangeExt.createVSCodeRange(this.treeNodeToExtractStart.fullSpan)
+            let startRange: Range = DocumentUtils.trimRange(this.document, startRangeUntrimmed);
             let endRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.treeNodeToExtractEnd.fullSpan));
             this.expandedRange = new Range(startRange.start, endRange.end);
+
+            const textWithComments = this.document.getText(new Range(this.selectedRange.start, endRange.end))
+            if (textWithComments.trimLeft().startsWith('//') || textWithComments.trimLeft().startsWith('/*'))
+                this.trimmedSelectedRangeWithComments = new Range(this.selectedRange.start.translate(0, textWithComments.length - textWithComments.trimLeft().length), endRange.end);
             return;
         }
         return;
@@ -177,9 +185,18 @@ export class RangeAnalyzer {
         if (this.expandedRange) {
             rangeToReturn = this.expandedRange;
         } else {
-            rangeToReturn = this.selectedRange;
+            rangeToReturn = this.selectedRangeTrimmed;
         }
         return DocumentUtils.trimRange(this.document, rangeToReturn);
+    }
+    public getTrimmedSelectedRangeWithComments(): Range {
+        if (!this.analyzed) {
+            Err._throw('Please analyze the range before using it');
+        }
+        if (this.trimmedSelectedRangeWithComments)
+            return this.trimmedSelectedRangeWithComments
+        else
+            return this.getExpandedRange();
     }
     private checkKindReducedLevelsStandalone(treeNode: ALFullSyntaxTreeNode): boolean {
         let validKinds: string[] = [

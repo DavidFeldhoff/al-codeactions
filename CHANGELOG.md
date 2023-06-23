@@ -4,6 +4,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 ## 1.0.30
 
+- Extract procedure now also extracts comments if they were selected.
 - Fix Create Procedure added "internal" even if the caller was in a different app #162
 - Try to detect better if a LF only should be used (instead of CRLF) #160
 - Convert option to enum appeared twice in table fields
