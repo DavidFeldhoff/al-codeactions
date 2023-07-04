@@ -23,11 +23,16 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let modifyProcDir = path.resolve(ALTestProject.dir, 'ModifyProcedure')
 		addPublishersToProcedure = await workspace.openTextDocument(path.resolve(modifyProcDir, 'AddPublishersToProcedure.Codeunit.al'));
 		await Config.setFindNewProcedureLocation(addPublishersToProcedure.uri, "Sort by type, access modifier, name"); //reset config
+		await Config.setInitializeIsHandledVariableWhenCreatingOnBeforePublisher(addPublishersToProcedure.uri, true);
 
 		window.showInformationMessage('Start all tests of ALModifyProcedureCA.');
 	});
+	this.afterAll('afterTests', async function() {
+		await Config.setInitializeIsHandledVariableWhenCreatingOnBeforePublisher(addPublishersToProcedure.uri, undefined);
+	})
 
 	test('NoParametersNoVarSectionNoReturn', async () => {
+		
 		let lineTextToSearch = 'procedure NoParametersNoVarSectionNoReturn()';
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)

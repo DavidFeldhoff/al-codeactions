@@ -508,7 +508,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		assert.strictEqual(alProcedure.parameters[1].getNameOrEmpty(), 'Reserve1');
 		assert.strictEqual(alProcedure.parameters[1].type, 'Enum "Reserve Method"');
 		assert.strictEqual(alProcedure.parameters[2].getNameOrEmpty(), 'ApplicationMethod');
-		assert.strictEqual(alProcedure.parameters[2].type, 'Option');
+		assert.strictEqual(alProcedure.parameters[2].type, 'Enum "Application Method"');
 		assert.strictEqual(alProcedure.parameters[3].getNameOrEmpty(), 'Reserve2');
 		assert.strictEqual(alProcedure.parameters[3].type, 'Enum "Reserve Method"');
 	}); //first time interacting with the symbols and another extensin can take some time.
