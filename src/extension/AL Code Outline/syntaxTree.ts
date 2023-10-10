@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { Position, Range, TextDocument } from 'vscode';
+import { Position, Range, TextDocument, Uri, workspace } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { TextRangeExt as TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
 import { ALCodeOutlineExtension } from '../devToolsExtensionContext';
@@ -36,7 +36,10 @@ export class SyntaxTree {
     private static async getFullSyntaxTree(fsPath: string, fileContent: string): Promise<ToolsGetFullSyntaxTreeResponse | undefined> {
         let azalDevTools = (await ALCodeOutlineExtension.getInstance()).getAPI();
         // let newSymbolPath: number[] = [];
-        let toolsGetFullSyntaxTreeRequest = new ToolsGetFullSyntaxTreeRequest(fileContent, fsPath);
+        let projectPath = workspace.getWorkspaceFolder(Uri.file(fsPath))?.uri.fsPath
+        if (!projectPath)
+            projectPath = fsPath;
+        let toolsGetFullSyntaxTreeRequest = new ToolsGetFullSyntaxTreeRequest(fileContent, fsPath, projectPath);
         let fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined = await azalDevTools.toolsLangServerClient.getFullSyntaxTree(toolsGetFullSyntaxTreeRequest, true);
         return fullSyntaxTreeResponse;
     }
