@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.31
+
+- Add OnBefore/OnAfter publisher was quite often unavailable #166
+
 ## 1.0.30
 
 - Change the UX of "Create/Extract procedure with advanced options", so that you now select which option you want to activate instead of having multiple questions which you had to answer with Yes and No

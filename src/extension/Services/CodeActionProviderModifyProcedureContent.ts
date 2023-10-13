@@ -32,7 +32,7 @@ export class CodeActionProviderModifyProcedureContent {
         if (this.range.start.line != this.range.end.line)
             return false;
         let currentLine: string = this.document.lineAt(this.range.start.line).text;
-        let regex: RegExp = /^(\s+(?:local|internal|protected|public)? (procedure|trigger) )(\w+|"[^"]+")\(/i;
+        let regex: RegExp = /^(\s+(?:local|internal|protected|public)? (?:procedure|trigger) )(\w+|"[^"]+")\(/i;
         if (!regex.test(currentLine))
             return false;
         let regexArr: RegExpExecArray | null = regex.exec(currentLine);
