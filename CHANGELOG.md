@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.33
+
+- files.eol setting has new default option "auto" instead of \r or \r\n, so it had to be considered.
+
 ## 1.0.32
 
 - When working with LF linebreaks, there was an issue with `Extract Label` as the rename was executed at a wrong place. #165

@@ -267,7 +267,10 @@ export class DocumentUtils {
             return '\n'
     }
     public static getEolBySetting(uri?: Uri): string {
-        return workspace.getConfiguration('files').get<string>('eol', '\r\n')
+        let filesEolSetting = workspace.getConfiguration('files', uri).get<string>('eol', '\r\n')
+        if(filesEolSetting == "auto")
+            filesEolSetting = '\r\n'
+        return filesEolSetting
     }
     public static getEolByContentAsEnum(content: string): EndOfLine {
         let regexCRLF: RegExp = /\r\n/g

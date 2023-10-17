@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "1.0.32",
+    "version": "1.0.33",
     "license": "MIT",
     "repository": {
         "type": "git",

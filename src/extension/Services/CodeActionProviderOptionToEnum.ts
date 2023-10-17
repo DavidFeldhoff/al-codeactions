@@ -189,7 +189,7 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
                 text += `${tab}${tab}${ALPropertyName[property.name]} = ${property.value};${eol}`
             text += `${tab}}${eol}`
         }
-        text += `}${eol}`
+        text += `}`
         return text;
     }
 }
