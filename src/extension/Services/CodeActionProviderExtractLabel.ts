@@ -69,8 +69,8 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
             let lastTextEdit = edit.entries().pop()?.[1].pop()!
             let lineDelta = 0
             if (lastTextEdit.range.start.line <= stringLiteralRange.start.line) {
-                let linesAddedByVariableDeclaration: number = (lastTextEdit.newText.length - lastTextEdit.newText.replace(/\r?\n/g, '').length) / 2;
-                lineDelta = linesAddedByVariableDeclaration;
+                const newLineMatches: RegExpMatchArray | null = lastTextEdit.newText.match(/\r?\n/g)
+                lineDelta = newLineMatches ? newLineMatches.length : 0;
             }
             await commands.executeCommand(Command.renameCommand, new Location(this.document.uri, stringLiteralRange.start.translate(lineDelta)));
         }

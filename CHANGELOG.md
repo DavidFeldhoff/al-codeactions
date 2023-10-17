@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.32
+
+- When working with LF linebreaks, there was an issue with `Extract Label` as the rename was executed at a wrong place. #165
+
 ## 1.0.31
 
 - Add OnBefore/OnAfter publisher was quite often unavailable #166

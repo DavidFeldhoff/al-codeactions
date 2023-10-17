@@ -151,7 +151,8 @@ export class CreateProcedureCommands {
             let textToInsert: string = createProcedure.createProcedureDefinition(procedure, false, isInterface, eol);
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
 
-            let linesInserted: number = textToInsert.length - textToInsert.replace(/\r?\n/g, ' ').length
+            const newLineMatches: RegExpMatchArray | null = textToInsert.match(/\r?\n/g)
+            const linesInserted = newLineMatches ? newLineMatches.length : 0
             snippetString = new SnippetString(textToInsert);
             rangeToReveal = new Range(position, position.translate(linesInserted, undefined))
         } else {
@@ -159,7 +160,8 @@ export class CreateProcedureCommands {
             textToInsert = createProcedure.addLineBreaksToProcedureCall(document, position, textToInsert, isInterface);
             workspaceEdit = new WorkspaceEdit();
             workspaceEdit.insert(document.uri, position, textToInsert);
-            let linesInserted = textToInsert.length - textToInsert.replace(/\r?\n/g, ' ').length
+            const newLineMatches: RegExpMatchArray | null = textToInsert.match(/\r?\n/g)
+            const linesInserted = newLineMatches ? newLineMatches.length : 0
             if (procedure.getJumpToCreatedPosition() && !procedure.getContainsSnippet()) {
                 let lineOfBodyStart: number | undefined = createProcedure.getLineOfBodyStart();
                 if (lineOfBodyStart !== undefined) {
