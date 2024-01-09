@@ -41,7 +41,26 @@ export class SyntaxTree {
             projectPath = fsPath;
         let toolsGetFullSyntaxTreeRequest = new ToolsGetFullSyntaxTreeRequest(fileContent, fsPath, projectPath);
         let fullSyntaxTreeResponse: ToolsGetFullSyntaxTreeResponse | undefined = await azalDevTools.toolsLangServerClient.getFullSyntaxTree(toolsGetFullSyntaxTreeRequest, true);
+        if(fullSyntaxTreeResponse && fullSyntaxTreeResponse.root && !fullSyntaxTreeResponse.root.parentNode)
+            this.restoreNodeParent(fullSyntaxTreeResponse.root, undefined);
         return fullSyntaxTreeResponse;
+    }
+
+    static restoreNodeParent(node: ALFullSyntaxTreeNode | undefined, parentNode: ALFullSyntaxTreeNode | undefined) {
+        if (node) {
+            node.parentNode = parentNode;
+            this.restoreNodeListParent(node.childNodes, node);
+            this.restoreNodeListParent(node.attributes, node);
+            this.restoreNodeParent(node.openBraceToken, node);
+            this.restoreNodeParent(node.closeBraceToken, node);
+            this.restoreNodeParent(node.varKeyword, node);
+        }
+    }
+
+    static restoreNodeListParent(nodeList: ALFullSyntaxTreeNode[] | undefined, parentNode: ALFullSyntaxTreeNode | undefined) {
+        if (nodeList)
+            for (let i=0; i<nodeList.length; i++)
+                this.restoreNodeParent(nodeList[i], parentNode);
     }
 
     public findTreeNode(position: Position, searchForNodeKinds?: string[]): ALFullSyntaxTreeNode | undefined {

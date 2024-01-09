@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.34
+
+- comply with AZ AL Dev Tools/AL Code Outline v3.0.56. Many functionalities were broken.
+
 ## 1.0.33
 
 - files.eol setting has new default option "auto" instead of \r or \r\n, so it had to be considered.
