@@ -2,7 +2,7 @@
     "name": "al-codeactions",
     "displayName": "AL CodeActions",
     "description": "Adds codeactions to the AL language",
-    "version": "1.0.34",
+    "version": "1.0.35",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -151,6 +151,12 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Extract to label will create a comment when placeholders are found.",
+                        "scope": "resource"
+                    },
+                    "alCodeActions.executeCodeActionsAutomatically": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "VS Code's default is that code action providers are executed on each cursor change automatically. You can opt out by turning off the 'editor.lightbulb.enabled'-setting. But that would turn off each code action provider automatically. This setting allows you to only turn off the automatic code action providers created by AL CodeActions, so that only explicit requests done by 'Ctrl + .' or 'Quick Fix...'-command provides code actions and therefore reduces CPU already.",
                         "scope": "resource"
                     }
                 }

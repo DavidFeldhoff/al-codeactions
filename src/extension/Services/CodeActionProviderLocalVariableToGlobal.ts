@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, Range, TextDocument, TextEdit, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, Range, TextDocument, TextEdit, WorkspaceEdit } from "vscode";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { SyntaxTreeExt } from "../AL Code Outline Ext/syntaxTreeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
@@ -7,6 +7,7 @@ import { ALVariable } from "../Entities/alVariable";
 import { ALVariableParser } from "../Entity Parser/alVariableParser";
 import { WorkspaceEditUtils } from "../Utils/WorkspaceEditUtils";
 import { ICodeActionProvider } from "./ICodeActionProvider";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderLocalVariableToGlobal implements ICodeActionProvider {
     document: TextDocument;
@@ -16,7 +17,12 @@ export class CodeActionProviderLocalVariableToGlobal implements ICodeActionProvi
         this.range = range;
     }
 
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix) && !context.only.contains(CodeActionKind.Refactor))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         let currentIndent: number = this.document.lineAt(this.range.start.line).firstNonWhitespaceCharacterIndex
         let indentOfVar: number = currentIndent - 4
         for (let lineNo = this.range.start.line; lineNo > 0; lineNo--) {

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { CodeAction, Range, TextDocument, TextEdit, window, workspace } from 'vscode';
+import { CodeAction, CodeActionTriggerKind, Range, TextDocument, TextEdit, window, workspace } from 'vscode';
 import { TextRangeExt } from '../../extension/AL Code Outline Ext/textRangeExt';
 import { ALFullSyntaxTreeNode } from '../../extension/AL Code Outline/alFullSyntaxTreeNode';
 import { ALVariable } from '../../extension/Entities/alVariable';
@@ -35,7 +35,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -83,7 +83,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, IsHandled);'; //IsHandled is a var-parameter due to the setting "alCodeActions.varParameters"
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -131,7 +131,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -178,7 +178,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyText);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -226,7 +226,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'LocalProcedureOneParam(Customer, MyBool, Vendor);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -280,7 +280,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'ReturnSomething(MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -327,7 +327,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'ReturnSomethingNamed(MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -375,7 +375,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'TestModifyProcedure_Public.PublicProcedureOneParam(Customer, MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start.translate(0, 'TestModifyProcedure_Public.'.length);
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -423,7 +423,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'TestModifyProcedure_Public.PublicProcedureOneParam(Customer, MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start.translate(0, 'TestModifyProcedure_Public.'.length);
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -471,7 +471,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'TestModifyProcedure_Public.PublicProcedureOneParam(Customer, MyBool, Vendor);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start.translate(0, 'TestModifyProcedure_Public.'.length);
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -526,7 +526,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start;
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
 		await Config.setPublisherHasVarParametersOnly(undefined, true)
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		await Config.setPublisherHasVarParametersOnly(undefined, undefined); //reset config
@@ -556,7 +556,7 @@ suite('ALModifyProcedureCA Test Suite', function () {
 		let lineTextToSearch = 'Customer.CalcAvailableCredit(MyBool);';
 		let procedureStartPos = TestHelper.getRangeOfLine(codeunitInternal, lineTextToSearch).start.translate(0, 'Customer.'.length);
 		let codeActionProvider = new CodeActionProviderModifyProcedureDeclaration(codeunitInternal, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, false, 'Code action should not be considered');
 	})
 });

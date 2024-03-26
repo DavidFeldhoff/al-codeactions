@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, Position, QuickInputButton, QuickPickItemKind, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, Position, QuickInputButton, QuickPickItemKind, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorRevealType, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -7,6 +7,7 @@ import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { Command } from "../Entities/Command";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { ICodeActionProvider } from "./ICodeActionProvider";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderPromoteAction implements ICodeActionProvider {
     document: TextDocument;
@@ -15,7 +16,12 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         this.document = document;
         this.range = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         const syntaxTree = await SyntaxTree.getInstance(this.document);
         const currentPageActionName = this.getCurrentPageActionName(syntaxTree);
         if (!currentPageActionName)

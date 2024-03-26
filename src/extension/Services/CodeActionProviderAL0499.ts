@@ -1,8 +1,9 @@
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { DocumentUtils } from '../Utils/documentUtils';
 import { ICodeActionProvider } from "./ICodeActionProvider";
-import { TextDocument, Diagnostic, CodeAction, CodeActionKind } from "vscode";
+import { TextDocument, Diagnostic, CodeAction, CodeActionKind, CodeActionContext, CodeActionTriggerKind } from "vscode";
 import { Command } from "../Entities/Command";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderAL0499 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -14,7 +15,12 @@ export class CodeActionProviderAL0499 implements ICodeActionProvider {
         this.diagnostic = diagnostic;
         this.procedureName = DocumentUtils.getProcedureNameOfDiagnosticMessage(diagnostic.message);
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         return true;
     }
 

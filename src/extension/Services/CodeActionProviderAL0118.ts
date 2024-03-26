@@ -7,9 +7,10 @@ import { ALProcedure } from '../Entities/alProcedure';
 import { CreateProcedureAL0118IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118IntegrationEvent';
 import { CreateProcedureAL0118BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0118BusinessEvent';
 import { WorkspaceUtils } from '../Utils/workspaceUtils';
-import { TextDocument, Diagnostic, CodeAction, CodeActionKind, Location } from "vscode";
+import { TextDocument, Diagnostic, CodeAction, CodeActionKind, Location, CodeActionContext, CodeActionTriggerKind } from "vscode";
 import { Command } from "../Entities/Command";
 import { CodeActionProviderAL0132 } from "./CodeActionProviderAL0132";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderAL0118 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -19,7 +20,12 @@ export class CodeActionProviderAL0118 implements ICodeActionProvider {
         this.document = document;
         this.diagnostic = diagnostic;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
         if (await new ALSourceCodeHandler(this.document).isInvocationExpression(this.diagnostic.range)) {
             return true;

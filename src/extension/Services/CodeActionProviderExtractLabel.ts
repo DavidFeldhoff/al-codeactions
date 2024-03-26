@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, commands, Location, Position, Range, Selection, SnippetString, TextDocument, TextEdit, TextEditorRevealType, TextLine, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, commands, Location, Position, Range, Selection, SnippetString, TextDocument, TextEdit, TextEditorRevealType, TextLine, window, workspace, WorkspaceEdit } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
@@ -22,7 +22,12 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         this.document = document;
         this.range = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix) && !context.only.contains(CodeActionKind.Refactor))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         let lineText: TextLine = this.document.lineAt(this.range.start.line);
         return lineText.text.includes('\'') && lineText.firstNonWhitespaceCharacterIndex > 4;
     }

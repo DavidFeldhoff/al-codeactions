@@ -1,4 +1,4 @@
-import { CodeAction, Diagnostic, Location, Position, Range, TextDocument, TextEdit, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, Diagnostic, Location, Position, Range, TextDocument, TextEdit, window, workspace, WorkspaceEdit } from "vscode";
 import * as vscode from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
@@ -28,7 +28,12 @@ export class CodeActionProviderModifyProcedureContent {
         this.document = document;
         this.range = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == vscode.CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         if (this.range.start.line != this.range.end.line)
             return false;
         let currentLine: string = this.document.lineAt(this.range.start.line).text;

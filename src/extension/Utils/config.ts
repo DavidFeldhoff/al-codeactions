@@ -40,6 +40,9 @@ export class Config {
     static async setExtractToLabelCreatesComment(uri: Uri | undefined, newValue: boolean | undefined) {
         await this.getConfig(uri).update('extractToLabelCreatesComment', newValue);
     }
+    static getExecuteCodeActionsAutomatically(uri?: Uri): boolean {
+        return this.getConfig(uri).get<boolean>('executeCodeActionsAutomatically', true);
+    }
 }
 
 export enum FindNewProcedureLocation {

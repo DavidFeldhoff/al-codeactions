@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind, commands, Diagnostic, languages, Location, Range, TextDocument, workspace } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, commands, Diagnostic, languages, Location, Range, TextDocument, workspace } from "vscode";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
@@ -21,7 +21,12 @@ export class CodeActionProviderModifyProcedureDeclaration implements ICodeAction
         this.document = document;
         this.range = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         let diagnostics: Diagnostic[] = languages.getDiagnostics(this.document.uri);
         if (!diagnostics.some(diagnostic => diagnostic.range.contains(this.range) && DiagnosticAnalyzer.getDiagnosticCode(diagnostic) == 'AL0126'))
             return false

@@ -9,7 +9,7 @@ import { WorkspaceUtils } from '../Utils/workspaceUtils';
 import { CreateProcedureAL0132IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132IntegrationEvent';
 import { CreateProcedureAL0132BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132BusinessEvent';
 import { Err } from '../Utils/Err';
-import { TextDocument, Diagnostic, CodeAction, workspace, CodeActionKind, window, commands, Location, CustomExecution, TextEditorCursorStyle, WorkspaceFolder } from "vscode";
+import { TextDocument, Diagnostic, CodeAction, workspace, CodeActionKind, window, commands, Location, CustomExecution, TextEditorCursorStyle, WorkspaceFolder, CodeActionContext, CodeActionTriggerKind } from "vscode";
 import { Command } from "../Entities/Command";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { ALFullSyntaxTreeNodeExt } from "../AL Code Outline Ext/alFullSyntaxTreeNodeExt";
@@ -18,6 +18,7 @@ import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { ALObjectParser } from "../Entity Parser/alObjectParser";
 import { AccessModifier } from "../Entities/accessModifier";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderAL0132 implements ICodeActionProvider {
     syntaxTree: SyntaxTree | undefined;
@@ -28,7 +29,12 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         this.document = document;
         this.diagnostic = diagnostic;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
         if (await new ALSourceCodeHandler(this.document).isInvocationExpression(this.diagnostic.range)) {
             this.createProcedureAL0132 = new CreateProcedureAL0132(this.document, this.diagnostic);

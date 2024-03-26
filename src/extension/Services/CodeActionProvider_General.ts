@@ -28,7 +28,7 @@ export class CodeActionProvider_General implements CodeActionProvider {
 
         let myCodeActionProvidersToExecute: ICodeActionProvider[] = [];
         for (const myCodeActionProvider of myCodeActionProviders) {
-            if (await myCodeActionProvider.considerLine()) {
+            if (await myCodeActionProvider.considerLine(context)) {
                 myCodeActionProvidersToExecute.push(myCodeActionProvider);
             }
         }

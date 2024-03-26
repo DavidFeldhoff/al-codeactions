@@ -1,6 +1,6 @@
 import { ICRSExtensionPublicApi } from "crs-al-language-extension-api";
 import { join, parse } from "path";
-import { CodeAction, CodeActionKind, commands, CompletionItem, CompletionItemKind, CompletionList, extensions, Position, Range, TextDocument, Uri, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, commands, CompletionItem, CompletionItemKind, CompletionList, extensions, Position, Range, TextDocument, Uri, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
 import { SyntaxTree } from '../AL Code Outline/syntaxTree';
 import * as Telemetry from "../ApplicationInsights/applicationInsights";
 import { ConvertOptionVariableToEnum } from "../ConvertOptionToEnum/ConvertOptionVariableToEnum";
@@ -12,6 +12,7 @@ import { Command } from '../Entities/Command';
 import { ALPropertyName } from "../Entities/properties";
 import { ICodeActionProvider } from "./ICodeActionProvider";
 import { DocumentUtils } from "../Utils/documentUtils";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
     range: Range;
@@ -21,7 +22,12 @@ export class CodeActionProviderOptionToEnum implements ICodeActionProvider {
         this.document = document;
         this.range = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix) && !context.only.contains(CodeActionKind.Refactor))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         const convertTablefieldOptionToEnum = new ConvertTablefieldOptionToEnum(this.document, this.range);
         const convertOptionVariableToEnum = new ConvertOptionVariableToEnum(this.document, this.range);
 

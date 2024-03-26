@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { TextDocument, workspace, window, Diagnostic, Range, CodeAction, Uri } from 'vscode';
+import { TextDocument, workspace, window, Diagnostic, Range, CodeAction, Uri, CodeActionTriggerKind } from 'vscode';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { CreateProcedure } from '../../extension/Create Procedure/Procedure Creator/CreateProcedure';
@@ -945,7 +945,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
 		diagnostic.code = 'AL0118';
 		let codeActionProvider = new CodeActionProviderAL0118(myPage2Document, diagnostic);
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 4, 'Code action should be created');
@@ -977,7 +977,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
 		diagnostic.code = 'AL0132';
 		let codeActionProvider = new CodeActionProviderAL0132(myPage2Document, diagnostic);
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 4, 'Code action should be created');
@@ -999,7 +999,7 @@ suite('ALCreateProcedureCA Test Suite', function () {
 		let diagnostic: Diagnostic = new Diagnostic(rangeOfProcedureName, 'Procedure is missing');
 		diagnostic.code = 'AL0118';
 		let codeActionProvider = new CodeActionProviderAL0118(myPage2Document, diagnostic);
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		WorkspaceUtils.addNoImplicitWithToAppJson();
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();

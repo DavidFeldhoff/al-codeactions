@@ -1,4 +1,4 @@
-import { TextDocument, Range, CodeAction, Position, Location, commands, CodeActionKind, WorkspaceEdit, window, Selection } from 'vscode';
+import { TextDocument, Range, CodeAction, Position, Location, commands, CodeActionKind, WorkspaceEdit, window, Selection, CodeActionContext, CodeActionTriggerKind } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { SyntaxTreeExt } from '../AL Code Outline Ext/syntaxTreeExt';
@@ -20,6 +20,7 @@ import { RenameMgt } from '../renameMgt';
 import { DocumentUtils } from '../Utils/documentUtils';
 import { Err } from '../Utils/Err';
 import { ICodeActionProvider } from './ICodeActionProvider';
+import { Config } from '../Utils/config';
 
 export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
     document: TextDocument;
@@ -30,7 +31,12 @@ export class CodeActionProviderExtractProcedure implements ICodeActionProvider {
         this.range = range;
         this.selectedRange = range;
     }
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix) && !context.only.contains(CodeActionKind.Refactor))
+            return false;
+        if (context.triggerKind == CodeActionTriggerKind.Automatic)
+            if (!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         if (this.range.start.compareTo(this.range.end) === 0) { //performance
             return false;
         }

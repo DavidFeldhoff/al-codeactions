@@ -267,7 +267,12 @@ export class RangeAnalyzer {
             if (consoleTextStart !== '') {
                 consoleTextStart += ',';
             }
-            consoleTextStart += ALFullSyntaxTreeNodeExt.getNodeByPath(blockNode, currentPath).kind;
+            const node = ALFullSyntaxTreeNodeExt.getNodeByPath(blockNode, currentPath);
+            if (node) {
+                consoleTextStart += node.kind;
+            } else{
+                consoleTextStart += 'node not found at ' + currentPath;
+            }
         });
         consoleTextEnd = "";
         currentPath = [];

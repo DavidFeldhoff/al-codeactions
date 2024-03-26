@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { CodeAction, Location, Range, TextDocument, TextEdit, Uri, window, workspace, WorkspaceEdit } from 'vscode';
+import { CodeAction, CodeActionTriggerKind, Location, Range, TextDocument, TextEdit, Uri, window, workspace, WorkspaceEdit } from 'vscode';
 import { ALVariable } from '../../extension/Entities/alVariable';
 import { Command } from '../../extension/Entities/Command';
 import { CodeActionProviderModifyProcedureContent, PublisherToAdd } from '../../extension/Services/CodeActionProviderModifyProcedureContent';
@@ -37,7 +37,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -85,7 +85,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -142,7 +142,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -201,7 +201,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -259,7 +259,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -332,7 +332,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -396,7 +396,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -460,7 +460,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -533,7 +533,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
@@ -606,7 +606,7 @@ suite('ALModifyProcedureContent Test Suite', function () {
 		let doc = addPublishersToProcedure;
 		let procedureStartPos = TestHelper.getRangeOfLine(doc, lineTextToSearch).start.translate(undefined, + 'procedure '.length)
 		let codeActionProvider = new CodeActionProviderModifyProcedureContent(doc, new Range(procedureStartPos, procedureStartPos))
-		let consider: boolean = await codeActionProvider.considerLine();
+		let consider: boolean = await codeActionProvider.considerLine({diagnostics: [], only: undefined, triggerKind: CodeActionTriggerKind.Automatic });
 		assert.strictEqual(consider, true, 'Code action should be considered');
 		let codeActions: CodeAction[] = await codeActionProvider.createCodeActions();
 		assert.strictEqual(codeActions.length, 2, 'Code action should be created');
