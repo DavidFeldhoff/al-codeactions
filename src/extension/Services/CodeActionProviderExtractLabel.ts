@@ -34,27 +34,33 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
     async createCodeActions(): Promise<CodeAction[]> {
         this.syntaxTree = await SyntaxTree.getInstance(this.document);
         this.stringLiteralTreeNode = this.syntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getStringLiteralValue()]);
-        let methodOrTriggerTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
-        if (!this.stringLiteralTreeNode || !this.syntaxTree || !methodOrTriggerTreeNode)
+        let methodOrTriggerOrObjectTreeNode: ALFullSyntaxTreeNode | undefined = this.syntaxTree.findTreeNode(this.range.start, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()]);
+        if (!this.stringLiteralTreeNode || !this.syntaxTree)
             return [];
+        if (!methodOrTriggerOrObjectTreeNode) {
+            let objectTreeNode: ALFullSyntaxTreeNode | undefined = ALFullSyntaxTreeNodeExt.findParentNodeOfKind(this.stringLiteralTreeNode, FullSyntaxTreeNodeKind.getAllObjectKinds())
+            if (!objectTreeNode)
+                return [];
+            methodOrTriggerOrObjectTreeNode = objectTreeNode;
+        }
 
         let stringLiteralRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(this.stringLiteralTreeNode.fullSpan));
         let codeAction: CodeAction = new CodeAction('Extract to Label', CodeActionKind.RefactorExtract);
         let codeActionLockedLabel: CodeAction = new CodeAction('Extract to locked Label', CodeActionKind.RefactorExtract);
         codeAction.command = {
             command: Command.extractLabel,
-            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerTreeNode, false],
+            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerOrObjectTreeNode, false],
             title: codeAction.title
         };
         codeActionLockedLabel.command = {
             command: Command.extractLabel,
-            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerTreeNode, true],
+            arguments: [this.document, this.range, stringLiteralRange, methodOrTriggerOrObjectTreeNode, true],
             title: codeActionLockedLabel.title
         };
         return [codeAction, codeActionLockedLabel];
     }
-    public async runCommand(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) {
-        let result = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerTreeNode, lockLabel);
+    public async runCommand(stringLiteralRange: Range, methodOrTriggerOrObjectTreeNode: ALFullSyntaxTreeNode, lockLabel: boolean) {
+        let result = await this.getWorkspaceEditAndSnippetString(stringLiteralRange, methodOrTriggerOrObjectTreeNode, lockLabel);
         if (!result)
             return
         let snippetMode = result.snippetMode;
@@ -82,7 +88,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         Telemetry.trackEvent(Telemetry.EventName.ExtractToLabel, telemetryOptions)
     }
 
-    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean): Promise<{
+    public async getWorkspaceEditAndSnippetString(stringLiteralRange: Range, methodOrTriggerOrObjectTreeNode: ALFullSyntaxTreeNode, lockTranslation: boolean): Promise<{
         snippetMode: boolean; edit: WorkspaceEdit; snippetParams: {
             snippetString: SnippetString; position: Position; options: { undoStopBefore: boolean; undoStopAfter: boolean; };
         } | undefined;
@@ -99,7 +105,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         if (result.aborted)
             return undefined
         let stringLiteralsToReplaceToo = result.stringLiteralsToReplaceToo
-        const globalVariableRequired: boolean = stringLiteralsToReplaceToo.some(node => ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()])?.fullSpan?.start?.line != methodOrTriggerTreeNode.fullSpan!.start!.line)
+        const globalVariableRequired: boolean = stringLiteralsToReplaceToo.some(node => ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()])?.fullSpan?.start?.line != methodOrTriggerOrObjectTreeNode.fullSpan!.start!.line)
 
         let cleanVariableName = 'newLabel';
         let edit: WorkspaceEdit = new WorkspaceEdit();
@@ -111,10 +117,12 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
             variableName = '${0:' + cleanVariableName + '}';
         let variable: ALVariable = new ALVariable(variableName, 'Label ' + this.document.getText(stringLiteralRange) + commentText + lockText);
         let textEdit: TextEdit;
-        if (globalVariableRequired)
-            textEdit = WorkspaceEditUtils.addVariableToGlobalVarSection(ALFullSyntaxTreeNodeExt.findParentNodeOfKind(methodOrTriggerTreeNode, FullSyntaxTreeNodeKind.getAllObjectKinds())!, variable, this.document);
+        if (FullSyntaxTreeNodeKind.getAllObjectKinds().includes(methodOrTriggerOrObjectTreeNode.kind!))
+            textEdit = WorkspaceEditUtils.addVariableToGlobalVarSection(methodOrTriggerOrObjectTreeNode, variable, this.document);
+        else if (globalVariableRequired)
+            textEdit = WorkspaceEditUtils.addVariableToGlobalVarSection(ALFullSyntaxTreeNodeExt.findParentNodeOfKind(methodOrTriggerOrObjectTreeNode, FullSyntaxTreeNodeKind.getAllObjectKinds())!, variable, this.document);
         else
-            textEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerTreeNode, variable, this.document);
+            textEdit = WorkspaceEditUtils.addVariableToLocalVarSection(methodOrTriggerOrObjectTreeNode, variable, this.document);
         let snippetParams: { snippetString: SnippetString, position: Position, options: { undoStopBefore: boolean; undoStopAfter: boolean; } } | undefined
         if (snippetMode)
             snippetParams = {

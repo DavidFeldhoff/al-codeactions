@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.36
+
+- `Extract Label` now also supported outside of methods like e.g. in page field or report column source expressions #178.
+
 ## 1.0.35
 
 - respect the code action provider context to find out if a code action is currently requested because of an OnSave action (which means that the code action providers of AL CodeAction don't have to be executed) or if it is executed explicitly. Furthermore a new setting `alCodeActions.executeCodeActionsAutomatically` is introduced which allows to only provide codeactions on explicit request by using the `Ctrl + .` keybinding or `Quick Fix...` command to reduce the needed CPU for AL CodeActions, but still having the functionality in place.
