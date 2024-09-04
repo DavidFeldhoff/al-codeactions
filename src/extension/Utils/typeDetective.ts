@@ -176,7 +176,7 @@ export class TypeDetective {
                         this.hoverMessageFirstLine = hoverMessageLines[startIndex + 1];
                         if (this.hoverMessageFirstLine.includes(':')) {
                             this.type = this.hoverMessageFirstLine.substr(this.hoverMessageFirstLine.lastIndexOf(':') + 1).trim();
-                            this.type = this.fixHoverMessage(this.type);
+                            ({ type: this.type, name: this.name } = this.fixHoverMessage(this.type, this.name));
                             this.canBeVar = true;
 
                             this.checkIsVar(this.hoverMessageFirstLine);
@@ -206,9 +206,10 @@ export class TypeDetective {
             return false;
         }
     }
-    private fixHoverMessage(type: string): string {
-        if (type === 'Label') {
+    private fixHoverMessage(type: string, name: string | undefined): { type: string, name: string | undefined } {
+        if (type.startsWith('Label')) {
             type = 'Text';
+            name = name?.replace(/(Msg|Tok|Err|Qst|Lbl|Txt)$/i, '');
         }
         if (type.trim().startsWith('TestPage')) {
             let testpageType = type.trim().substr('TestPage'.length).trim();
@@ -216,7 +217,7 @@ export class TypeDetective {
                 type = 'TestPage "' + type.substr('TestPage'.length).trim() + '"';
             }
         }
-        return type;
+        return { type, name };
     }
 
     private checkIsVar(hoverMessageFirstLine: string) {

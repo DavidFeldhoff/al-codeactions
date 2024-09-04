@@ -6,6 +6,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 
 - `Extract Label` now also supported outside of methods like e.g. in page field or report column source expressions #178.
 - `Promote action` did not add quotes to existing action groups. #168
+- `Create Method` with a Label as parameter results now in expecting a Text-parameter and it removes the known Suffixes (Msg, Tok, Err, Qst, Lbl, Txt) from the variable name. #179
 
 ## 1.0.35
 
