@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.36
 
 - `Extract Label` now also supported outside of methods like e.g. in page field or report column source expressions #178.
+- `Promote action` did not add quotes to existing action groups. #168
 
 ## 1.0.35
 

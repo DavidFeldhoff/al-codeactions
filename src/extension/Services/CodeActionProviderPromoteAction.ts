@@ -291,7 +291,7 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         const anchorActionGroupName: string = typeof anchorActionGroupNode === "string" ? anchorActionGroupNode : anchorActionGroupNode.name!;
         const nodeOfAddLastAnchorActionGroup = actionAddChangeNodes.find(node => {
             const data = this.getChangeKeywordAndAnchor(node, this.document);
-            return data && data.addChangeKeyword.toLowerCase() == 'addlast' && data.anchor?.toLowerCase() == anchorActionGroupName.toLowerCase()
+            return data && data.addChangeKeyword.toLowerCase() == 'addlast' && data.anchor?.toLowerCase().removeQuotes() == anchorActionGroupName.toLowerCase().removeQuotes()
         })
 
         const { textToInsert, newLines } = this.getTextToInsertToAddLastOfActionGroup(pageActionNameToPromote, anchorActionGroupName, nodeOfAddLastAnchorActionGroup, pageExtensionActionListNode);
@@ -379,6 +379,8 @@ export class CodeActionProviderPromoteAction implements ICodeActionProvider {
         return { textToInsert, newLines }
     }
     private getTextToInsertToAddLastOfActionGroup(pageActionNameToPromote: string, anchorActionGroupName: string, nodeOfAddLastAnchorActionGroup: ALFullSyntaxTreeNode | undefined, pageExtensionActionListNode: ALFullSyntaxTreeNode) {
+        if(!anchorActionGroupName.startsWith('"') && !anchorActionGroupName.match(/^\w[\w\d_]*$/))
+            anchorActionGroupName = `"${anchorActionGroupName}"`
         const indent = this.getPageExtensionActionListIndent(pageExtensionActionListNode);
 
         let textToInsert: string
