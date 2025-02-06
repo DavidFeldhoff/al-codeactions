@@ -107,7 +107,7 @@ export class CodeActionProviderExtractLabel implements ICodeActionProvider {
         let stringLiteralsToReplaceToo = result.stringLiteralsToReplaceToo
         const globalVariableRequired: boolean = stringLiteralsToReplaceToo.some(node => ALFullSyntaxTreeNodeExt.findParentNodeOfKind(node, [FullSyntaxTreeNodeKind.getMethodDeclaration(), FullSyntaxTreeNodeKind.getTriggerDeclaration()])?.fullSpan?.start?.line != methodOrTriggerOrObjectTreeNode.fullSpan!.start!.line)
 
-        let cleanVariableName = 'newLabel';
+        let cleanVariableName = 'NewLabel';
         let edit: WorkspaceEdit = new WorkspaceEdit();
         edit.replace(this.document.uri, stringLiteralRange, cleanVariableName);
         stringLiteralsToReplaceToo.forEach(literalNode => edit.replace(this.document.uri, DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(literalNode.fullSpan)), cleanVariableName));
