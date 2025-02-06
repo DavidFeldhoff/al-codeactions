@@ -2,6 +2,10 @@
 
 All notable changes to the "al-codeactions" extension will be documented in this file.
 
+## 1.0.37
+
+- New functionality: `Refactor to Evaluate`
+
 ## 1.0.36
 
 - `Extract Label` now also supported outside of methods like e.g. in page field or report column source expressions #178.
