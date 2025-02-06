@@ -8,6 +8,7 @@ import { ICodeActionProvider } from "./ICodeActionProvider";
 import { WorkspaceUtils } from '../Utils/workspaceUtils';
 import { CreateProcedureAL0132IntegrationEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132IntegrationEvent';
 import { CreateProcedureAL0132BusinessEvent } from '../Create Procedure/Procedure Creator/CreateProcedureAL0132BusinessEvent';
+import { CreateProcedureAL0132TryFunction } from "../Create Procedure/Procedure Creator/CreateProcedureAL0132TryFunction";
 import { Err } from '../Utils/Err';
 import { TextDocument, Diagnostic, CodeAction, workspace, CodeActionKind, window, commands, Location, CustomExecution, TextEditorCursorStyle, WorkspaceFolder, CodeActionContext, CodeActionTriggerKind } from "vscode";
 import { Command } from "../Entities/Command";
@@ -65,8 +66,15 @@ export class CodeActionProviderAL0132 implements ICodeActionProvider {
         }
 
         let prefixes: string[] | undefined = await WorkspaceUtils.findValidAppSourcePrefixes(this.document.uri);
-        let regexPattern: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
-        if (procedure.name.match(regexPattern)) {
+        let regexPatternPublishers: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?On[A-Za-z].*$") : new RegExp("^On[A-Za-z].*$");
+        let regexPatternTryFunction: RegExp = prefixes ? new RegExp("^(" + prefixes.join('|') + "|" + prefixes.join('_|') + "_)?Try[A-Za-z].*$") : new RegExp("^Try[A-Za-z].*$");
+        if (procedure.name.match(regexPatternTryFunction)) {
+            let createProcedureAL0132TryFunction: CreateProcedureAL0132TryFunction = new CreateProcedureAL0132TryFunction(this.document, this.diagnostic);
+            let tryFunction: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132TryFunction);
+            let codeActionTryFunction: CodeAction = await this.createCodeAction(`Create procedure ${tryFunction.name} as TryFunction`, tryFunction, false);
+            codeActionTryFunction.isPreferred = true;
+            codeActions.push(codeActionTryFunction);
+        } else if (procedure.name.match(regexPatternPublishers)) {
             let createProcedureAL0132IntegrationEvent: CreateProcedureAL0132IntegrationEvent = new CreateProcedureAL0132IntegrationEvent(this.document, this.diagnostic);
             let integrationEvent: ALProcedure = await CreateProcedure.createProcedure(createProcedureAL0132IntegrationEvent);
             let codeActionIntegrationEvent: CodeAction = await this.createCodeAction('Create IntegrationEvent Publisher ' + integrationEvent.name, integrationEvent, false);
