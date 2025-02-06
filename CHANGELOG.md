@@ -5,6 +5,7 @@ All notable changes to the "al-codeactions" extension will be documented in this
 ## 1.0.37
 
 - New functionality: `Refactor to Evaluate`
+- fix "Create Procedure" inserts into the wrong object when `Table1.ExistingFunction(Table2).NotExistingFunction();` and `Existingfunction` would have returned Table1 again. #183
 
 ## 1.0.36
 
