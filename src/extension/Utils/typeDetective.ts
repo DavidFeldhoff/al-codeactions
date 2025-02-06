@@ -1,4 +1,4 @@
-import { TextDocument, Range, Hover, commands, Position, Location, SignatureHelp, extensions } from 'vscode';
+import { TextDocument, Range, Hover, commands, Position, Location, SignatureHelp, extensions, MarkdownString } from 'vscode';
 import { ALFullSyntaxTreeNodeExt } from '../AL Code Outline Ext/alFullSyntaxTreeNodeExt';
 import { FullSyntaxTreeNodeKind } from '../AL Code Outline Ext/fullSyntaxTreeNodeKind';
 import { TextRangeExt } from '../AL Code Outline Ext/textRangeExt';
@@ -168,7 +168,10 @@ export class TypeDetective {
             if (hovers && hovers.length > 0) {
                 let allHoverMessages: string[] = [];
                 for (const hover of hovers) {
-                    let hoverMessage: string = hover.contents.values().next().value.value;
+                    let hoverMessageAsMarkdown = hover?.contents?.values()?.next()?.value;
+                    if (!(hoverMessageAsMarkdown instanceof MarkdownString))
+                        continue;
+                    let hoverMessage: string = (hoverMessageAsMarkdown as MarkdownString).value;
                     allHoverMessages.push(hoverMessage);
                     let hoverMessageLines: string[] = hoverMessage.split(/\r?\n/g);
                     let startIndex = hoverMessageLines.indexOf('```al');

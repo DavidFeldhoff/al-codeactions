@@ -1,10 +1,11 @@
-import { CodeAction, CodeActionKind, commands, Location, Position, Range, TextDocument, workspace, WorkspaceEdit } from "vscode";
+import { CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, commands, Location, Position, Range, TextDocument, workspace, WorkspaceEdit } from "vscode";
 import { FullSyntaxTreeNodeKind } from "../AL Code Outline Ext/fullSyntaxTreeNodeKind";
 import { TextRangeExt } from "../AL Code Outline Ext/textRangeExt";
 import { ALFullSyntaxTreeNode } from "../AL Code Outline/alFullSyntaxTreeNode";
 import { SyntaxTree } from "../AL Code Outline/syntaxTree";
 import { DocumentUtils } from "../Utils/documentUtils";
 import { ICodeActionProvider } from "./ICodeActionProvider";
+import { Config } from "../Utils/config";
 
 export class CodeActionProviderRefactorToEvaluate implements ICodeActionProvider {
     document: TextDocument;
@@ -14,7 +15,12 @@ export class CodeActionProviderRefactorToEvaluate implements ICodeActionProvider
         this.range = range;
     }
 
-    async considerLine(): Promise<boolean> {
+    async considerLine(context: CodeActionContext): Promise<boolean> {
+        if (context.only && !context.only.contains(CodeActionKind.QuickFix) && !context.only.contains(CodeActionKind.Refactor))
+            return false;
+        if(context.triggerKind == CodeActionTriggerKind.Automatic)
+            if(!Config.getExecuteCodeActionsAutomatically(this.document.uri))
+                return false;
         if (this.range.start.compareTo(this.range.end) == 0) {
             let word1, word2, word3: string = ''
             word1 = this.document.getText(new Range(this.range.start.translate(0, 0), this.range.start.translate(0, 2)));
@@ -83,14 +89,12 @@ export class CodeActionProviderRefactorToEvaluate implements ICodeActionProvider
                 return;
             let otherDocument: TextDocument = await workspace.openTextDocument(location[0].uri)
             let syntaxTreeOtherDoc: SyntaxTree = await SyntaxTree.getInstance(otherDocument);
-            if (!syntaxTreeOtherDoc.findTreeNode(location[0].range.start, [FullSyntaxTreeNodeKind.getField()]))
+            if (!syntaxTreeOtherDoc.findTreeNode(location[0].range.start, [FullSyntaxTreeNodeKind.getField(), FullSyntaxTreeNodeKind.getVariableDeclaration(), FullSyntaxTreeNodeKind.getVariableListDeclaration()]))
                 return;
             evaluatePosition = leftTreeNodeRange.start;
         } else {
             if (leftTreeNode.kind !== FullSyntaxTreeNodeKind.getMemberAccessExpression() || !leftTreeNode.childNodes)
                 return;
-            let fieldTreeNode: ALFullSyntaxTreeNode = leftTreeNode.childNodes[1];
-            let fieldTreeNodeRange: Range = DocumentUtils.trimRange(this.document, TextRangeExt.createVSCodeRange(fieldTreeNode.fullSpan));
             evaluatePosition = leftTreeNodeRange.start
         }
         edit.insert(this.document.uri, rightTreeNodeRange.end, ')');
